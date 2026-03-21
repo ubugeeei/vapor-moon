@@ -29,17 +29,35 @@ test "snapshot reactivity basics compile" {
       #|  let count_watch = watch(fn() { count.get() }, fn(next, prev) {
       #|    history.set(prev.to_string() + " -> " + next.to_string())
       #|  })
-      #|  @luna_dom.create_element("section", [("class", @luna_dom.attr_static("reactivity"))], [
-      #|      @luna_dom.create_element("button", [("click", @luna_dom.attr_handler(fn(_event) { count.update(fn(n) { n + 1 }) }))], [
-      #|          @luna_dom.text("+")
-      #|        ]),
-      #|      @luna_dom.create_element("p", [], [
-      #|          @luna_dom.text_dyn(fn() { summary().to_string() })
-      #|        ]),
-      #|      @luna_dom.create_element("small", [], [
-      #|          @luna_dom.text_dyn(fn() { history.get().to_string() })
-      #|        ])
-      #|    ])
+      #|  (fn() {
+      #|      let __vm_el = @vm_dom.element("section")
+      #|      @vm_dom.apply_attrs(__vm_el, [("class", @vm_dom.attr_static("reactivity"))])
+      #|      @vm_dom.append_children(__vm_el, [
+      #|              (fn() {
+      #|                        let __vm_el = @vm_dom.element("button")
+      #|                        @vm_dom.apply_attrs(__vm_el, [("click", @vm_dom.attr_handler(fn(_event) { count.update(fn(n) { n + 1 }) }))])
+      #|                        @vm_dom.append_children(__vm_el, [
+      #|                                      @vm_dom.text("+")
+      #|                                    ])
+      #|                        @vm_dom.to_node(__vm_el)
+      #|                      })(),
+      #|              (fn() {
+      #|                        let __vm_el = @vm_dom.element("p")
+      #|                        @vm_dom.append_children(__vm_el, [
+      #|                                      @vm_dom.text_expr(fn() { summary().to_string() })
+      #|                                    ])
+      #|                        @vm_dom.to_node(__vm_el)
+      #|                      })(),
+      #|              (fn() {
+      #|                        let __vm_el = @vm_dom.element("small")
+      #|                        @vm_dom.append_children(__vm_el, [
+      #|                                      @vm_dom.text_expr(fn() { history.get().to_string() })
+      #|                                    ])
+      #|                        @vm_dom.to_node(__vm_el)
+      #|                      })()
+      #|            ])
+      #|      @vm_dom.to_node(__vm_el)
+      #|    })()
       #|}
       #|
       #|pub fn declared_props() -> Array[String] {
@@ -151,14 +169,27 @@ test "snapshot lifecycle refs compile" {
       #|      ignore(root_ref)
       #|    })
       #|  })
-      #|  @luna_dom.create_element("section", [("data-id", @luna_dom.attr_dynamic(fn() { instance_id.to_string() })), ("__ref", @luna_dom.attr_handler(fn(target) { @vm_dom.bind_template_ref("root", target) }))], [
-      #|      @luna_dom.create_element("p", [], [
-      #|          @luna_dom.text_dyn(fn() { phase.get().to_string() })
-      #|        ]),
-      #|      @luna_dom.create_element("p", [], [
-      #|          @luna_dom.text_dyn(fn() { instance_id.to_string() })
-      #|        ])
-      #|    ])
+      #|  (fn() {
+      #|      let __vm_el = @vm_dom.element("section")
+      #|      @vm_dom.apply_attrs(__vm_el, [("data-id", @vm_dom.attr_dynamic(fn() { instance_id.to_string() })), ("__ref", @vm_dom.attr_handler(fn(target) { @vm_dom.bind_template_ref("root", target) }))])
+      #|      @vm_dom.append_children(__vm_el, [
+      #|              (fn() {
+      #|                        let __vm_el = @vm_dom.element("p")
+      #|                        @vm_dom.append_children(__vm_el, [
+      #|                                      @vm_dom.text_expr(fn() { phase.get().to_string() })
+      #|                                    ])
+      #|                        @vm_dom.to_node(__vm_el)
+      #|                      })(),
+      #|              (fn() {
+      #|                        let __vm_el = @vm_dom.element("p")
+      #|                        @vm_dom.append_children(__vm_el, [
+      #|                                      @vm_dom.text_expr(fn() { instance_id.to_string() })
+      #|                                    ])
+      #|                        @vm_dom.to_node(__vm_el)
+      #|                      })()
+      #|            ])
+      #|      @vm_dom.to_node(__vm_el)
+      #|    })()
       #|}
       #|
       #|pub fn declared_props() -> Array[String] {

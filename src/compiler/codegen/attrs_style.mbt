@@ -58,9 +58,9 @@ fn render_style_expr(attr : TemplateAttr, static_mode : Bool) -> (String, Bool) 
 fn render_style_value(expr : String, dynamic : Bool, client : Bool) -> String {
   if client {
     if dynamic {
-      "(\"style\", @luna_dom.attr_dynamic_style(fn() { " + expr + " }))"
+      "(\"style\", @vm_dom.attr_dynamic_style(fn() { " + expr + " }))"
     } else {
-      "(\"style\", @luna_dom.attr_style(" + expr + "))"
+      "(\"style\", @vm_dom.attr_style(" + expr + "))"
     }
   } else if dynamic {
     "(\"style\", @luna_core.attr_dynamic(fn() { " + expr + " }))"

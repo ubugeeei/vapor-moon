@@ -14,9 +14,14 @@ test "snapshot basic compile" {
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  let signal = @reactivity.signal,
       #|  let count = signal(0)
-      #|  @luna_dom.create_element("div", [("class", @luna_dom.attr_static("counter")), ("data-vm-scope", @luna_dom.attr_static("vm-4048536636"))], [
-      #|      @luna_dom.text_dyn(fn() { count.get().to_string() })
-      #|    ])
+      #|  (fn() {
+      #|      let __vm_el = @vm_dom.element("div")
+      #|      @vm_dom.apply_attrs(__vm_el, [("class", @vm_dom.attr_static("counter")), ("data-vm-scope", @vm_dom.attr_static("vm-4048536636"))])
+      #|      @vm_dom.append_children(__vm_el, [
+      #|              @vm_dom.text_expr(fn() { count.get().to_string() })
+      #|            ])
+      #|      @vm_dom.to_node(__vm_el)
+      #|    })()
       #|}
       #|
       #|pub fn declared_props() -> Array[String] {
@@ -120,9 +125,14 @@ test "snapshot macros compile" {
       #|    save : String
       #|    cancel : Unit
       #|  }
-      #|  @luna_dom.create_element("button", [("class", @luna_dom.attr_static("primary")), ("click", @luna_dom.attr_handler(fn(_event) { emit.save() }))], [
-      #|      @luna_dom.text_dyn(fn() { props.title.to_string() })
-      #|    ])
+      #|  (fn() {
+      #|      let __vm_el = @vm_dom.element("button")
+      #|      @vm_dom.apply_attrs(__vm_el, [("class", @vm_dom.attr_static("primary")), ("click", @vm_dom.attr_handler(fn(_event) { emit.save() }))])
+      #|      @vm_dom.append_children(__vm_el, [
+      #|              @vm_dom.text_expr(fn() { props.title.to_string() })
+      #|            ])
+      #|      @vm_dom.to_node(__vm_el)
+      #|    })()
       #|}
       #|
       #|pub fn declared_props() -> Array[String] {

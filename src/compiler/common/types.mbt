@@ -49,6 +49,12 @@ pub(all) struct MacroField {
 } derive(Eq, Show)
 
 ///|
+pub(all) struct PropDefault {
+  name : String
+  expr : String
+} derive(Eq, Show)
+
+///|
 pub(all) struct GenericParam {
   name : String
   declaration : String
@@ -59,8 +65,10 @@ pub(all) struct ScriptSetupInfo {
   source : String
   transformed : String
   import_entries : Array[String]
+  props_declaration : String?
   props_binding : String?
   props : Array[MacroField]
+  prop_defaults : Array[PropDefault]
   emits_binding : String?
   emits : Array[MacroField]
   slots_binding : String?
@@ -77,8 +85,10 @@ pub(all) struct SfcDocument {
   script_setup_transformed : String?
   script_setup_import_entries : Array[String]
   generics : Array[GenericParam]
+  props_declaration : String?
   props_binding : String?
   props : Array[MacroField]
+  prop_defaults : Array[PropDefault]
   emits_binding : String?
   emits : Array[MacroField]
   slots_binding : String?

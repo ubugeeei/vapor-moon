@@ -8,10 +8,12 @@ pub fn analyze_script_setup(
 ) -> ScriptSetupInfo raise CompilerError {
   let ir = parse_script_setup_module(source, filename)
   let contract_types = collect_script_setup_contract_types(source, filename)
+  let mut props_declaration : String? = None
   let mut props_binding : String? = None
   let mut emits_binding : String? = None
   let mut slots_binding : String? = None
   let mut props : Array[MacroField] = []
+  let mut prop_defaults : Array[PropDefault] = []
   let mut emits : Array[MacroField] = []
   let mut slots : Array[MacroField] = []
 
@@ -28,11 +30,18 @@ pub fn analyze_script_setup(
                       "duplicate defineProps() in \{filename}",
                     )
                   None => {
+                    props_declaration = Some(let_stmt.declaration)
                     props_binding = let_stmt.binding
                     props = resolve_macro_fields(
                       macro_,
                       let_stmt.annotation_name,
                       contract_types,
+                      filename,
+                    )
+                    prop_defaults = resolve_prop_defaults(
+                      macro_,
+                      props,
+                      Some(let_stmt.declaration),
                       filename,
                     )
                   }
@@ -89,6 +98,12 @@ pub fn analyze_script_setup(
                     contract_types,
                     filename,
                   )
+                  prop_defaults = resolve_prop_defaults(
+                    macro_,
+                    props,
+                    None,
+                    filename,
+                  )
                 }
               "defineEmits" =>
                 if emits_binding is Some(_) || not(emits.is_empty()) {
@@ -130,8 +145,10 @@ pub fn analyze_script_setup(
     source: render_script_setup_module(ir, false),
     transformed: render_script_setup_module(lowered, false),
     import_entries: collect_script_setup_import_entries(ir),
+    props_declaration,
     props_binding,
     props,
+    prop_defaults,
     emits_binding,
     emits,
     slots_binding,

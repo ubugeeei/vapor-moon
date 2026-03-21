@@ -13,10 +13,12 @@ pub fn parse_sfc(
   let mut script_setup_transformed : String? = None
   let mut script_setup_import_entries : Array[String] = []
   let mut generics : Array[GenericParam] = []
+  let mut props_declaration : String? = None
   let mut props_binding : String? = None
   let mut emits_binding : String? = None
   let mut slots_binding : String? = None
   let mut props : Array[MacroField] = []
+  let mut prop_defaults : Array[PropDefault] = []
   let mut emits : Array[MacroField] = []
   let mut slots : Array[MacroField] = []
   let styles : Array[StyleBlock] = []
@@ -52,8 +54,10 @@ pub fn parse_sfc(
             script_setup = Some(info.source)
             script_setup_transformed = Some(info.transformed)
             script_setup_import_entries = info.import_entries
+            props_declaration = info.props_declaration
             props_binding = info.props_binding
             props = info.props
+            prop_defaults = info.prop_defaults
             emits_binding = info.emits_binding
             emits = info.emits
             slots_binding = info.slots_binding
@@ -93,8 +97,10 @@ pub fn parse_sfc(
         script_setup_transformed,
         script_setup_import_entries,
         generics,
+        props_declaration,
         props_binding,
         props,
+        prop_defaults,
         emits_binding,
         emits,
         slots_binding,

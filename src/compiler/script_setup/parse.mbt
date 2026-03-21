@@ -5,7 +5,7 @@ fn resolve_macro_fields(
   contract_types : Array[ScriptSetupContractType],
   filename : String,
 ) -> Array[MacroField] raise CompilerError {
-  let fields = if macro_.arg_count == 0 {
+  let fields = if accepts_typed_contract_macro(macro_) {
     resolve_typed_contract_fields(
       macro_, annotation_name, contract_types, filename,
     )
@@ -15,6 +15,29 @@ fn resolve_macro_fields(
     )
   }
   validate_interface_fields(fields, macro_.name, filename)
+}
+
+///|
+fn resolve_prop_defaults(
+  macro_ : ScriptSetupMacro,
+  fields : Array[MacroField],
+  declaration : String?,
+  filename : String,
+) -> Array[PropDefault] raise CompilerError {
+  if macro_.name != "defineProps" || macro_.arg_count == 0 {
+    return []
+  }
+  let defaults = match macro_.prop_defaults {
+    Some(defaults) => defaults
+    None =>
+      raise CompilerError::InvalidScriptSetup(default_props_message(filename))
+  }
+  guard declaration is Some(_) else {
+    raise CompilerError::InvalidScriptSetup(
+      "defineProps({ ... }) defaults require a typed binding like `let props : Props = defineProps({ ... })` in \{filename}",
+    )
+  }
+  validate_prop_defaults(defaults, fields, filename)
 }
 
 ///|
@@ -71,12 +94,31 @@ fn typed_contract_message(macro_name : String, filename : String) -> String {
 }
 
 ///|
+fn accepts_typed_contract_macro(macro_ : ScriptSetupMacro) -> Bool {
+  macro_.arg_count == 0 ||
+  (
+    macro_.name == "defineProps" &&
+    macro_.arg_count == 1 &&
+    macro_.prop_defaults is Some(_)
+  )
+}
+
+///|
 fn legacy_runtime_decl_message(
   macro_name : String,
   filename : String,
 ) -> String {
+  if macro_name == "defineProps" {
+    return "\{macro_name}() only accepts a defaults record like `defineProps({ count: 0 })` in \{filename}; " +
+      typed_contract_message(macro_name, filename)
+  }
   "\{macro_name}() no longer accepts runtime declaration literals in \{filename}; " +
   typed_contract_message(macro_name, filename)
+}
+
+///|
+fn default_props_message(filename : String) -> String {
+  "defineProps() defaults must be passed as a single record literal in \{filename}, for example `let props : Props = defineProps({ count: 0 })`"
 }
 
 ///|
@@ -97,4 +139,64 @@ fn default_contract_binding_name(macro_name : String) -> String {
     "defineSlot" => "slots"
     _ => "contract"
   }
+}
+
+///|
+fn validate_prop_defaults(
+  defaults : Array[PropDefault],
+  fields : Array[MacroField],
+  filename : String,
+) -> Array[PropDefault] raise CompilerError {
+  let validated : Array[PropDefault] = []
+  for default_ in defaults {
+    if has_prop_default(validated, default_.name) {
+      raise CompilerError::InvalidScriptSetup(
+        "duplicate default for prop `\{default_.name}` in \{filename}",
+      )
+    }
+    let field = match find_interface_field(fields, default_.name) {
+      Some(field) => field
+      None =>
+        raise CompilerError::InvalidScriptSetup(
+          "defineProps() default `\{default_.name}` does not match any declared prop in \{filename}",
+        )
+    }
+    match field.signature {
+      Some(signature) if is_optional_contract_signature(signature) =>
+        raise CompilerError::InvalidScriptSetup(
+          "defineProps() default `\{default_.name}` requires a non-optional prop type in \{filename}; remove `?` from the contract field and let the default make it optional for callers",
+        )
+      _ => ()
+    }
+    validated.push(default_)
+  }
+  validated
+}
+
+///|
+fn find_interface_field(
+  fields : Array[MacroField],
+  name : String,
+) -> MacroField? {
+  for field in fields {
+    if field.name == name {
+      return Some(field)
+    }
+  }
+  None
+}
+
+///|
+fn has_prop_default(defaults : Array[PropDefault], name : String) -> Bool {
+  for default_ in defaults {
+    if default_.name == name {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn is_optional_contract_signature(signature : String) -> Bool {
+  signature.trim().to_string().has_suffix("?")
 }

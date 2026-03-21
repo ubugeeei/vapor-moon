@@ -114,7 +114,7 @@ test "rejects runtime declaration literals for interface macros" {
     #|</script>
   assert_eq(
     compile_error(source, "invalid/runtime_decl.mbtv"),
-    "InvalidScriptSetup(\"defineProps() no longer accepts runtime declaration literals in invalid/runtime_decl.mbtv; defineProps() requires a typed contract like `struct Props { ... }` plus `let props : Props = defineProps()` in invalid/runtime_decl.mbtv\")",
+    "InvalidScriptSetup(\"defineProps() only accepts a defaults record like `defineProps({ count: 0 })` in invalid/runtime_decl.mbtv; defineProps() requires a typed contract like `struct Props { ... }` plus `let props : Props = defineProps()` in invalid/runtime_decl.mbtv\")",
   )
 }
 
@@ -161,4 +161,40 @@ test "script setup macros are found through grouped expressions" {
   assert_eq(info.props[0].signature, Some("String"))
   assert_false(info.transformed.contains("defineProps"))
   assert_true(info.transformed.contains("@vm.use_id(component_name, 0)"))
+}
+
+///|
+test "script setup macros collect prop defaults from record literal" {
+  let source =
+    #|struct Props {
+    #|  title : String
+    #|  count : Int
+    #|}
+    #|let props : Props = defineProps({
+    #|  count: 0,
+    #|})
+  let info = must_analyze_script_setup(source, "inline/props_defaults.mbtv")
+  assert_eq(info.props_binding, Some("props"))
+  assert_eq(info.prop_defaults.length(), 1)
+  assert_eq(info.prop_defaults[0].name, "count")
+  assert_eq(info.prop_defaults[0].expr, "0")
+}
+
+///|
+test "rejects defaults on optional prop contracts" {
+  let source =
+    #|<script setup>
+    #|struct Props {
+    #|  title : String?
+    #|}
+    #|
+    #|let props : Props = defineProps({
+    #|  title: "hello",
+    #|})
+    #|</script>
+    #|<template><div>{{ props.title }}</div></template>
+  assert_eq(
+    compile_error(source, "invalid/optional_default_prop.mbtv"),
+    "InvalidScriptSetup(\"defineProps() default `title` requires a non-optional prop type in invalid/optional_default_prop.mbtv; remove `?` from the contract field and let the default make it optional for callers\")",
+  )
 }

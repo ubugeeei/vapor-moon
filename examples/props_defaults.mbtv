@@ -1,0 +1,16 @@
+<script setup>
+struct Props {
+  title : String
+  count : Int
+  tone : String
+}
+
+let props : Props = defineProps({
+  count: 0,
+  tone: "primary",
+})
+</script>
+
+<template>
+  <div>{{ props.title + ":" + props.count.to_string() + ":" + props.tone }}</div>
+</template>

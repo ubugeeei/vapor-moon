@@ -6,18 +6,26 @@ fn render_client_element(
   static_mode : Bool,
 ) -> String {
   let attrs = render_client_attrs(element, scope_id, static_mode)
-  let children = if element.html_expr is Some(_) {
-    "[]"
-  } else {
-    render_client_children(element.children, indent + 2, scope_id, static_mode)
+  let statements : Array[String] = [
+    "let __vm_el = @vm_dom.element(" + quote(element.tag) + ")",
+  ]
+  if attrs != "[]" {
+    statements.push("@vm_dom.apply_attrs(__vm_el, " + attrs + ")")
   }
-  "@luna_dom.create_element(" +
-  quote(element.tag) +
-  ", " +
-  attrs +
-  ", " +
-  children +
-  ")"
+  if element.html_expr is None && not(element.children.is_empty()) {
+    statements.push(
+      "@vm_dom.append_children(__vm_el, " +
+      render_client_children(
+        element.children,
+        indent + 4,
+        scope_id,
+        static_mode,
+      ) +
+      ")",
+    )
+  }
+  statements.push("@vm_dom.to_node(__vm_el)")
+  render_client_iife(statements, indent)
 }
 
 ///|
@@ -180,7 +188,7 @@ fn render_client_children(
   let lines : Array[String] = []
   for node in nodes {
     lines.push(
-      indent_text(
+      indent_block(
         render_client_node(node, indent + 2, scope_id, static_mode),
         indent + 2,
       ),
@@ -209,6 +217,15 @@ fn render_server_children(
     )
   }
   "[\n" + lines.join(",\n") + "\n" + spaces(indent) + "]"
+}
+
+///|
+fn render_client_iife(statements : Array[String], indent : Int) -> String {
+  let lines : Array[String] = []
+  for statement in statements {
+    lines.push(indent_block(statement, indent + 2))
+  }
+  "(fn() {\n" + lines.join("\n") + "\n" + spaces(indent) + "})()"
 }
 
 ///|

@@ -5,10 +5,10 @@ fn render_client_nodes(
   scope_id : String?,
 ) -> String {
   if nodes.length() == 1 {
-    indent_text(render_client_node(nodes[0], indent, scope_id, false), indent)
+    indent_block(render_client_node(nodes[0], indent, scope_id, false), indent)
   } else {
     let children = render_client_children(nodes, indent, scope_id, false)
-    indent_text("@luna_dom.fragment(" + children + ")", indent)
+    indent_block("@vm_dom.fragment(" + children + ")", indent)
   }
 }
 
@@ -34,12 +34,12 @@ fn render_client_node(
   static_mode : Bool,
 ) -> String {
   match node {
-    Text(content) => "@luna_dom.text(" + quote(content) + ")"
+    Text(content) => "@vm_dom.text(" + quote(content) + ")"
     Interpolation(expr) =>
       if static_mode {
-        "@luna_dom.text(" + expr + ".to_string())"
+        "@vm_dom.text(" + expr + ".to_string())"
       } else {
-        "@luna_dom.text_dyn(fn() { " + expr + ".to_string() })"
+        "@vm_dom.text_expr(fn() { " + expr + ".to_string() })"
       }
     Element(element) => {
       let next_static = static_mode || element.once
@@ -88,17 +88,13 @@ fn wrap_client_directives(
   let mut current = rendered
   match element.if_expr {
     Some(expr) =>
-      current = "@luna_dom.show(fn() { " +
-        expr +
-        " }, fn() { " +
-        current +
-        " })"
+      current = "@vm_dom.show(fn() { " + expr + " }, fn() { " + current + " })"
     None => ()
   }
   match element.for_binding {
     Some(binding) => {
       let index_name = binding.index.unwrap_or("_index")
-      current = "@luna_dom.for_each(fn() { " +
+      current = "@vm_dom.for_each(fn() { " +
         binding.source +
         " }, fn(" +
         binding.value +

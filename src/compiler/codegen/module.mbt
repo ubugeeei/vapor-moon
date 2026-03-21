@@ -20,6 +20,11 @@ pub fn emit_client_module(
     sb.write_string(indent_block(script_setup.trim().to_string(), 2))
     sb.write_string("\n")
   }
+  let prop_setup = emit_props_default_setup(doc)
+  if prop_setup.length() > 0 {
+    sb.write_string(prop_setup)
+    sb.write_string("\n")
+  }
   sb.write_string(render_client_nodes(template, 2, scope_id))
   sb.write_string("\n}\n\n")
   sb.write_string(emit_component_metadata(doc))
@@ -50,6 +55,11 @@ pub fn emit_server_module(
   if doc.script_setup_transformed is Some(script_setup) &&
     script_setup.trim().length() > 0 {
     sb.write_string(indent_block(script_setup.trim().to_string(), 2))
+    sb.write_string("\n")
+  }
+  let prop_setup = emit_props_default_setup(doc)
+  if prop_setup.length() > 0 {
+    sb.write_string(prop_setup)
     sb.write_string("\n")
   }
   sb.write_string(render_server_nodes(template, 2, scope_id))
@@ -129,4 +139,54 @@ fn string_array_contains(values : Array[String], target : String) -> Bool {
     }
   }
   false
+}
+
+///|
+fn emit_props_default_setup(doc : SfcDocument) -> String {
+  if doc.prop_defaults.is_empty() {
+    return ""
+  }
+  let declaration = match doc.props_declaration {
+    Some(declaration) => declaration
+    None => return ""
+  }
+  let lines : Array[String] = [declaration + " = {"]
+  let arg_name = props_arg_name(doc)
+  for field in doc.props {
+    lines.push(
+      "  " +
+      field.name +
+      ": " +
+      render_resolved_prop_expr(field.name, arg_name, doc.prop_defaults) +
+      ",",
+    )
+  }
+  lines.push("}")
+  indent_block(lines.join("\n"), 2)
+}
+
+///|
+fn render_resolved_prop_expr(
+  name : String,
+  arg_name : String,
+  defaults : Array[PropDefault],
+) -> String {
+  match find_prop_default(defaults, name) {
+    Some(default_) =>
+      arg_name + "." + name + ".unwrap_or(" + default_.expr + ")"
+    None => arg_name + "." + name
+  }
+}
+
+///|
+fn find_prop_default(
+  defaults : Array[PropDefault],
+  name : String,
+) -> PropDefault? {
+  for default_ in defaults {
+    if default_.name == name {
+      return Some(default_)
+    }
+  }
+  None
 }

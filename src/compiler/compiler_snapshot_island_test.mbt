@@ -14,9 +14,13 @@ test "snapshot island visible compile" {
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  let signal = @reactivity.signal,
       #|  let count = signal(3)
-      #|  @luna_dom.create_element("section", [], [
-      #|      @vm_dom.island_dom("CounterPanel", @vm.HydrationMode::Visible, [("count", fn() { count.get().to_string() })], [])
-      #|    ])
+      #|  (fn() {
+      #|      let __vm_el = @vm_dom.element("section")
+      #|      @vm_dom.append_children(__vm_el, [
+      #|              @vm_dom.island_dom("CounterPanel", @vm.HydrationMode::Visible, [("count", fn() { count.get().to_string() })], [])
+      #|            ])
+      #|      @vm_dom.to_node(__vm_el)
+      #|    })()
       #|}
       #|
       #|pub fn declared_props() -> Array[String] {
@@ -97,11 +101,19 @@ test "snapshot directives compile" {
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  let items = [1, 2, 3]
       #|  let visible = true
-      #|  @luna_dom.show(fn() { visible }, fn() { @luna_dom.create_element("ul", [], [
-      #|      @luna_dom.for_each(fn() { items }, fn(item, index) { @luna_dom.create_element("li", [], [
-      #|          @luna_dom.text_dyn(fn() { item.to_string() + ":" + index.to_string().to_string() })
-      #|        ]) })
-      #|    ]) })
+      #|  @vm_dom.show(fn() { visible }, fn() { (fn() {
+      #|      let __vm_el = @vm_dom.element("ul")
+      #|      @vm_dom.append_children(__vm_el, [
+      #|              @vm_dom.for_each(fn() { items }, fn(item, index) { (fn() {
+      #|                        let __vm_el = @vm_dom.element("li")
+      #|                        @vm_dom.append_children(__vm_el, [
+      #|                                      @vm_dom.text_expr(fn() { item.to_string() + ":" + index.to_string().to_string() })
+      #|                                    ])
+      #|                        @vm_dom.to_node(__vm_el)
+      #|                      })() })
+      #|            ])
+      #|      @vm_dom.to_node(__vm_el)
+      #|    })() })
       #|}
       #|
       #|pub fn declared_props() -> Array[String] {
@@ -181,10 +193,14 @@ test "snapshot media and defer compile" {
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
-      #|  @luna_dom.create_element("main", [], [
-      #|      @vm_dom.island_dom("HeroBanner", @vm.HydrationMode::Media("(max-width: 768px)"), [], []),
-      #|      @vm_dom.island_dom("ArticleChunk", @vm.HydrationMode::ServerDefer, [], [])
-      #|    ])
+      #|  (fn() {
+      #|      let __vm_el = @vm_dom.element("main")
+      #|      @vm_dom.append_children(__vm_el, [
+      #|              @vm_dom.island_dom("HeroBanner", @vm.HydrationMode::Media("(max-width: 768px)"), [], []),
+      #|              @vm_dom.island_dom("ArticleChunk", @vm.HydrationMode::ServerDefer, [], [])
+      #|            ])
+      #|      @vm_dom.to_node(__vm_el)
+      #|    })()
       #|}
       #|
       #|pub fn declared_props() -> Array[String] {

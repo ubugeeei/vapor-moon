@@ -6,7 +6,14 @@ fn emit_component_contracts(
 ) -> String {
   let sections : Array[String] = []
   if has_props_contract(doc) {
-    sections.push(emit_props_contract(component_name, doc.generics, doc.props))
+    sections.push(
+      emit_props_contract(
+        component_name,
+        doc.generics,
+        doc.props,
+        doc.prop_defaults,
+      ),
+    )
   }
   if has_emits_contract(doc) {
     sections.push(emit_emits_contract(component_name, doc.generics, doc.emits))
@@ -72,7 +79,7 @@ fn render_component_args(
   let args : Array[String] = []
   if has_props_contract(doc) {
     args.push(
-      props_binding_name(doc) +
+      props_arg_name(doc) +
       " : " +
       props_type_name(component_name) +
       render_type_generics(doc.generics),
@@ -107,7 +114,7 @@ fn render_component_args(
 fn render_component_forward_args(doc : SfcDocument) -> String {
   let args : Array[String] = []
   if has_props_contract(doc) {
-    args.push(props_binding_name(doc))
+    args.push(props_arg_name(doc))
   }
   if has_emits_contract(doc) {
     let name = emits_binding_name(doc)
@@ -138,6 +145,15 @@ fn has_slots_contract(doc : SfcDocument) -> Bool {
 ///|
 fn props_binding_name(doc : SfcDocument) -> String {
   doc.props_binding.unwrap_or("props")
+}
+
+///|
+fn props_arg_name(doc : SfcDocument) -> String {
+  if has_prop_defaults(doc) {
+    "__vm_props_input"
+  } else {
+    props_binding_name(doc)
+  }
 }
 
 ///|
@@ -177,6 +193,11 @@ fn default_slots_name(client : Bool) -> String {
   } else {
     "__vm_default_ssr_slots"
   }
+}
+
+///|
+fn has_prop_defaults(doc : SfcDocument) -> Bool {
+  not(doc.prop_defaults.is_empty())
 }
 
 ///|

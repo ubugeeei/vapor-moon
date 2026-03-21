@@ -30,6 +30,7 @@ priv struct ScriptSetupMacro {
   name : String
   args : String
   arg_count : Int
+  prop_defaults : Array[PropDefault]?
 }
 
 ///|
@@ -107,6 +108,7 @@ fn parse_script_setup_macro(
                 filename,
               ),
               arg_count,
+              prop_defaults: parse_define_props_defaults(args, source),
             })
           } else {
             None
@@ -133,6 +135,38 @@ fn is_supported_macro(name : String) -> Bool {
   name == "defineSlot" ||
   name == "useId" ||
   name == "useTemplateRef"
+}
+
+///|
+fn parse_define_props_defaults(
+  args : @list.List[@mbt_syntax.Argument],
+  source : String,
+) -> Array[PropDefault]? {
+  guard args is @list.More(arg, tail=@list.Empty) else { return None }
+  guard arg.kind is Positional else { return None }
+  match unwrap_group_expr(arg.value) {
+    Record(type_name~, fields~, ..) =>
+      match type_name {
+        Some(_) => None
+        None => Some(parse_record_defaults(fields, source))
+      }
+    _ => None
+  }
+}
+
+///|
+fn parse_record_defaults(
+  fields : @list.List[@mbt_syntax.FieldDef],
+  source : String,
+) -> Array[PropDefault] {
+  let defaults : Array[PropDefault] = []
+  for field in fields {
+    defaults.push({
+      name: field.label.name,
+      expr: slice_location(source, field.expr.loc()).trim().to_string(),
+    })
+  }
+  defaults
 }
 
 ///|

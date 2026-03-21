@@ -5,6 +5,7 @@ using @common {
   type CompilerError,
   type GenericParam,
   type MacroField,
+  type PropDefault,
   type SfcBlock,
   type SfcDocument,
   type StyleBlock,

@@ -19,7 +19,7 @@ test "snapshot component key ref compile" {
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  let panel_ref = @vm.use_template_ref("panel")
       #|  let panel_id = 42
-      #|  @vm_dom.component_dom_meta("Panel", [], [], [("data-vm-key", @luna_dom.attr_dynamic(fn() { panel_id.to_string() })), ("__ref", @luna_dom.attr_handler(fn(target) { @vm_dom.bind_template_ref("panel", target) }))])
+      #|  @vm_dom.component_dom_meta("Panel", [], [], [("data-vm-key", @vm_dom.attr_dynamic(fn() { panel_id.to_string() })), ("__ref", @vm_dom.attr_handler(fn(target) { @vm_dom.bind_template_ref("panel", target) }))])
       #|}
       #|
       #|pub fn declared_props() -> Array[String] {

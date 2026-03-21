@@ -1,6 +1,9 @@
 import {
   "ubugeeei/vapor_moon/src/runtime" @vm,
   "mizchi/luna/dom" @luna_dom,
+  "mizchi/luna/js/resource" @resource,
+  "mizchi/js/browser/dom" @js_dom,
+  "mizchi/js/core" @js,
 }
 
 options(

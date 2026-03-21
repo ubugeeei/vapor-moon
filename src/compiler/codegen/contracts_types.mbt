@@ -3,6 +3,7 @@ fn emit_props_contract(
   component_name : String,
   generics : Array[GenericParam],
   fields : Array[MacroField],
+  defaults : Array[PropDefault],
 ) -> String {
   let sb = StringBuilder::new()
   sb.write_string("pub struct ")
@@ -17,7 +18,7 @@ fn emit_props_contract(
     sb.write_string("  ")
     sb.write_string(field.name)
     sb.write_string(" : ")
-    sb.write_string(field.signature.unwrap_or("String"))
+    sb.write_string(render_public_prop_type(field, defaults))
     sb.write_string("\n")
   }
   sb.write_string("} derive(Eq, Show)")
@@ -206,4 +207,27 @@ fn callback_param_names(signature : String) -> Array[String] {
 ///|
 fn render_generic_fn_keyword(generics : Array[GenericParam]) -> String {
   "fn" + render_fn_generics(generics)
+}
+
+///|
+fn render_public_prop_type(
+  field : MacroField,
+  defaults : Array[PropDefault],
+) -> String {
+  let base = field.signature.unwrap_or("String")
+  if has_prop_default_name(defaults, field.name) {
+    base + "?"
+  } else {
+    base
+  }
+}
+
+///|
+fn has_prop_default_name(defaults : Array[PropDefault], name : String) -> Bool {
+  for default_ in defaults {
+    if default_.name == name {
+      return true
+    }
+  }
+  false
 }

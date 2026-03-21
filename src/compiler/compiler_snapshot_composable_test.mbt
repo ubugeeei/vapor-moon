@@ -35,20 +35,42 @@ test "snapshot composable counter compile" {
       #|    { count, doubled, last_change }
       #|  }
       #|  let counter = useCounter(2)
-      #|  @luna_dom.create_element("section", [("class", @luna_dom.attr_static("composable"))], [
-      #|      @luna_dom.create_element("button", [("click", @luna_dom.attr_handler(fn(_event) { counter.count.update(fn(n) { n + 1 }) }))], [
-      #|          @luna_dom.text("inc")
-      #|        ]),
-      #|      @luna_dom.create_element("p", [], [
-      #|          @luna_dom.text_dyn(fn() { counter.count.get().to_string() })
-      #|        ]),
-      #|      @luna_dom.create_element("p", [], [
-      #|          @luna_dom.text_dyn(fn() { counter.doubled().to_string() })
-      #|        ]),
-      #|      @luna_dom.create_element("small", [], [
-      #|          @luna_dom.text_dyn(fn() { counter.last_change.get().to_string() })
-      #|        ])
-      #|    ])
+      #|  (fn() {
+      #|      let __vm_el = @vm_dom.element("section")
+      #|      @vm_dom.apply_attrs(__vm_el, [("class", @vm_dom.attr_static("composable"))])
+      #|      @vm_dom.append_children(__vm_el, [
+      #|              (fn() {
+      #|                        let __vm_el = @vm_dom.element("button")
+      #|                        @vm_dom.apply_attrs(__vm_el, [("click", @vm_dom.attr_handler(fn(_event) { counter.count.update(fn(n) { n + 1 }) }))])
+      #|                        @vm_dom.append_children(__vm_el, [
+      #|                                      @vm_dom.text("inc")
+      #|                                    ])
+      #|                        @vm_dom.to_node(__vm_el)
+      #|                      })(),
+      #|              (fn() {
+      #|                        let __vm_el = @vm_dom.element("p")
+      #|                        @vm_dom.append_children(__vm_el, [
+      #|                                      @vm_dom.text_expr(fn() { counter.count.get().to_string() })
+      #|                                    ])
+      #|                        @vm_dom.to_node(__vm_el)
+      #|                      })(),
+      #|              (fn() {
+      #|                        let __vm_el = @vm_dom.element("p")
+      #|                        @vm_dom.append_children(__vm_el, [
+      #|                                      @vm_dom.text_expr(fn() { counter.doubled().to_string() })
+      #|                                    ])
+      #|                        @vm_dom.to_node(__vm_el)
+      #|                      })(),
+      #|              (fn() {
+      #|                        let __vm_el = @vm_dom.element("small")
+      #|                        @vm_dom.append_children(__vm_el, [
+      #|                                      @vm_dom.text_expr(fn() { counter.last_change.get().to_string() })
+      #|                                    ])
+      #|                        @vm_dom.to_node(__vm_el)
+      #|                      })()
+      #|            ])
+      #|      @vm_dom.to_node(__vm_el)
+      #|    })()
       #|}
       #|
       #|pub fn declared_props() -> Array[String] {

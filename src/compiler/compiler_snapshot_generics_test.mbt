@@ -58,9 +58,13 @@ test "snapshot generic component compile" {
       #|    default : T
       #|    label : U
       #|  }
-      #|  @luna_dom.create_element("section", [], [
-      #|      @luna_dom.text_dyn(fn() { props.items.length().to_string() })
-      #|    ])
+      #|  (fn() {
+      #|      let __vm_el = @vm_dom.element("section")
+      #|      @vm_dom.append_children(__vm_el, [
+      #|              @vm_dom.text_expr(fn() { props.items.length().to_string() })
+      #|            ])
+      #|      @vm_dom.to_node(__vm_el)
+      #|    })()
       #|}
       #|
       #|pub fn declared_props() -> Array[String] {

@@ -15,7 +15,7 @@ This repository already includes:
 
 - `.mbtv` as the default SFC extension
 - a compiler that parses `<template>`, `<script setup>`, and `<style>`
-- code generation for luna DOM output and SSR output
+- code generation for raw DOM-oriented client output and SSR output
 - language-tool analysis plus LSP-oriented diagnostics / hover / definition / completion
 - a small runtime bridge on top of luna for DOM placeholders and SSR island wrappers
 - snapshot-heavy compiler and tooling tests
@@ -103,9 +103,14 @@ Running `moon run src/cmd/vapor_moon -- compile examples/basic.mbtv` prints a cl
 pub fn render_dom() -> @luna_dom.DomNode {
   let signal = @reactivity.signal,
   let count = signal(0)
-  @luna_dom.create_element("div", [("class", @luna_dom.attr_static("counter")), ("data-vm-scope", @luna_dom.attr_static("vm-4048536636"))], [
-      @luna_dom.text_dyn(fn() { count.get().to_string() })
-    ])
+  (fn() {
+      let __vm_el = @vm_dom.element("div")
+      @vm_dom.apply_attrs(__vm_el, [("class", @vm_dom.attr_static("counter")), ("data-vm-scope", @vm_dom.attr_static("vm-4048536636"))])
+      @vm_dom.append_children(__vm_el, [
+              @vm_dom.text_expr(fn() { count.get().to_string() })
+            ])
+      @vm_dom.to_node(__vm_el)
+    })()
 }
 === server ===
 pub fn render_ssr() -> @luna_core.StaticDomNode {
@@ -122,7 +127,7 @@ component=Basic
 extension=.mbtv
 scope=vm-4048536636
 ```
-
+Client-side lowering is intentionally raw-DOM-oriented: native elements become `element -> apply_attrs -> append_children -> to_node`, while SSR still emits static HTML-oriented nodes.
 When a component declares `props`, `emits`, or `slots`, the generated module also includes typed contract surfaces and declaration metadata alongside these render functions.
 
 ## Compiler macros
@@ -134,26 +139,33 @@ struct Props {
   title : String
   count : Int
 }
-
 struct Emits {
   save : String
   cancel : Unit
 }
-
 struct Slots {
   default : Unit
   footer : String
 }
-
 let props : Props = defineProps()
 let emit : Emits = defineEmits()
 let slots : Slots = defineSlot()
 ```
+For props defaults, pass only a record literal of default values:
+
+```moonbit
+let props : Props = defineProps({
+  count: 0,
+  tone: "primary",
+})
+```
 
 - these declarations are compiler-only and disappear from lowered `script setup`
 - the compiler generates typed component surfaces such as `ExampleProps`, `ExampleEmits`, `ExampleDomSlots`, and `ExampleSsrSlots`
+- a prop with a default stays required inside the component but becomes optional in the generated caller-facing props type
 - generated `render_dom` / `render_ssr` functions take those contracts as plain arguments, so the runtime does not own props, emits, or slot bags
 - `defineProps()` / `defineEmits()` / `defineSlot()` are zero-argument markers that bind to the annotated local `struct`
+- `defineProps({ ... })` is reserved for defaults only, not runtime declarations
 - runtime-declaration literals are intentionally unsupported, so component interfaces stay type-first and MoonBit-native
 
 ## Supported template features
@@ -204,7 +216,7 @@ The compiler currently treats these as component-only directives and emits luna-
 
 - keeps shared hydration metadata helpers plus `useId` / `useTemplateRef`
 - leaves component contracts to generated typed arguments instead of runtime bags
-- wraps luna DOM for client placeholders
+- provides raw DOM builder helpers plus component / island placeholders for client output
 - wraps luna SSR islands for server output
 
 ### `src/tooling/`

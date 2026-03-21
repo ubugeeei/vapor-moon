@@ -27,7 +27,11 @@ test "snapshot slot contracts compile" {
       #|    default : Unit
       #|    footer : String
       #|  }
-      #|  @luna_dom.create_element("section", [("class", @luna_dom.attr_static("shell"))], [])
+      #|  (fn() {
+      #|      let __vm_el = @vm_dom.element("section")
+      #|      @vm_dom.apply_attrs(__vm_el, [("class", @vm_dom.attr_static("shell"))])
+      #|      @vm_dom.to_node(__vm_el)
+      #|    })()
       #|}
       #|
       #|pub fn declared_props() -> Array[String] {

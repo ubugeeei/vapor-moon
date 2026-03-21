@@ -19,9 +19,7 @@ fn render_client_attrs(
   }
   match scope_id {
     Some(id) =>
-      parts.push(
-        "(\"data-vm-scope\", @luna_dom.attr_static(" + quote(id) + "))",
-      )
+      parts.push("(\"data-vm-scope\", @vm_dom.attr_static(" + quote(id) + "))")
     None => ()
   }
   if parts.is_empty() {
@@ -71,15 +69,11 @@ fn render_client_attr(attr : TemplateAttr, static_mode : Bool) -> String {
   match attr.kind {
     Static =>
       if attr.name == "style" {
-        "(\"" +
-        attr.name +
-        "\", @luna_dom.attr_style(" +
-        quote(attr.value) +
-        "))"
+        "(\"" + attr.name + "\", @vm_dom.attr_style(" + quote(attr.value) + "))"
       } else {
         "(\"" +
         attr.name +
-        "\", @luna_dom.attr_static(" +
+        "\", @vm_dom.attr_static(" +
         quote(attr.value) +
         "))"
       }
@@ -88,36 +82,36 @@ fn render_client_attr(attr : TemplateAttr, static_mode : Bool) -> String {
         if attr.name == "style" {
           "(\"" +
           attr.name +
-          "\", @luna_dom.attr_style(" +
+          "\", @vm_dom.attr_style(" +
           attr.value +
           ".to_string()))"
         } else {
           "(\"" +
           attr.name +
-          "\", @luna_dom.attr_static(" +
+          "\", @vm_dom.attr_static(" +
           attr.value +
           ".to_string()))"
         }
       } else if attr.name == "style" {
         "(\"" +
         attr.name +
-        "\", @luna_dom.attr_dynamic_style(fn() { " +
+        "\", @vm_dom.attr_dynamic_style(fn() { " +
         attr.value +
         ".to_string() }))"
       } else {
         "(\"" +
         attr.name +
-        "\", @luna_dom.attr_dynamic(fn() { " +
+        "\", @vm_dom.attr_dynamic(fn() { " +
         attr.value +
         ".to_string() }))"
       }
     Event =>
       "(\"" +
       attr.name +
-      "\", @luna_dom.attr_handler(fn(_event) { " +
+      "\", @vm_dom.attr_handler(fn(_event) { " +
       attr.value +
       " }))"
-    Boolean => "(\"" + attr.name + "\", @luna_dom.attr_static(\"\"))"
+    Boolean => "(\"" + attr.name + "\", @vm_dom.attr_static(\"\"))"
   }
 }
 

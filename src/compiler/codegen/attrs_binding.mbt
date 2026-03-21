@@ -3,7 +3,7 @@ fn render_client_key_attr(element : TemplateElement) -> String? {
   match element.key_expr {
     Some(expr) =>
       Some(
-        "(\"data-vm-key\", @luna_dom.attr_dynamic(fn() { " +
+        "(\"data-vm-key\", @vm_dom.attr_dynamic(fn() { " +
         expr +
         ".to_string() }))",
       )
@@ -29,7 +29,7 @@ fn render_client_ref_attr(element : TemplateElement) -> String? {
   match element.ref_name {
     Some(expr) =>
       Some(
-        "(\"__ref\", @luna_dom.attr_handler(fn(target) { @vm_dom.bind_template_ref(" +
+        "(\"__ref\", @vm_dom.attr_handler(fn(target) { @vm_dom.bind_template_ref(" +
         expr +
         ", target) }))",
       )
@@ -82,12 +82,10 @@ fn render_client_html_attr(
   match element.html_expr {
     Some(expr) =>
       if static_mode {
-        Some(
-          "(\"__innerHTML\", @luna_dom.attr_static(" + expr + ".to_string()))",
-        )
+        Some("(\"__innerHTML\", @vm_dom.attr_static(" + expr + ".to_string()))")
       } else {
         Some(
-          "(\"__innerHTML\", @luna_dom.attr_dynamic(fn() { " +
+          "(\"__innerHTML\", @vm_dom.attr_dynamic(fn() { " +
           expr +
           ".to_string() }))",
         )
@@ -114,13 +112,13 @@ fn render_client_model_attrs(
       let attr_name = if checked { "checked" } else { "value" }
       if static_mode {
         parts.push(
-          "(\"" + attr_name + "\", @luna_dom.attr_static(" + value_expr + "))",
+          "(\"" + attr_name + "\", @vm_dom.attr_static(" + value_expr + "))",
         )
       } else {
         parts.push(
           "(\"" +
           attr_name +
-          "\", @luna_dom.attr_dynamic(fn() { " +
+          "\", @vm_dom.attr_dynamic(fn() { " +
           value_expr +
           " }))",
         )
@@ -128,7 +126,7 @@ fn render_client_model_attrs(
       parts.push(
         "(\"" +
         event_name +
-        "\", @luna_dom.attr_handler(fn(_event) { " +
+        "\", @vm_dom.attr_handler(fn(_event) { " +
         render_model_write_expr(
           model.expression,
           render_model_read_expr(model, checked),

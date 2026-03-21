@@ -19,9 +19,13 @@ test "snapshot script setup close tag literal compile" {
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  let closing = "</script>"
-      #|  @luna_dom.create_element("div", [], [
-      #|      @luna_dom.text_dyn(fn() { closing.to_string() })
-      #|    ])
+      #|  (fn() {
+      #|      let __vm_el = @vm_dom.element("div")
+      #|      @vm_dom.append_children(__vm_el, [
+      #|              @vm_dom.text_expr(fn() { closing.to_string() })
+      #|            ])
+      #|      @vm_dom.to_node(__vm_el)
+      #|    })()
       #|}
       #|
       #|pub fn declared_props() -> Array[String] {
@@ -104,7 +108,11 @@ test "snapshot style close tag literal compile" {
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
-      #|  @luna_dom.create_element("div", [("class", @luna_dom.attr_static("box"))], [])
+      #|  (fn() {
+      #|      let __vm_el = @vm_dom.element("div")
+      #|      @vm_dom.apply_attrs(__vm_el, [("class", @vm_dom.attr_static("box"))])
+      #|      @vm_dom.to_node(__vm_el)
+      #|    })()
       #|}
       #|
       #|pub fn declared_props() -> Array[String] {
@@ -187,13 +195,25 @@ test "snapshot nested template element compile" {
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
-      #|  @luna_dom.create_element("section", [], [
-      #|      @luna_dom.create_element("template", [], [
-      #|          @luna_dom.create_element("span", [], [
-      #|              @luna_dom.text("Inner")
+      #|  (fn() {
+      #|      let __vm_el = @vm_dom.element("section")
+      #|      @vm_dom.append_children(__vm_el, [
+      #|              (fn() {
+      #|                        let __vm_el = @vm_dom.element("template")
+      #|                        @vm_dom.append_children(__vm_el, [
+      #|                                      (fn() {
+      #|                                                      let __vm_el = @vm_dom.element("span")
+      #|                                                      @vm_dom.append_children(__vm_el, [
+      #|                                                                          @vm_dom.text("Inner")
+      #|                                                                        ])
+      #|                                                      @vm_dom.to_node(__vm_el)
+      #|                                                    })()
+      #|                                    ])
+      #|                        @vm_dom.to_node(__vm_el)
+      #|                      })()
       #|            ])
-      #|        ])
-      #|    ])
+      #|      @vm_dom.to_node(__vm_el)
+      #|    })()
       #|}
       #|
       #|pub fn declared_props() -> Array[String] {
