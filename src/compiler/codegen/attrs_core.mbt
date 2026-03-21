@@ -1,9 +1,9 @@
 ///|
-fn render_client_attrs(
+fn collect_client_attr_entries(
   element : TemplateElement,
   scope_id : String?,
   static_mode : Bool,
-) -> String {
+) -> Array[String] {
   let parts : Array[String] = []
   for attr in element.attrs {
     if attr.name != "style" {
@@ -22,11 +22,7 @@ fn render_client_attrs(
       parts.push("(\"data-vm-scope\", @vm_dom.attr_static(" + quote(id) + "))")
     None => ()
   }
-  if parts.is_empty() {
-    "[]"
-  } else {
-    "[" + parts.join(", ") + "]"
-  }
+  parts
 }
 
 ///|

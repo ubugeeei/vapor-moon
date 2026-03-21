@@ -105,10 +105,9 @@ pub fn render_dom() -> @luna_dom.DomNode {
   let count = signal(0)
   (fn() {
       let __vm_el = @vm_dom.element("div")
-      @vm_dom.apply_attrs(__vm_el, [("class", @vm_dom.attr_static("counter")), ("data-vm-scope", @vm_dom.attr_static("vm-4048536636"))])
-      @vm_dom.append_children(__vm_el, [
-              @vm_dom.text_expr(fn() { count.get().to_string() })
-            ])
+      @vm_dom.apply_attr_entry(__vm_el, ("class", @vm_dom.attr_static("counter")))
+      @vm_dom.apply_attr_entry(__vm_el, ("data-vm-scope", @vm_dom.attr_static("vm-4048536636")))
+      @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { count.get().to_string() }))
       @vm_dom.to_node(__vm_el)
     })()
 }
@@ -127,7 +126,7 @@ component=Basic
 extension=.mbtv
 scope=vm-4048536636
 ```
-Client-side lowering is intentionally raw-DOM-oriented: native elements become `element -> apply_attrs -> append_children -> to_node`, while SSR still emits static HTML-oriented nodes.
+Client-side lowering is intentionally raw-DOM-oriented: native elements become `element -> apply_attr_entry -> append_child -> to_node`, while SSR still emits static HTML-oriented nodes.
 When a component declares `props`, `emits`, or `slots`, the generated module also includes typed contract surfaces and declaration metadata alongside these render functions.
 
 ## Compiler macros

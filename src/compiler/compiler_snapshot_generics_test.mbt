@@ -60,9 +60,7 @@ test "snapshot generic component compile" {
       #|  }
       #|  (fn() {
       #|      let __vm_el = @vm_dom.element("section")
-      #|      @vm_dom.append_children(__vm_el, [
-      #|              @vm_dom.text_expr(fn() { props.items.length().to_string() })
-      #|            ])
+      #|      @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { props.items.length().to_string() }))
       #|      @vm_dom.to_node(__vm_el)
       #|    })()
       #|}

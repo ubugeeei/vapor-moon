@@ -29,7 +29,7 @@ test "snapshot slot contracts compile" {
       #|  }
       #|  (fn() {
       #|      let __vm_el = @vm_dom.element("section")
-      #|      @vm_dom.apply_attrs(__vm_el, [("class", @vm_dom.attr_static("shell"))])
+      #|      @vm_dom.apply_attr_entry(__vm_el, ("class", @vm_dom.attr_static("shell")))
       #|      @vm_dom.to_node(__vm_el)
       #|    })()
       #|}

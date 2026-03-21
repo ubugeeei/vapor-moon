@@ -31,31 +31,23 @@ test "snapshot reactivity basics compile" {
       #|  })
       #|  (fn() {
       #|      let __vm_el = @vm_dom.element("section")
-      #|      @vm_dom.apply_attrs(__vm_el, [("class", @vm_dom.attr_static("reactivity"))])
-      #|      @vm_dom.append_children(__vm_el, [
-      #|              (fn() {
-      #|                        let __vm_el = @vm_dom.element("button")
-      #|                        @vm_dom.apply_attrs(__vm_el, [("click", @vm_dom.attr_handler(fn(_event) { count.update(fn(n) { n + 1 }) }))])
-      #|                        @vm_dom.append_children(__vm_el, [
-      #|                                      @vm_dom.text("+")
-      #|                                    ])
-      #|                        @vm_dom.to_node(__vm_el)
-      #|                      })(),
-      #|              (fn() {
-      #|                        let __vm_el = @vm_dom.element("p")
-      #|                        @vm_dom.append_children(__vm_el, [
-      #|                                      @vm_dom.text_expr(fn() { summary().to_string() })
-      #|                                    ])
-      #|                        @vm_dom.to_node(__vm_el)
-      #|                      })(),
-      #|              (fn() {
-      #|                        let __vm_el = @vm_dom.element("small")
-      #|                        @vm_dom.append_children(__vm_el, [
-      #|                                      @vm_dom.text_expr(fn() { history.get().to_string() })
-      #|                                    ])
-      #|                        @vm_dom.to_node(__vm_el)
-      #|                      })()
-      #|            ])
+      #|      @vm_dom.apply_attr_entry(__vm_el, ("class", @vm_dom.attr_static("reactivity")))
+      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @vm_dom.element("button")
+      #|                @vm_dom.apply_attr_entry(__vm_el, ("click", @vm_dom.attr_handler(fn(_event) { count.update(fn(n) { n + 1 }) })))
+      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text("+"))
+      #|                @vm_dom.to_node(__vm_el)
+      #|              })())
+      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @vm_dom.element("p")
+      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { summary().to_string() }))
+      #|                @vm_dom.to_node(__vm_el)
+      #|              })())
+      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @vm_dom.element("small")
+      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { history.get().to_string() }))
+      #|                @vm_dom.to_node(__vm_el)
+      #|              })())
       #|      @vm_dom.to_node(__vm_el)
       #|    })()
       #|}
@@ -171,23 +163,18 @@ test "snapshot lifecycle refs compile" {
       #|  })
       #|  (fn() {
       #|      let __vm_el = @vm_dom.element("section")
-      #|      @vm_dom.apply_attrs(__vm_el, [("data-id", @vm_dom.attr_dynamic(fn() { instance_id.to_string() })), ("__ref", @vm_dom.attr_handler(fn(target) { @vm_dom.bind_template_ref("root", target) }))])
-      #|      @vm_dom.append_children(__vm_el, [
-      #|              (fn() {
-      #|                        let __vm_el = @vm_dom.element("p")
-      #|                        @vm_dom.append_children(__vm_el, [
-      #|                                      @vm_dom.text_expr(fn() { phase.get().to_string() })
-      #|                                    ])
-      #|                        @vm_dom.to_node(__vm_el)
-      #|                      })(),
-      #|              (fn() {
-      #|                        let __vm_el = @vm_dom.element("p")
-      #|                        @vm_dom.append_children(__vm_el, [
-      #|                                      @vm_dom.text_expr(fn() { instance_id.to_string() })
-      #|                                    ])
-      #|                        @vm_dom.to_node(__vm_el)
-      #|                      })()
-      #|            ])
+      #|      @vm_dom.apply_attr_entry(__vm_el, ("data-id", @vm_dom.attr_dynamic(fn() { instance_id.to_string() })))
+      #|      @vm_dom.apply_attr_entry(__vm_el, ("__ref", @vm_dom.attr_handler(fn(target) { @vm_dom.bind_template_ref("root", target) })))
+      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @vm_dom.element("p")
+      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { phase.get().to_string() }))
+      #|                @vm_dom.to_node(__vm_el)
+      #|              })())
+      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @vm_dom.element("p")
+      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { instance_id.to_string() }))
+      #|                @vm_dom.to_node(__vm_el)
+      #|              })())
       #|      @vm_dom.to_node(__vm_el)
       #|    })()
       #|}

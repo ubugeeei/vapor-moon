@@ -54,6 +54,27 @@ fn render_client_node(
 }
 
 ///|
+fn render_client_append_statements(
+  target_expr : String,
+  nodes : Array[TemplateNode],
+  indent : Int,
+  scope_id : String?,
+  static_mode : Bool,
+) -> Array[String] {
+  let statements : Array[String] = []
+  for node in nodes {
+    statements.push(
+      "@vm_dom.append_child(" +
+      target_expr +
+      ", " +
+      render_client_node(node, indent + 2, scope_id, static_mode) +
+      ")",
+    )
+  }
+  statements
+}
+
+///|
 fn render_server_node(
   node : TemplateNode,
   indent : Int,

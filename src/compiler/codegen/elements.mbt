@@ -5,24 +5,23 @@ fn render_client_element(
   scope_id : String?,
   static_mode : Bool,
 ) -> String {
-  let attrs = render_client_attrs(element, scope_id, static_mode)
   let statements : Array[String] = [
     "let __vm_el = @vm_dom.element(" + quote(element.tag) + ")",
   ]
-  if attrs != "[]" {
-    statements.push("@vm_dom.apply_attrs(__vm_el, " + attrs + ")")
+  for attr in collect_client_attr_entries(element, scope_id, static_mode) {
+    statements.push("@vm_dom.apply_attr_entry(__vm_el, " + attr + ")")
   }
   if element.html_expr is None && not(element.children.is_empty()) {
-    statements.push(
-      "@vm_dom.append_children(__vm_el, " +
-      render_client_children(
+    for
+      statement in render_client_append_statements(
+        "__vm_el.as_node()",
         element.children,
         indent + 4,
         scope_id,
         static_mode,
-      ) +
-      ")",
-    )
+      ) {
+      statements.push(statement)
+    }
   }
   statements.push("@vm_dom.to_node(__vm_el)")
   render_client_iife(statements, indent)

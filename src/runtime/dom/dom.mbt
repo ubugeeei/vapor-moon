@@ -12,12 +12,17 @@ pub fn to_node(elem : @js_dom.Element) -> @luna_dom.DomNode {
 }
 
 ///|
+pub fn append_child(node : @js_dom.Node, child : @luna_dom.DomNode) -> Unit {
+  node.appendChild(child.to_dom()) |> ignore
+}
+
+///|
 pub fn append_children(
-  elem : @js_dom.Element,
+  node : @js_dom.Node,
   children : Array[@luna_dom.DomNode],
 ) -> Unit {
   for child in children {
-    elem.as_node().appendChild(child.to_dom()) |> ignore
+    append_child(node, child)
   }
 }
 
@@ -27,8 +32,16 @@ pub fn apply_attrs(
   attrs : Array[(String, @luna_dom.AttrValue)],
 ) -> Unit {
   for attr in attrs {
-    apply_attr(elem, attr.0, attr.1)
+    apply_attr_entry(elem, attr)
   }
+}
+
+///|
+pub fn apply_attr_entry(
+  elem : @js_dom.Element,
+  attr : (String, @luna_dom.AttrValue),
+) -> Unit {
+  apply_attr(elem, attr.0, attr.1)
 }
 
 ///|
@@ -191,7 +204,7 @@ pub fn resolve_template_ref(ref_ : @vm.TemplateRef) -> @js.Any? {
 }
 
 ///|
-fn apply_attr(
+pub fn apply_attr(
   elem : @js_dom.Element,
   name : String,
   value : @luna_dom.AttrValue,
@@ -217,7 +230,7 @@ fn apply_attr(
       if name == "__ref" {
         handler(elem.as_any())
       } else {
-        apply_event_handler(elem, name, handler)
+        bind_event_handler(elem, name, handler)
       }
   }
 }
@@ -249,7 +262,7 @@ fn apply_static_attr(
 }
 
 ///|
-extern "js" fn apply_event_handler(
+extern "js" fn bind_event_handler(
   elem : @js_dom.Element,
   name : String,
   handler : (@js.Any) -> Unit,

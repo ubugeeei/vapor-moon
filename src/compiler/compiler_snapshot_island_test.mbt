@@ -16,9 +16,7 @@ test "snapshot island visible compile" {
       #|  let count = signal(3)
       #|  (fn() {
       #|      let __vm_el = @vm_dom.element("section")
-      #|      @vm_dom.append_children(__vm_el, [
-      #|              @vm_dom.island_dom("CounterPanel", @vm.HydrationMode::Visible, [("count", fn() { count.get().to_string() })], [])
-      #|            ])
+      #|      @vm_dom.append_child(__vm_el.as_node(), @vm_dom.island_dom("CounterPanel", @vm.HydrationMode::Visible, [("count", fn() { count.get().to_string() })], []))
       #|      @vm_dom.to_node(__vm_el)
       #|    })()
       #|}
@@ -103,15 +101,11 @@ test "snapshot directives compile" {
       #|  let visible = true
       #|  @vm_dom.show(fn() { visible }, fn() { (fn() {
       #|      let __vm_el = @vm_dom.element("ul")
-      #|      @vm_dom.append_children(__vm_el, [
-      #|              @vm_dom.for_each(fn() { items }, fn(item, index) { (fn() {
-      #|                        let __vm_el = @vm_dom.element("li")
-      #|                        @vm_dom.append_children(__vm_el, [
-      #|                                      @vm_dom.text_expr(fn() { item.to_string() + ":" + index.to_string().to_string() })
-      #|                                    ])
-      #|                        @vm_dom.to_node(__vm_el)
-      #|                      })() })
-      #|            ])
+      #|      @vm_dom.append_child(__vm_el.as_node(), @vm_dom.for_each(fn() { items }, fn(item, index) { (fn() {
+      #|                let __vm_el = @vm_dom.element("li")
+      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { item.to_string() + ":" + index.to_string().to_string() }))
+      #|                @vm_dom.to_node(__vm_el)
+      #|              })() }))
       #|      @vm_dom.to_node(__vm_el)
       #|    })() })
       #|}
@@ -195,10 +189,8 @@ test "snapshot media and defer compile" {
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  (fn() {
       #|      let __vm_el = @vm_dom.element("main")
-      #|      @vm_dom.append_children(__vm_el, [
-      #|              @vm_dom.island_dom("HeroBanner", @vm.HydrationMode::Media("(max-width: 768px)"), [], []),
-      #|              @vm_dom.island_dom("ArticleChunk", @vm.HydrationMode::ServerDefer, [], [])
-      #|            ])
+      #|      @vm_dom.append_child(__vm_el.as_node(), @vm_dom.island_dom("HeroBanner", @vm.HydrationMode::Media("(max-width: 768px)"), [], []))
+      #|      @vm_dom.append_child(__vm_el.as_node(), @vm_dom.island_dom("ArticleChunk", @vm.HydrationMode::ServerDefer, [], []))
       #|      @vm_dom.to_node(__vm_el)
       #|    })()
       #|}
