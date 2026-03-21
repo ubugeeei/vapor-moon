@@ -1,0 +1,11 @@
+import {
+  "ubugeeei/vapor_moon/src/compiler/codegen" @codegen,
+  "ubugeeei/vapor_moon/src/compiler/common" @common,
+  "ubugeeei/vapor_moon/src/compiler/script_setup" @script_setup,
+  "ubugeeei/vapor_moon/src/compiler/sfc" @sfc,
+  "ubugeeei/vapor_moon/src/compiler/template" @template,
+}
+
+options(
+  "supported-targets": "all",
+)

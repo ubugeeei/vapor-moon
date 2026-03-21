@@ -1,0 +1,23 @@
+<script setup generic="T, U : Show">
+struct Props[T, U] {
+  items : Array[T]
+  selected : U
+}
+
+struct Emits[T] {
+  choose : T
+}
+
+struct Slots[T, U] {
+  default : T
+  label : U
+}
+
+let props : Props[T, U] = defineProps()
+let emit : Emits[T] = defineEmits()
+let slots : Slots[T, U] = defineSlot()
+</script>
+
+<template>
+  <section>{{ props.items.length() }}</section>
+</template>

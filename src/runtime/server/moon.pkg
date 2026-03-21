@@ -1,0 +1,9 @@
+import {
+  "ubugeeei/vapor_moon/src/runtime" @vm,
+  "mizchi/luna/core" @luna_core,
+  "mizchi/luna/core/render" @render,
+}
+
+options(
+  "supported-targets": "js",
+)

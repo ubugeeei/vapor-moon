@@ -1,0 +1,21 @@
+{
+  "name": "ubugeeei/vapor_moon",
+  "version": "0.1.0",
+  "deps": {
+    "mizchi/luna": "0.18.3",
+    "moonbitlang/parser": "0.1.17",
+    "moonbitlang/x": "0.4.40"
+  },
+  "readme": "README.md",
+  "repository": "https://github.com/ubugeeei/vapor-moon",
+  "license": "MIT",
+  "keywords": [
+    "moonbit",
+    "sfc",
+    "compiler",
+    "vue",
+    "island"
+  ],
+  "description": "Vapor Moon is a MoonBit-first Single File Component compiler and tooling layer built on top of luna.mbt.",
+  "preferred-target": "native"
+}

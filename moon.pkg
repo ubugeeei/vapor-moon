@@ -1,0 +1,9 @@
+import {
+  "ubugeeei/vapor_moon/src/compiler" @compiler,
+  "ubugeeei/vapor_moon/src/runtime" @runtime,
+  "ubugeeei/vapor_moon/src/tooling" @tooling,
+}
+
+options(
+  "supported-targets": "all",
+)

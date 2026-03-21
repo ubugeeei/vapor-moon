@@ -1,0 +1,12 @@
+<script setup>
+struct Slots {
+  default : Unit
+  footer : String
+}
+
+let slots : Slots = defineSlot()
+</script>
+
+<template>
+  <section class="shell"></section>
+</template>

@@ -1,0 +1,7 @@
+import {
+  "ubugeeei/vapor_moon/src/compiler/common" @common,
+}
+
+options(
+  "supported-targets": "all",
+)

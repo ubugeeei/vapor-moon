@@ -1,0 +1,10 @@
+<script setup>
+let items = [1, 2, 3]
+let visible = true
+</script>
+
+<template>
+  <ul v-if='visible'>
+    <li v-for='(item, index) in items'>{{ item.to_string() + ":" + index.to_string() }}</li>
+  </ul>
+</template>

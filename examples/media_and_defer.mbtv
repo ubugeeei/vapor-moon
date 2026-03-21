@@ -1,0 +1,6 @@
+<template>
+  <main>
+    <HeroBanner client:media='(max-width: 768px)' />
+    <ArticleChunk server:defer />
+  </main>
+</template>

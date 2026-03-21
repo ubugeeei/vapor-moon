@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -eu
+
+export PATH="$HOME/.moon/bin:$PATH"
+
+moon fmt
+moon check
+moon test src/compiler
+moon test src/tooling

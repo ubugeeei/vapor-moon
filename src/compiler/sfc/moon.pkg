@@ -1,0 +1,8 @@
+import {
+  "ubugeeei/vapor_moon/src/compiler/common" @common,
+  "ubugeeei/vapor_moon/src/compiler/script_setup" @script_setup,
+}
+
+options(
+  "supported-targets": "all",
+)

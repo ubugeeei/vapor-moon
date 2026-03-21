@@ -1,0 +1,138 @@
+///|
+fn read_template_tag(
+  source : String,
+  chars : Array[Char],
+  start : Int,
+) -> (String, Array[ParsedTemplateAttr], Int, Bool) raise CompilerError {
+  let mut cursor = start + 1
+  let name_start = cursor
+  while cursor < chars.length() && is_template_name_char(chars[cursor]) {
+    cursor += 1
+  }
+  let tag = String::unsafe_substring(source, start=name_start, end=cursor)
+  if tag.length() == 0 {
+    raise CompilerError::InvalidTemplate(
+      "expected tag name near offset \{start}",
+    )
+  }
+  let attrs : Array[ParsedTemplateAttr] = []
+  let mut self_closing = false
+  while cursor < chars.length() {
+    cursor = skip_ws(chars, cursor)
+    if cursor >= chars.length() {
+      break
+    }
+    if chars[cursor] == '/' {
+      self_closing = true
+      cursor += 1
+      cursor = skip_ws(chars, cursor)
+      if cursor < chars.length() && chars[cursor] == '>' {
+        return (tag, attrs, cursor + 1, self_closing)
+      }
+    }
+    if chars[cursor] == '>' {
+      return (tag, attrs, cursor + 1, self_closing)
+    }
+    let (attr, next) = parse_template_attr(source, chars, cursor)
+    attrs.push(attr)
+    cursor = next
+  }
+  raise CompilerError::InvalidTemplate("unterminated start tag <\{tag}>")
+}
+
+///|
+fn parse_template_attr(
+  source : String,
+  chars : Array[Char],
+  start : Int,
+) -> (ParsedTemplateAttr, Int) raise CompilerError {
+  let mut cursor = start
+  let name_start = cursor
+  while cursor < chars.length() &&
+        not(is_space(chars[cursor])) &&
+        chars[cursor] != '=' &&
+        chars[cursor] != '>' &&
+        chars[cursor] != '/' {
+    cursor += 1
+  }
+  let name = String::unsafe_substring(source, start=name_start, end=cursor)
+  cursor = skip_ws(chars, cursor)
+  if cursor < chars.length() && chars[cursor] == '=' {
+    cursor += 1
+    cursor = skip_ws(chars, cursor)
+    let (value, next) = read_template_attr_value(source, chars, cursor)
+    ({ name, value, has_value: true }, next)
+  } else {
+    ({ name, value: "true", has_value: false }, cursor)
+  }
+}
+
+///|
+fn read_template_attr_value(
+  source : String,
+  chars : Array[Char],
+  start : Int,
+) -> (String, Int) raise CompilerError {
+  if start >= chars.length() {
+    raise CompilerError::InvalidTemplate("expected attribute value")
+  }
+  if chars[start] == '"' || chars[start] == '\'' {
+    let marker = chars[start]
+    let mut cursor = start + 1
+    while cursor < chars.length() {
+      if chars[cursor] == marker {
+        return (
+          String::unsafe_substring(source, start=start + 1, end=cursor),
+          cursor + 1,
+        )
+      }
+      cursor += 1
+    }
+    raise CompilerError::InvalidTemplate("unterminated attribute value")
+  }
+  let mut cursor = start
+  while cursor < chars.length() &&
+        not(is_space(chars[cursor])) &&
+        chars[cursor] != '>' &&
+        chars[cursor] != '/' {
+    cursor += 1
+  }
+  (String::unsafe_substring(source, start~, end=cursor), cursor)
+}
+
+///|
+fn skip_ws(chars : Array[Char], start : Int) -> Int {
+  let mut cursor = start
+  while cursor < chars.length() && is_space(chars[cursor]) {
+    cursor += 1
+  }
+  cursor
+}
+
+///|
+fn is_space(c : Char) -> Bool {
+  c == ' ' || c == '\n' || c == '\t' || c == '\r'
+}
+
+///|
+fn is_template_name_char(c : Char) -> Bool {
+  (c >= 'a' && c <= 'z') ||
+  (c >= 'A' && c <= 'Z') ||
+  (c >= '0' && c <= '9') ||
+  c == '-' ||
+  c == '_' ||
+  c == ':' ||
+  c == '.' ||
+  c == '[' ||
+  c == ']' ||
+  c == ','
+}
+
+///|
+fn is_component_name(tag : String) -> Bool {
+  if tag.length() == 0 {
+    return false
+  }
+  let first = tag.to_array()[0]
+  first >= 'A' && first <= 'Z'
+}

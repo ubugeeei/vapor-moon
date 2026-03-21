@@ -1,0 +1,10 @@
+_build/
+.mooncakes/
+.moon/
+node_modules/
+dist/
+coverage/
+*.log
+*.tmp
+*.swp
+*.DS_Store

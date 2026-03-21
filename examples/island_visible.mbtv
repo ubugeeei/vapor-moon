@@ -1,0 +1,14 @@
+<script setup>
+import {
+  "mizchi/luna/js/resource" @reactivity,
+  let signal = @reactivity.signal,
+}
+
+let count = signal(3)
+</script>
+
+<template>
+  <section>
+    <CounterPanel :count='count.get()' client:visible />
+  </section>
+</template>

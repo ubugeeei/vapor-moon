@@ -1,0 +1,18 @@
+<script setup>
+import {
+  "mizchi/luna/js/resource" @reactivity,
+  let signal = @reactivity.signal,
+}
+
+let count = signal(0)
+</script>
+
+<template>
+  <div class="counter">{{ count.get() }}</div>
+</template>
+
+<style scoped>
+.counter {
+  color: red;
+}
+</style>
