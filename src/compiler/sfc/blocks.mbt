@@ -9,7 +9,7 @@ fn parse_blocks(source : String) -> Array[SfcBlock] raise CompilerError {
       continue
     }
     if cursor + 1 < chars.length() && chars[cursor + 1] == '!' {
-      cursor = skip_comment(chars, cursor)
+      cursor = skip_html_comment(chars, cursor)
       continue
     }
     if cursor + 1 < chars.length() && chars[cursor + 1] == '/' {
@@ -22,8 +22,7 @@ fn parse_blocks(source : String) -> Array[SfcBlock] raise CompilerError {
           cursor += 1
           continue
         }
-        let close_tag = "</" + tag + ">"
-        match find_substring_from(source, close_tag, tag_end) {
+        match find_block_close_start(source, chars, tag, tag_end) {
           Some(close_start) => {
             let content = String::unsafe_substring(
               source,
@@ -31,6 +30,7 @@ fn parse_blocks(source : String) -> Array[SfcBlock] raise CompilerError {
               end=close_start,
             )
             let kind = classify_block(tag, attrs)
+            let close_tag = "</" + tag + ">"
             let end = close_start + close_tag.length()
             blocks.push({
               kind,
@@ -53,6 +53,20 @@ fn parse_blocks(source : String) -> Array[SfcBlock] raise CompilerError {
 }
 
 ///|
+fn find_block_close_start(
+  source : String,
+  chars : Array[Char],
+  tag : String,
+  start : Int,
+) -> Int? {
+  if tag == "template" {
+    find_template_block_close(chars, start)
+  } else {
+    find_raw_block_close(source, chars, tag, start, tag == "script")
+  }
+}
+
+///|
 fn is_top_level_tag(tag : String) -> Bool {
   tag == "template" || tag == "script" || tag == "style"
 }
@@ -68,46 +82,4 @@ fn classify_block(tag : String, attrs : Array[BlockAttr]) -> BlockKind {
   } else {
     Script
   }
-}
-
-///|
-fn skip_comment(chars : Array[Char], start : Int) -> Int {
-  let mut cursor = start + 1
-  while cursor + 2 < chars.length() {
-    if chars[cursor] == '-' &&
-      chars[cursor + 1] == '-' &&
-      chars[cursor + 2] == '>' {
-      return cursor + 3
-    }
-    cursor += 1
-  }
-  chars.length()
-}
-
-///|
-fn find_substring_from(source : String, needle : String, start : Int) -> Int? {
-  if needle.length() == 0 {
-    return Some(start)
-  }
-  if start >= source.length() {
-    return None
-  }
-  let source_chars = source.to_array()
-  let needle_chars = needle.to_array()
-  let last = source_chars.length() - needle_chars.length()
-  let mut cursor = start
-  while cursor <= last {
-    let mut matched = true
-    for offset in 0..<needle_chars.length() {
-      if source_chars[cursor + offset] != needle_chars[offset] {
-        matched = false
-        break
-      }
-    }
-    if matched {
-      return Some(cursor)
-    }
-    cursor += 1
-  }
-  None
 }

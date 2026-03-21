@@ -29,6 +29,7 @@ fn on_end_tag(
       "expected </\{frame.element.tag}>, got </\{name}>",
     )
   }
+  validate_finalized_element(frame.element, frame.children)
   append_node(
     Element({ ..frame.element, children: frame.children }),
     roots,
@@ -52,38 +53,121 @@ fn build_template_element(
   let mut key_expr : String? = None
   let mut ref_name : String? = None
   let mut once = false
+  let mut island_directive : String? = None
   let final_attrs : Array[TemplateAttr] = []
   for attr in attrs {
     match attr.name {
-      "v-if" => if_expr = Some(attr.value)
-      "v-for" => for_binding = Some(parse_for_binding(attr.value))
-      "client:load" => island_mode = IslandMode::Load
-      "client:idle" => island_mode = IslandMode::Idle
-      "client:visible" => island_mode = IslandMode::Visible
-      "client:none" => island_mode = IslandMode::None
-      "client:only" => island_mode = IslandMode::Only
-      "server:defer" => island_mode = IslandMode::ServerDefer
-      "client:media" => island_mode = IslandMode::Media(attr.value)
-      "v-show" => show_expr = Some(attr.value)
-      "v-html" => html_expr = Some(attr.value)
-      "v-once" => once = true
-      "key" =>
-        key_expr = Some(
-          if attr.has_value {
-            quote_template_literal(attr.value)
-          } else {
-            "\"true\""
-          },
+      "v-if" => {
+        ensure_empty_expr_directive(if_expr, attr, tag)
+        if_expr = Some(expect_attr_value(attr, tag))
+      }
+      "v-for" => {
+        ensure_empty_expr_directive(
+          occupied_directive_value(for_binding.map(fn(_) { "used" })),
+          attr,
+          tag,
         )
-      ":key" | "v-bind:key" => key_expr = Some(attr.value)
-      "ref" =>
-        if attr.has_value {
-          ref_name = Some(quote_template_literal(attr.value))
-        }
-      ":ref" | "v-bind:ref" => ref_name = Some(attr.value)
+        for_binding = Some(parse_for_binding(expect_attr_value(attr, tag)))
+      }
+      "client:load" => {
+        island_mode = register_island_mode(
+          island_directive,
+          attr,
+          tag,
+          IslandMode::Load,
+        )
+        island_directive = Some(attr.name)
+      }
+      "client:idle" => {
+        island_mode = register_island_mode(
+          island_directive,
+          attr,
+          tag,
+          IslandMode::Idle,
+        )
+        island_directive = Some(attr.name)
+      }
+      "client:visible" => {
+        island_mode = register_island_mode(
+          island_directive,
+          attr,
+          tag,
+          IslandMode::Visible,
+        )
+        island_directive = Some(attr.name)
+      }
+      "client:none" => {
+        island_mode = register_island_mode(
+          island_directive,
+          attr,
+          tag,
+          IslandMode::None,
+        )
+        island_directive = Some(attr.name)
+      }
+      "client:only" => {
+        island_mode = register_island_mode(
+          island_directive,
+          attr,
+          tag,
+          IslandMode::Only,
+        )
+        island_directive = Some(attr.name)
+      }
+      "server:defer" => {
+        island_mode = register_island_mode(
+          island_directive,
+          attr,
+          tag,
+          IslandMode::ServerDefer,
+        )
+        island_directive = Some(attr.name)
+      }
+      "client:media" => {
+        island_mode = register_island_mode(
+          island_directive,
+          attr,
+          tag,
+          IslandMode::Media(expect_attr_value(attr, tag)),
+        )
+        island_directive = Some(attr.name)
+      }
+      "v-show" => {
+        ensure_empty_expr_directive(show_expr, attr, tag)
+        show_expr = Some(expect_attr_value(attr, tag))
+      }
+      "v-html" => {
+        ensure_empty_expr_directive(html_expr, attr, tag)
+        html_expr = Some(expect_attr_value(attr, tag))
+      }
+      "v-once" => once = true
+      "key" => {
+        ensure_empty_expr_directive(key_expr, attr, tag)
+        key_expr = Some(quote_template_literal(expect_attr_value(attr, tag)))
+      }
+      ":key" | "v-bind:key" => {
+        ensure_empty_expr_directive(key_expr, attr, tag)
+        key_expr = Some(expect_attr_value(attr, tag))
+      }
+      "ref" => {
+        ensure_empty_expr_directive(ref_name, attr, tag)
+        ref_name = Some(quote_template_literal(expect_attr_value(attr, tag)))
+      }
+      ":ref" | "v-bind:ref" => {
+        ensure_empty_expr_directive(ref_name, attr, tag)
+        ref_name = Some(expect_attr_value(attr, tag))
+      }
       _ =>
         match parse_model_attr(attr) {
-          Some(binding) => model = Some(binding)
+          Some(binding) => {
+            ensure_empty_expr_directive(
+              occupied_directive_value(model.map(fn(_) { "used" })),
+              attr,
+              tag,
+            )
+            validate_model_target(tag, is_component)
+            model = Some(binding)
+          }
           None => final_attrs.push(classify_template_attr(attr))
         }
     }
@@ -164,61 +248,4 @@ fn classify_template_attr(attr : ParsedTemplateAttr) -> TemplateAttr {
   } else {
     { kind: Boolean, name: attr.name, value: "true" }
   }
-}
-
-///|
-fn parse_model_attr(attr : ParsedTemplateAttr) -> TemplateModel? {
-  if not(attr.name.has_prefix("v-model")) {
-    return None
-  }
-  let suffix = String::unsafe_substring(
-    attr.name,
-    start=7,
-    end=attr.name.length(),
-  )
-  let mut argument : String? = None
-  let modifiers : Array[String] = []
-  if suffix.length() > 0 {
-    let segments = suffix
-      .split(".")
-      .map(fn(part) { part.to_string() })
-      .collect()
-    if segments.length() > 0 && segments[0].has_prefix(":") {
-      let arg = String::unsafe_substring(
-        segments[0],
-        start=1,
-        end=segments[0].length(),
-      )
-      if arg.length() > 0 {
-        argument = Some(arg)
-      }
-    }
-    for index in 0..<segments.length() {
-      if index == 0 && segments[index].has_prefix(":") {
-        continue
-      }
-      if segments[index].length() > 0 {
-        modifiers.push(segments[index])
-      }
-    }
-  }
-  Some({ argument, expression: attr.value, modifiers })
-}
-
-///|
-fn quote_template_literal(source : String) -> String {
-  let sb = StringBuilder::new()
-  sb.write_char('"')
-  for ch in source {
-    match ch {
-      '"' => sb.write_string("\\\"")
-      '\\' => sb.write_string("\\\\")
-      '\n' => sb.write_string("\\n")
-      '\r' => sb.write_string("\\r")
-      '\t' => sb.write_string("\\t")
-      _ => sb.write_char(ch)
-    }
-  }
-  sb.write_char('"')
-  sb.to_string()
 }
