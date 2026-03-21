@@ -65,6 +65,7 @@ extern "js" fn event_current_target_label(event : @js.Any) -> String =
 extern "js" fn stop_event(event : @js.Any) -> Unit =
   #| (event) => event.stopPropagation()
 
+///|
 test "delegated handlers bubble through parent chain with currentTarget" {
   let doc = fake_document()
   let parent = fake_element(doc, "parent", None)
@@ -91,6 +92,7 @@ test "delegated handlers bubble through parent chain with currentTarget" {
   assert_eq(targets, ["child", "parent"])
 }
 
+///|
 test "delegated handlers respect stopPropagation" {
   let doc = fake_document()
   let parent = fake_element(doc, "parent", None)
@@ -116,15 +118,12 @@ test "delegated handlers respect stopPropagation" {
   assert_eq(targets, ["child"])
 }
 
+///|
 test "non bubbling events stay on direct listeners" {
   let doc = fake_document()
   let elem = fake_element(doc, "hover", None)
 
-  apply_attr(
-    elem,
-    "mouseenter",
-    attr_handler(fn(_event) { () }),
-  )
+  apply_attr(elem, "mouseenter", attr_handler(fn(_event) { () }))
 
   assert_eq(document_listener_count(doc, "mouseenter"), 0)
   assert_eq(element_listener_count(elem.as_any(), "mouseenter"), 1)
