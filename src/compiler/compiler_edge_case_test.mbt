@@ -101,3 +101,43 @@ test "rejects duplicate key bindings" {
     "InvalidDirective(\"duplicate `:key` on <div>\")",
   )
 }
+
+///|
+test "rejects event directives without an expression" {
+  let source =
+    #|<template><button @click></button></template>
+  assert_eq(
+    compile_error(source, "invalid/event_missing_expr.mbtv"),
+    "InvalidDirective(\"`@click` requires an expression\")",
+  )
+}
+
+///|
+test "rejects event directives without an event name" {
+  let source =
+    #|<template><button @='save()'></button></template>
+  assert_eq(
+    compile_error(source, "invalid/event_missing_name.mbtv"),
+    "InvalidDirective(\"event directive requires an event name on <button>\")",
+  )
+}
+
+///|
+test "rejects binding directives without an attribute name" {
+  let source =
+    #|<template><div :='value'></div></template>
+  assert_eq(
+    compile_error(source, "invalid/bind_missing_name.mbtv"),
+    "InvalidDirective(\"binding directive requires an attribute name on <div>\")",
+  )
+}
+
+///|
+test "rejects v-for bindings with more than value and index" {
+  let source =
+    #|<template><li v-for='(item, index, extra) in items'></li></template>
+  assert_eq(
+    compile_error(source, "invalid/v_for_extra_bindings.mbtv"),
+    "InvalidDirective(\"invalid v-for binding: (item, index, extra) in items\")",
+  )
+}

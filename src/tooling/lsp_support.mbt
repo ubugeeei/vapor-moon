@@ -73,7 +73,7 @@ fn location_from_span(
 
 ///|
 fn contains_offset(span : @compiler.SourceSpan, offset : Int) -> Bool {
-  offset >= span.start && offset <= span.end
+  offset >= span.start && offset < span.end
 }
 
 ///|

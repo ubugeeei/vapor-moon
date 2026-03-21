@@ -189,3 +189,22 @@ test "hover definition and completion use opened documents" {
   )
   assert_true(completion.messages[0].contains("\"label\":\"title\""))
 }
+
+///|
+test "completion returns template event candidates" {
+  let state = ServerState::new()
+  let source =
+    #|<template>
+    #|  <button @></button>
+    #|</template>
+  let did_open = open_request("file:///Component.mbtv", source)
+  ignore(handle_message(state, did_open))
+
+  let (line, character) = line_character_at(source, "@></button>")
+  let completion = handle_message(
+    state,
+    position_request(5, "textDocument/completion", line, character + 1),
+  )
+
+  assert_true(completion.messages[0].contains("\"label\":\"@click\""))
+}

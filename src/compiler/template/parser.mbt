@@ -56,6 +56,11 @@ fn parse_for_binding(source : String) -> ForBinding raise CompilerError {
           .split(",")
           .map(fn(part) { part.trim().to_string() })
           .collect()
+        if items.length() > 2 {
+          raise CompilerError::InvalidDirective(
+            "invalid v-for binding: \{source}",
+          )
+        }
         if items.length() == 0 || items[0].length() == 0 {
           raise CompilerError::InvalidDirective(
             "invalid v-for binding: \{source}",

@@ -170,6 +170,18 @@ fn general_completion_items(
   offset : Int,
 ) -> Array[ToolingCompletionItem] {
   let prefix = current_token_prefix(index.source, offset)
+  if prefix.has_prefix("@") {
+    return event_completion_items(prefix)
+  }
+  if prefix.has_prefix("v-on:") {
+    return long_event_completion_items(prefix)
+  }
+  if prefix.has_prefix(":") {
+    return binding_completion_items(prefix)
+  }
+  if prefix.has_prefix("v-bind:") {
+    return long_binding_completion_items(prefix)
+  }
   if prefix.has_prefix("v-") {
     return directive_completion_items(prefix)
   }

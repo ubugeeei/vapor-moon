@@ -41,6 +41,35 @@ fn expect_attr_value(
 }
 
 ///|
+fn validate_normalized_attr(
+  raw_attr : ParsedTemplateAttr,
+  attr : TemplateAttr,
+  tag : String,
+) -> Unit raise CompilerError {
+  match attr.kind {
+    Event => {
+      if attr.name.trim().length() == 0 {
+        raise CompilerError::InvalidDirective(
+          "event directive requires an event name on <\{tag}>",
+        )
+      }
+      if not(raw_attr.has_value) || raw_attr.value.trim().length() == 0 {
+        raise CompilerError::InvalidDirective(
+          "`\{raw_attr.name}` requires an expression",
+        )
+      }
+    }
+    Dynamic =>
+      if attr.name.trim().length() == 0 {
+        raise CompilerError::InvalidDirective(
+          "binding directive requires an attribute name on <\{tag}>",
+        )
+      }
+    _ => ()
+  }
+}
+
+///|
 fn register_island_mode(
   previous : String?,
   attr : ParsedTemplateAttr,

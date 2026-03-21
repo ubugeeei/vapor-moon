@@ -4,6 +4,47 @@ fn diagnostics_snapshot(source : String, filename : String) -> String {
 }
 
 ///|
+fn find_offset(source : String, needle : String) -> Int {
+  let chars = source.to_array()
+  let pattern = needle.to_array()
+  let last = chars.length() - pattern.length()
+  let mut cursor = 0
+  while cursor <= last {
+    let mut matched = true
+    for index in 0..<pattern.length() {
+      if chars[cursor + index] != pattern[index] {
+        matched = false
+        break
+      }
+    }
+    if matched {
+      return cursor
+    }
+    cursor += 1
+  }
+  0
+}
+
+///|
+fn line_character_at(source : String, needle : String) -> (Int, Int) {
+  let start = find_offset(source, needle)
+  let chars = source.to_array()
+  let mut line = 0
+  let mut character = 0
+  let mut cursor = 0
+  while cursor < start {
+    if chars[cursor] == '\n' {
+      line += 1
+      character = 0
+    } else {
+      character += if chars[cursor].to_int() > 0xFFFF { 2 } else { 1 }
+    }
+    cursor += 1
+  }
+  (line, character)
+}
+
+///|
 test "snapshot lsp diagnostics" {
   let source =
     #|<script setup>
@@ -98,6 +139,34 @@ test "snapshot lsp hover and definition" {
 }
 
 ///|
+test "hover does not bleed past the end of a symbol" {
+  let source =
+    #|<script setup>
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|
+    #|let props : Props = defineProps()
+    #|</script>
+    #|
+    #|<template>
+    #|  <button>
+    #|    {{ props.title }}
+    #|  </button>
+    #|</template>
+  let (line, character) = line_character_at(source, "title }}")
+  assert_eq(
+    hover_at(
+      source,
+      line,
+      character + 5,
+      filename="examples/macros_cursor_boundary.mbtv",
+    ),
+    None,
+  )
+}
+
+///|
 test "snapshot lsp completion" {
   let source =
     #|<script setup>
@@ -122,6 +191,75 @@ test "snapshot lsp completion" {
     complete_at(source, 10, 28, filename="examples/complete.mbtv").to_string(),
     content=(
       #|[{label: "v-if", kind: "directive", detail: "template directive", insert_text: "v-if"}, {label: "v-for", kind: "directive", detail: "template directive", insert_text: "v-for"}, {label: "v-show", kind: "directive", detail: "template directive", insert_text: "v-show"}, {label: "v-html", kind: "directive", detail: "template directive", insert_text: "v-html"}, {label: "v-model", kind: "directive", detail: "template directive", insert_text: "v-model"}, {label: "v-once", kind: "directive", detail: "template directive", insert_text: "v-once"}]
+    ),
+  )
+}
+
+///|
+test "snapshot lsp event and binding completion" {
+  let source =
+    #|<template>
+    #|  <button @></button>
+    #|  <button v-on:></button>
+    #|  <input : />
+    #|  <input v-bind: />
+    #|</template>
+  let (event_line, event_character) = line_character_at(source, "@></button>")
+  let (long_event_line, long_event_character) = line_character_at(
+    source,
+    "v-on:></button>",
+  )
+  let (bind_line, bind_character) = line_character_at(source, ": />")
+  let (long_bind_line, long_bind_character) = line_character_at(
+    source,
+    "v-bind: />",
+  )
+  inspect(
+    complete_at(
+      source,
+      event_line,
+      event_character + 1,
+      filename="examples/complete_attrs.mbtv",
+    )
+      .to_string(),
+    content=(
+      #|[{label: "@click", kind: "event", detail: "event handler", insert_text: "@click"}, {label: "@input", kind: "event", detail: "event handler", insert_text: "@input"}, {label: "@change", kind: "event", detail: "event handler", insert_text: "@change"}, {label: "@submit", kind: "event", detail: "event handler", insert_text: "@submit"}, {label: "@keydown", kind: "event", detail: "event handler", insert_text: "@keydown"}, {label: "@keyup", kind: "event", detail: "event handler", insert_text: "@keyup"}, {label: "@focus", kind: "event", detail: "event handler", insert_text: "@focus"}, {label: "@blur", kind: "event", detail: "event handler", insert_text: "@blur"}]
+    ),
+  )
+  inspect(
+    complete_at(
+      source,
+      long_event_line,
+      long_event_character + 5,
+      filename="examples/complete_attrs.mbtv",
+    )
+      .to_string(),
+    content=(
+      #|[{label: "v-on:click", kind: "event", detail: "event handler", insert_text: "v-on:click"}, {label: "v-on:input", kind: "event", detail: "event handler", insert_text: "v-on:input"}, {label: "v-on:change", kind: "event", detail: "event handler", insert_text: "v-on:change"}, {label: "v-on:submit", kind: "event", detail: "event handler", insert_text: "v-on:submit"}, {label: "v-on:keydown", kind: "event", detail: "event handler", insert_text: "v-on:keydown"}, {label: "v-on:keyup", kind: "event", detail: "event handler", insert_text: "v-on:keyup"}, {label: "v-on:focus", kind: "event", detail: "event handler", insert_text: "v-on:focus"}, {label: "v-on:blur", kind: "event", detail: "event handler", insert_text: "v-on:blur"}]
+    ),
+  )
+  inspect(
+    complete_at(
+      source,
+      bind_line,
+      bind_character + 1,
+      filename="examples/complete_attrs.mbtv",
+    )
+      .to_string(),
+    content=(
+      #|[{label: ":class", kind: "binding", detail: "dynamic attribute", insert_text: ":class"}, {label: ":style", kind: "binding", detail: "dynamic attribute", insert_text: ":style"}, {label: ":key", kind: "binding", detail: "dynamic attribute", insert_text: ":key"}, {label: ":ref", kind: "binding", detail: "dynamic attribute", insert_text: ":ref"}, {label: ":value", kind: "binding", detail: "dynamic attribute", insert_text: ":value"}, {label: ":checked", kind: "binding", detail: "dynamic attribute", insert_text: ":checked"}, {label: ":disabled", kind: "binding", detail: "dynamic attribute", insert_text: ":disabled"}]
+    ),
+  )
+  inspect(
+    complete_at(
+      source,
+      long_bind_line,
+      long_bind_character + 7,
+      filename="examples/complete_attrs.mbtv",
+    )
+      .to_string(),
+    content=(
+      #|[{label: "v-bind:class", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:class"}, {label: "v-bind:style", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:style"}, {label: "v-bind:key", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:key"}, {label: "v-bind:ref", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:ref"}, {label: "v-bind:value", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:value"}, {label: "v-bind:checked", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:checked"}, {label: "v-bind:disabled", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:disabled"}]
     ),
   )
 }

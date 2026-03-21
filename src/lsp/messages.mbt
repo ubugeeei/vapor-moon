@@ -188,7 +188,7 @@ fn diagnostic_severity(severity : String) -> Int {
 fn completion_kind(kind : String) -> Int {
   match kind {
     "props" | "emit" | "slots" => 5
-    "directive" | "macro" => 14
+    "directive" | "macro" | "event" | "binding" => 14
     "client" | "server" => 14
     _ => 10
   }

@@ -169,7 +169,11 @@ fn build_template_element(
             validate_model_target(tag, is_component)
             model = Some(binding)
           }
-          None => final_attrs.push(classify_template_attr(attr))
+          None => {
+            let normalized = classify_template_attr(attr)
+            validate_normalized_attr(attr, normalized, tag)
+            final_attrs.push(normalized)
+          }
         }
     }
   }
