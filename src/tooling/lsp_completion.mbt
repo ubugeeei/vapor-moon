@@ -43,14 +43,7 @@ fn directive_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
 ///|
 fn event_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
   let entries = [
-    "@click",
-    "@input",
-    "@change",
-    "@submit",
-    "@keydown",
-    "@keyup",
-    "@focus",
-    "@blur",
+    "@click", "@input", "@change", "@submit", "@keydown", "@keyup", "@focus", "@blur",
   ]
   prefixed_completion_items(prefix, entries, "event", "event handler")
 }
@@ -58,14 +51,8 @@ fn event_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
 ///|
 fn long_event_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
   let entries = [
-    "v-on:click",
-    "v-on:input",
-    "v-on:change",
-    "v-on:submit",
-    "v-on:keydown",
-    "v-on:keyup",
-    "v-on:focus",
-    "v-on:blur",
+    "v-on:click", "v-on:input", "v-on:change", "v-on:submit", "v-on:keydown", "v-on:keyup",
+    "v-on:focus", "v-on:blur",
   ]
   prefixed_completion_items(prefix, entries, "event", "event handler")
 }
@@ -73,26 +60,17 @@ fn long_event_completion_items(prefix : String) -> Array[ToolingCompletionItem] 
 ///|
 fn binding_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
   let entries = [
-    ":class",
-    ":style",
-    ":key",
-    ":ref",
-    ":value",
-    ":checked",
-    ":disabled",
+    ":class", ":style", ":key", ":ref", ":value", ":checked", ":disabled",
   ]
   prefixed_completion_items(prefix, entries, "binding", "dynamic attribute")
 }
 
 ///|
-fn long_binding_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
+fn long_binding_completion_items(
+  prefix : String,
+) -> Array[ToolingCompletionItem] {
   let entries = [
-    "v-bind:class",
-    "v-bind:style",
-    "v-bind:key",
-    "v-bind:ref",
-    "v-bind:value",
-    "v-bind:checked",
+    "v-bind:class", "v-bind:style", "v-bind:key", "v-bind:ref", "v-bind:value", "v-bind:checked",
     "v-bind:disabled",
   ]
   prefixed_completion_items(prefix, entries, "binding", "dynamic attribute")
@@ -119,12 +97,7 @@ fn prefixed_completion_items(
     if not(entry.has_prefix(prefix)) {
       continue
     }
-    items.push({
-      label: entry,
-      kind,
-      detail,
-      insert_text: entry,
-    })
+    items.push({ label: entry, kind, detail, insert_text: entry })
   }
   items
 }

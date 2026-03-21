@@ -206,13 +206,11 @@ test "snapshot lsp event and binding completion" {
     #|</template>
   let (event_line, event_character) = line_character_at(source, "@></button>")
   let (long_event_line, long_event_character) = line_character_at(
-    source,
-    "v-on:></button>",
+    source, "v-on:></button>",
   )
   let (bind_line, bind_character) = line_character_at(source, ": />")
   let (long_bind_line, long_bind_character) = line_character_at(
-    source,
-    "v-bind: />",
+    source, "v-bind: />",
   )
   inspect(
     complete_at(
@@ -220,8 +218,7 @@ test "snapshot lsp event and binding completion" {
       event_line,
       event_character + 1,
       filename="examples/complete_attrs.mbtv",
-    )
-      .to_string(),
+    ).to_string(),
     content=(
       #|[{label: "@click", kind: "event", detail: "event handler", insert_text: "@click"}, {label: "@input", kind: "event", detail: "event handler", insert_text: "@input"}, {label: "@change", kind: "event", detail: "event handler", insert_text: "@change"}, {label: "@submit", kind: "event", detail: "event handler", insert_text: "@submit"}, {label: "@keydown", kind: "event", detail: "event handler", insert_text: "@keydown"}, {label: "@keyup", kind: "event", detail: "event handler", insert_text: "@keyup"}, {label: "@focus", kind: "event", detail: "event handler", insert_text: "@focus"}, {label: "@blur", kind: "event", detail: "event handler", insert_text: "@blur"}]
     ),
@@ -232,8 +229,7 @@ test "snapshot lsp event and binding completion" {
       long_event_line,
       long_event_character + 5,
       filename="examples/complete_attrs.mbtv",
-    )
-      .to_string(),
+    ).to_string(),
     content=(
       #|[{label: "v-on:click", kind: "event", detail: "event handler", insert_text: "v-on:click"}, {label: "v-on:input", kind: "event", detail: "event handler", insert_text: "v-on:input"}, {label: "v-on:change", kind: "event", detail: "event handler", insert_text: "v-on:change"}, {label: "v-on:submit", kind: "event", detail: "event handler", insert_text: "v-on:submit"}, {label: "v-on:keydown", kind: "event", detail: "event handler", insert_text: "v-on:keydown"}, {label: "v-on:keyup", kind: "event", detail: "event handler", insert_text: "v-on:keyup"}, {label: "v-on:focus", kind: "event", detail: "event handler", insert_text: "v-on:focus"}, {label: "v-on:blur", kind: "event", detail: "event handler", insert_text: "v-on:blur"}]
     ),
@@ -244,8 +240,7 @@ test "snapshot lsp event and binding completion" {
       bind_line,
       bind_character + 1,
       filename="examples/complete_attrs.mbtv",
-    )
-      .to_string(),
+    ).to_string(),
     content=(
       #|[{label: ":class", kind: "binding", detail: "dynamic attribute", insert_text: ":class"}, {label: ":style", kind: "binding", detail: "dynamic attribute", insert_text: ":style"}, {label: ":key", kind: "binding", detail: "dynamic attribute", insert_text: ":key"}, {label: ":ref", kind: "binding", detail: "dynamic attribute", insert_text: ":ref"}, {label: ":value", kind: "binding", detail: "dynamic attribute", insert_text: ":value"}, {label: ":checked", kind: "binding", detail: "dynamic attribute", insert_text: ":checked"}, {label: ":disabled", kind: "binding", detail: "dynamic attribute", insert_text: ":disabled"}]
     ),
@@ -256,8 +251,7 @@ test "snapshot lsp event and binding completion" {
       long_bind_line,
       long_bind_character + 7,
       filename="examples/complete_attrs.mbtv",
-    )
-      .to_string(),
+    ).to_string(),
     content=(
       #|[{label: "v-bind:class", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:class"}, {label: "v-bind:style", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:style"}, {label: "v-bind:key", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:key"}, {label: "v-bind:ref", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:ref"}, {label: "v-bind:value", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:value"}, {label: "v-bind:checked", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:checked"}, {label: "v-bind:disabled", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:disabled"}]
     ),
