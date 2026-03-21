@@ -143,7 +143,7 @@ pub fn component_dom_meta(
   }
   let elem = element("vm-component")
   apply_attrs(elem, attrs)
-  append_children(elem, children)
+  append_children(elem.as_node(), children)
   to_node(elem)
 }
 
@@ -178,7 +178,7 @@ pub fn island_dom_meta(
   }
   let elem = element("vm-island")
   apply_attrs(elem, attrs)
-  append_children(elem, children)
+  append_children(elem.as_node(), children)
   to_node(elem)
 }
 
@@ -267,7 +267,82 @@ extern "js" fn bind_event_handler(
   name : String,
   handler : (@js.Any) -> Unit,
 ) -> Unit =
-  #|(elem, name, handler) => elem.addEventListener(name, handler)
+  #| (elem, name, handler) => {
+  #|   const runtime = globalThis.__vaporMoonEventDelegator ??= (() => {
+  #|     const direct = new Set([
+  #|       "error",
+  #|       "load",
+  #|       "mouseenter",
+  #|       "mouseleave",
+  #|       "pointerenter",
+  #|       "pointerleave",
+  #|       "scroll",
+  #|       "unload",
+  #|     ]);
+  #|     const capture = new Set(["blur", "focus"]);
+  #|     const docs = new WeakMap();
+  #|     const storeKey = "__vaporMoonHandlers";
+  #|     const wrapEvent = (event, currentTarget) =>
+  #|       new Proxy(event, {
+  #|         get(target, prop) {
+  #|           if (prop === "currentTarget" || prop === "delegateTarget") {
+  #|             return currentTarget;
+  #|           }
+  #|           if (prop === "nativeEvent") {
+  #|             return target;
+  #|           }
+  #|           const value = Reflect.get(target, prop, target);
+  #|           return typeof value === "function" ? value.bind(target) : value;
+  #|         },
+  #|       });
+  #|     const dispatch = (name, event) => {
+  #|       let current = event.target;
+  #|       if (current && current.nodeType === 3) {
+  #|         current = current.parentNode;
+  #|       }
+  #|       while (current) {
+  #|         const candidate = current[storeKey]?.[name];
+  #|         if (candidate) {
+  #|           const currentTarget = current;
+  #|           candidate(wrapEvent(event, currentTarget));
+  #|           if (event.cancelBubble) {
+  #|             return;
+  #|           }
+  #|         }
+  #|         current = current.parentNode || current.host || null;
+  #|       }
+  #|     };
+  #|     return { direct, capture, docs, storeKey, dispatch };
+  #|   })();
+  #|
+  #|   if (runtime.direct.has(name)) {
+  #|     elem.addEventListener(name, handler);
+  #|     return;
+  #|   }
+  #|
+  #|   const doc = elem.ownerDocument ?? globalThis.document;
+  #|   if (!doc) {
+  #|     elem.addEventListener(name, handler);
+  #|     return;
+  #|   }
+  #|
+  #|   const store = elem[runtime.storeKey] ??= Object.create(null);
+  #|   store[name] = handler;
+  #|
+  #|   let listeners = runtime.docs.get(doc);
+  #|   if (!listeners) {
+  #|     listeners = new Map();
+  #|     runtime.docs.set(doc, listeners);
+  #|   }
+  #|
+  #|   if (listeners.has(name)) {
+  #|     return;
+  #|   }
+  #|
+  #|   const listener = (event) => runtime.dispatch(name, event);
+  #|   doc.addEventListener(name, listener, runtime.capture.has(name));
+  #|   listeners.set(name, listener);
+  #| }
 
 ///|
 fn render_mode_label(mode : @vm.HydrationMode) -> String {
