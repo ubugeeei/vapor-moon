@@ -7,14 +7,24 @@ pub fn component_ssr(
   props_json : String,
   children : Array[@luna_core.StaticDomNode],
 ) -> @luna_core.StaticDomNode {
-  @luna_core.h(
-    "vm-component",
-    [
-      ("data-vm-component", @luna_core.attr_static(name)),
-      ("data-vm-props", @luna_core.attr_static(props_json)),
-    ],
-    children,
-  )
+  component_ssr_meta(name, props_json, children, [])
+}
+
+///|
+pub fn component_ssr_meta(
+  name : String,
+  props_json : String,
+  children : Array[@luna_core.StaticDomNode],
+  meta_attrs : Array[(String, @luna_core.AttrValue)],
+) -> @luna_core.StaticDomNode {
+  let attrs : Array[(String, @luna_core.AttrValue)] = [
+    ("data-vm-component", @luna_core.attr_static(name)),
+    ("data-vm-props", @luna_core.attr_static(props_json)),
+  ]
+  for attr in meta_attrs {
+    attrs.push(attr)
+  }
+  @luna_core.h("vm-component", attrs, children)
 }
 
 ///|
@@ -24,26 +34,20 @@ pub fn island_ssr(
   children : Array[@luna_core.StaticDomNode],
   mode : @vm.HydrationMode,
 ) -> @luna_core.StaticDomNode {
+  island_ssr_meta(name, props_json, children, mode, [])
+}
+
+///|
+pub fn island_ssr_meta(
+  name : String,
+  props_json : String,
+  children : Array[@luna_core.StaticDomNode],
+  mode : @vm.HydrationMode,
+  meta_attrs : Array[(String, @luna_core.AttrValue)],
+) -> @luna_core.StaticDomNode {
   match mode {
-    Only =>
-      @luna_core.h(
-        "vm-island",
-        [
-          ("data-vm-island", @luna_core.attr_static(name)),
-          ("data-vm-client", @luna_core.attr_static("only")),
-          ("data-vm-props", @luna_core.attr_static(props_json)),
-        ],
-        [],
-      )
-    ServerDefer =>
-      @luna_core.h(
-        "vm-server-defer",
-        [
-          ("data-vm-component", @luna_core.attr_static(name)),
-          ("data-vm-props", @luna_core.attr_static(props_json)),
-        ],
-        children,
-      )
+    Only => island_only_ssr(name, props_json, meta_attrs)
+    ServerDefer => island_defer_ssr(name, props_json, children, meta_attrs)
     _ =>
       @luna_core.island(
         island_id(name, props_json),
@@ -53,6 +57,40 @@ pub fn island_ssr(
         trigger=to_luna_trigger(mode),
       )
   }
+}
+
+///|
+fn island_only_ssr(
+  name : String,
+  props_json : String,
+  meta_attrs : Array[(String, @luna_core.AttrValue)],
+) -> @luna_core.StaticDomNode {
+  let attrs : Array[(String, @luna_core.AttrValue)] = [
+    ("data-vm-island", @luna_core.attr_static(name)),
+    ("data-vm-client", @luna_core.attr_static("only")),
+    ("data-vm-props", @luna_core.attr_static(props_json)),
+  ]
+  for attr in meta_attrs {
+    attrs.push(attr)
+  }
+  @luna_core.h("vm-island", attrs, [])
+}
+
+///|
+fn island_defer_ssr(
+  name : String,
+  props_json : String,
+  children : Array[@luna_core.StaticDomNode],
+  meta_attrs : Array[(String, @luna_core.AttrValue)],
+) -> @luna_core.StaticDomNode {
+  let attrs : Array[(String, @luna_core.AttrValue)] = [
+    ("data-vm-component", @luna_core.attr_static(name)),
+    ("data-vm-props", @luna_core.attr_static(props_json)),
+  ]
+  for attr in meta_attrs {
+    attrs.push(attr)
+  }
+  @luna_core.h("vm-server-defer", attrs, children)
 }
 
 ///|

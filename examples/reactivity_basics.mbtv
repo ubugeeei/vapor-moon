@@ -1,0 +1,28 @@
+<script setup>
+import {
+  "mizchi/luna/js/resource" @reactivity,
+  let signal = @reactivity.signal,
+  let computed = @reactivity.computed,
+  let watch = @reactivity.watch,
+  let effect = @reactivity.effect,
+}
+
+let count = signal(1)
+let doubled = computed(fn() { count.get() * 2 })
+let summary = computed(fn() {
+  "count=" + count.get().to_string() + ", doubled=" + doubled().to_string()
+})
+let history = signal("1 -> 1")
+let summary_effect = effect(fn() { ignore(summary()) })
+let count_watch = watch(fn() { count.get() }, fn(next, prev) {
+  history.set(prev.to_string() + " -> " + next.to_string())
+})
+</script>
+
+<template>
+  <section class="reactivity">
+    <button @click='count.update(fn(n) { n + 1 })'>+</button>
+    <p>{{ summary() }}</p>
+    <small>{{ history.get() }}</small>
+  </section>
+</template>

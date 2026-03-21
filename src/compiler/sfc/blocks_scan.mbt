@@ -58,7 +58,9 @@ fn find_raw_block_close(
           cursor = skip_block_comment(chars, cursor)
         } else if line_comments && starts_with_chars(chars, cursor, "//") {
           cursor = skip_line_comment(chars, cursor)
-        } else if chars[cursor] == '"' || chars[cursor] == '\'' || chars[cursor] == '`' {
+        } else if chars[cursor] == '"' ||
+          chars[cursor] == '\'' ||
+          chars[cursor] == '`' {
           quote = Some(chars[cursor])
           cursor += 1
         } else if starts_with_source(source, cursor, close_tag) {
@@ -75,7 +77,9 @@ fn find_raw_block_close(
 fn skip_html_comment(chars : Array[Char], start : Int) -> Int {
   let mut cursor = start + 1
   while cursor + 2 < chars.length() {
-    if chars[cursor] == '-' && chars[cursor + 1] == '-' && chars[cursor + 2] == '>' {
+    if chars[cursor] == '-' &&
+      chars[cursor + 1] == '-' &&
+      chars[cursor + 2] == '>' {
       return cursor + 3
     }
     cursor += 1
@@ -84,7 +88,10 @@ fn skip_html_comment(chars : Array[Char], start : Int) -> Int {
 }
 
 ///|
-fn read_nested_tag(chars : Array[Char], start : Int) -> (String, Int, Bool, Bool)? {
+fn read_nested_tag(
+  chars : Array[Char],
+  start : Int,
+) -> (String, Int, Bool, Bool)? {
   if chars[start] != '<' {
     return None
   }
@@ -137,7 +144,11 @@ fn read_nested_tag(chars : Array[Char], start : Int) -> (String, Int, Bool, Bool
 }
 
 ///|
-fn chars_to_lower_string(chars : Array[Char], start : Int, end_ : Int) -> String {
+fn chars_to_lower_string(
+  chars : Array[Char],
+  start : Int,
+  end_ : Int,
+) -> String {
   let sb = StringBuilder::new()
   let mut cursor = start
   while cursor < end_ {
@@ -163,7 +174,11 @@ fn starts_with_source(source : String, start : Int, expected : String) -> Bool {
 }
 
 ///|
-fn starts_with_chars(chars : Array[Char], start : Int, expected : String) -> Bool {
+fn starts_with_chars(
+  chars : Array[Char],
+  start : Int,
+  expected : String,
+) -> Bool {
   let expected_chars = expected.to_array()
   if start + expected_chars.length() > chars.length() {
     return false

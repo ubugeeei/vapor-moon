@@ -1,0 +1,25 @@
+<script setup>
+import {
+  "mizchi/luna/js/resource" @reactivity,
+  let signal = @reactivity.signal,
+  let on_mount = @reactivity.on_mount,
+  let on_cleanup = @reactivity.on_cleanup,
+}
+
+let root_ref = useTemplateRef("root")
+let instance_id = useId()
+let phase = signal("booting")
+let mount_registration = on_mount(fn() {
+  phase.set("mounted:" + instance_id)
+  on_cleanup(fn() {
+    ignore(root_ref)
+  })
+})
+</script>
+
+<template>
+  <section ref='root' :data-id='instance_id'>
+    <p>{{ phase.get() }}</p>
+    <p>{{ instance_id }}</p>
+  </section>
+</template>

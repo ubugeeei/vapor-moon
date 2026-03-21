@@ -12,7 +12,7 @@ fn collect_script_setup_contract_types(
   let contracts : Array[ScriptSetupContractType] = []
   for chunk in split_top_level_statements(source) {
     let trimmed = chunk.trim().to_string()
-    if trimmed.length() == 0 || trimmed.has_prefix("import") {
+    if trimmed.length() == 0 || is_script_setup_import_statement(trimmed) {
       continue
     }
     let (impls, reports) = @mbt_parser.parse_string(trimmed, name=filename)

@@ -1,0 +1,14 @@
+import {
+  "mizchi/js/core" @js,
+  "mizchi/js/node/buffer" @buffer,
+  "mizchi/js/node/fs" @node_fs,
+  "mizchi/js/node/process" @process,
+  "mizchi/js/node/stream" @stream,
+  "mizchi/js/node/tty" @tty,
+  "moonbitlang/core/strconv" @strconv,
+  "ubugeeei/vapor_moon/src/tooling" @tooling,
+}
+
+options(
+  "supported-targets": "js",
+)

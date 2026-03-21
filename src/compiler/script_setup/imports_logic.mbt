@@ -1,4 +1,16 @@
 ///|
+fn is_script_setup_import_statement(source : String) -> Bool {
+  if not(source.has_prefix("import")) {
+    return false
+  }
+  if source.length() == 6 {
+    return true
+  }
+  let next = source.to_array()[6]
+  next == ' ' || next == '\n' || next == '\t' || next == '\r' || next == '{'
+}
+
+///|
 fn expand_import_statement(
   source : String,
   filename : String,

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -eu
+
+ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+cd "$ROOT"
+
+exec moon run --target js src/cmd/vapor_moon_lsp -- "$@"

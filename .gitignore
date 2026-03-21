@@ -1,6 +1,7 @@
 _build/
 .mooncakes/
 .moon/
+editors/zed/target/
 node_modules/
 dist/
 coverage/

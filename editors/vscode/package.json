@@ -1,0 +1,66 @@
+{
+  "name": "vapor-moon",
+  "displayName": "Vapor Moon",
+  "description": "Language support and LSP client for Vapor Moon .mbtv components.",
+  "version": "0.1.0",
+  "publisher": "ubugeeei",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:vapor-moon"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "vapor-moon",
+        "aliases": [
+          "Vapor Moon",
+          "mbtv"
+        ],
+        "extensions": [
+          ".mbtv"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "vapor-moon",
+        "scopeName": "text.html.vapor-moon",
+        "path": "./syntaxes/vapor-moon.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "Vapor Moon",
+      "properties": {
+        "vaporMoon.languageServer.command": {
+          "type": "string",
+          "default": "",
+          "description": "Override the Vapor Moon language server command. Leave empty to auto-detect the repo-local launcher or use vapor-moon-lsp from PATH."
+        },
+        "vaporMoon.languageServer.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Additional arguments passed to the Vapor Moon language server."
+        },
+        "vaporMoon.languageServer.cwd": {
+          "type": "string",
+          "default": "",
+          "description": "Working directory for the Vapor Moon language server. Leave empty to use the first workspace folder."
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  }
+}

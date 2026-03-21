@@ -51,6 +51,30 @@ fn render_server_ref_attr(element : TemplateElement) -> String? {
 }
 
 ///|
+fn render_client_component_meta_attrs(element : TemplateElement) -> String {
+  let parts : Array[String] = []
+  push_if_some(parts, render_client_key_attr(element))
+  push_if_some(parts, render_client_ref_attr(element))
+  if parts.is_empty() {
+    "[]"
+  } else {
+    "[" + parts.join(", ") + "]"
+  }
+}
+
+///|
+fn render_server_component_meta_attrs(element : TemplateElement) -> String {
+  let parts : Array[String] = []
+  push_if_some(parts, render_server_key_attr(element))
+  push_if_some(parts, render_server_ref_attr(element))
+  if parts.is_empty() {
+    "[]"
+  } else {
+    "[" + parts.join(", ") + "]"
+  }
+}
+
+///|
 fn render_client_html_attr(
   element : TemplateElement,
   static_mode : Bool,

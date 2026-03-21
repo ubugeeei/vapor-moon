@@ -92,7 +92,7 @@ test "snapshot lsp hover and definition" {
   inspect(
     definition_at(source, 16, 39, filename="examples/macros.mbtv").to_string(),
     content=(
-      #|Some({name: "save", location: {filename: "examples/macros.mbtv", span: {start: 150, end: 154}, range: {start: {line: 12, character: 4}, end_: {line: 12, character: 8}}}})
+      #|Some({name: "save", location: {filename: "examples/macros.mbtv", span: {start: 81, end: 85}, range: {start: {line: 7, character: 2}, end_: {line: 7, character: 6}}}})
     ),
   )
 }

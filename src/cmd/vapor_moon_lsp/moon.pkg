@@ -1,0 +1,9 @@
+import {
+  "mizchi/js/core" @js,
+  "ubugeeei/vapor_moon/src/lsp" @lsp,
+}
+
+options(
+  "is-main": true,
+  "supported-targets": "js",
+)

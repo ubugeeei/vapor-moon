@@ -2,6 +2,7 @@
   "name": "ubugeeei/vapor_moon",
   "version": "0.1.0",
   "deps": {
+    "mizchi/js": "0.10.14",
     "mizchi/luna": "0.18.3",
     "moonbitlang/parser": "0.1.17",
     "moonbitlang/x": "0.4.40"

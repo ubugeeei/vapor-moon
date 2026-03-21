@@ -9,7 +9,7 @@ fn parse_script_setup_module(
     if trimmed.length() == 0 {
       continue
     }
-    if trimmed.has_prefix("import") {
+    if is_script_setup_import_statement(trimmed) {
       for statement in expand_import_statement(trimmed, filename) {
         statements.push(statement)
       }

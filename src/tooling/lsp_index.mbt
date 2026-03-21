@@ -79,7 +79,6 @@ fn build_tooling_index(source : String, filename : String) -> ToolingIndex {
     "props",
     doc.props_binding,
     doc.props,
-    "defineProps",
     bindings,
     members,
   )
@@ -89,7 +88,6 @@ fn build_tooling_index(source : String, filename : String) -> ToolingIndex {
     "emit",
     doc.emits_binding,
     doc.emits,
-    "defineEmits",
     bindings,
     members,
   )
@@ -99,7 +97,6 @@ fn build_tooling_index(source : String, filename : String) -> ToolingIndex {
     "slots",
     doc.slots_binding,
     doc.slots,
-    "defineSlot",
     bindings,
     members,
   )
@@ -118,7 +115,6 @@ fn collect_contract_index(
   canonical_name : String,
   binding_name : String?,
   fields : Array[@compiler.MacroField],
-  macro_name : String,
   bindings : Array[ToolingBindingDef],
   members : Array[ToolingMemberDef],
 ) -> Unit {
@@ -135,14 +131,11 @@ fn collect_contract_index(
             span: binding_span,
             fields,
           })
-          let macro_span = find_macro_call_span(
-            source, content_span, macro_name,
-          ).unwrap_or(content_span)
-          let mut cursor = macro_span.start
           for field in fields {
-            let span = find_field_definition_span(
+            let span = find_contract_field_definition_span(
               source,
-              { start: cursor, end: macro_span.end },
+              content_span,
+              binding,
               field.name,
             ).unwrap_or(binding_span)
             members.push({
@@ -152,7 +145,6 @@ fn collect_contract_index(
               signature: field.signature,
               span,
             })
-            cursor = span.end
           }
         }
         None => ()

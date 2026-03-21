@@ -56,6 +56,7 @@ fn build_template_element(
   let mut island_directive : String? = None
   let final_attrs : Array[TemplateAttr] = []
   for attr in attrs {
+    reject_unsupported_slot_outlet(attr, tag)
     match attr.name {
       "v-if" => {
         ensure_empty_expr_directive(if_expr, attr, tag)
@@ -172,11 +173,9 @@ fn build_template_element(
         }
     }
   }
-  if island_mode != IslandMode::None && not(is_component) {
-    raise CompilerError::InvalidDirective(
-      "island directives can only be used on component tags: <\{tag}>",
-    )
-  }
+  validate_component_bindings(
+    tag, is_component, final_attrs, model, island_directive,
+  )
   {
     tag,
     attrs: final_attrs,

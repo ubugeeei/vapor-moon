@@ -7,11 +7,24 @@ pub fn component_dom(
   props : Array[(String, () -> String)],
   children : Array[@luna_dom.DomNode],
 ) -> @luna_dom.DomNode {
+  component_dom_meta(name, props, children, [])
+}
+
+///|
+pub fn component_dom_meta(
+  name : String,
+  props : Array[(String, () -> String)],
+  children : Array[@luna_dom.DomNode],
+  meta_attrs : Array[(String, @luna_dom.AttrValue)],
+) -> @luna_dom.DomNode {
   let attrs : Array[(String, @luna_dom.AttrValue)] = [
     ("data-vm-component", @luna_dom.attr_static(name)),
   ]
   for prop in props {
     attrs.push(("data-prop-" + prop.0, @luna_dom.attr_dynamic(prop.1)))
+  }
+  for attr in meta_attrs {
+    attrs.push(attr)
   }
   @luna_dom.create_element("vm-component", attrs, children)
 }
@@ -23,6 +36,17 @@ pub fn island_dom(
   props : Array[(String, () -> String)],
   children : Array[@luna_dom.DomNode],
 ) -> @luna_dom.DomNode {
+  island_dom_meta(name, mode, props, children, [])
+}
+
+///|
+pub fn island_dom_meta(
+  name : String,
+  mode : @vm.HydrationMode,
+  props : Array[(String, () -> String)],
+  children : Array[@luna_dom.DomNode],
+  meta_attrs : Array[(String, @luna_dom.AttrValue)],
+) -> @luna_dom.DomNode {
   let attrs : Array[(String, @luna_dom.AttrValue)] = [
     ("data-vm-island", @luna_dom.attr_static(name)),
     ("data-vm-client", @luna_dom.attr_static(render_mode_label(mode))),
@@ -30,6 +54,9 @@ pub fn island_dom(
   ]
   for prop in props {
     attrs.push(("data-prop-" + prop.0, @luna_dom.attr_dynamic(prop.1)))
+  }
+  for attr in meta_attrs {
+    attrs.push(attr)
   }
   @luna_dom.create_element("vm-island", attrs, children)
 }

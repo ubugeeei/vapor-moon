@@ -5,18 +5,35 @@ fn position_to_offset(source : String, line : Int, character : Int) -> Int {
   let mut current_line = 0
   let mut current_character = 0
   while cursor < chars.length() {
-    if current_line == line && current_character == character {
+    if current_line == line && character <= current_character {
       return cursor
     }
-    if chars[cursor] == '\n' {
+    let char_ = chars[cursor]
+    if char_ == '\n' {
+      if current_line == line {
+        return cursor
+      }
       current_line += 1
       current_character = 0
     } else {
-      current_character += 1
+      let width = utf16_width(char_)
+      if current_line == line && character < current_character + width {
+        return cursor
+      }
+      current_character += width
     }
     cursor += 1
   }
   chars.length()
+}
+
+///|
+fn utf16_width(c : Char) -> Int {
+  if c.to_int() > 0xFFFF {
+    2
+  } else {
+    1
+  }
 }
 
 ///|
@@ -31,7 +48,7 @@ fn offset_to_position(source : String, offset : Int) -> ToolingPosition {
       line += 1
       character = 0
     } else {
-      character += 1
+      character += utf16_width(chars[cursor])
     }
     cursor += 1
   }

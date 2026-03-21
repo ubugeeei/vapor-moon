@@ -61,10 +61,10 @@ fn validate_model_target(
   tag : String,
   is_component : Bool,
 ) -> Unit raise CompilerError {
-  if is_component {
+  if tag == "input" || tag == "textarea" || tag == "select" {
     return
   }
-  if tag == "input" || tag == "textarea" || tag == "select" {
+  if is_component {
     return
   }
   raise CompilerError::InvalidDirective(
@@ -77,5 +77,53 @@ fn occupied_directive_value(target : String?) -> String? {
   match target {
     Some(_) => Some("used")
     None => None
+  }
+}
+
+///|
+fn reject_unsupported_slot_outlet(
+  attr : ParsedTemplateAttr,
+  tag : String,
+) -> Unit raise CompilerError {
+  if attr.name == "v-slot" ||
+    attr.name.has_prefix("v-slot:") ||
+    attr.name.has_prefix("#") {
+    raise CompilerError::InvalidDirective(
+      "slot outlet syntax is not supported yet on <\{tag}>",
+    )
+  }
+}
+
+///|
+fn validate_component_bindings(
+  tag : String,
+  is_component : Bool,
+  attrs : Array[TemplateAttr],
+  model : TemplateModel?,
+  island_directive : String?,
+) -> Unit raise CompilerError {
+  match island_directive {
+    Some(_) if not(is_component) =>
+      raise CompilerError::InvalidDirective(
+        "island directives can only be used on component tags: <\{tag}>",
+      )
+    _ => ()
+  }
+  if not(is_component) {
+    return
+  }
+  for attr in attrs {
+    if attr.kind == Event {
+      raise CompilerError::InvalidDirective(
+        "component event listeners are not supported yet on <\{tag}>",
+      )
+    }
+  }
+  match model {
+    Some(_) =>
+      raise CompilerError::InvalidDirective(
+        "component v-model is not supported yet on <\{tag}>",
+      )
+    None => ()
   }
 }

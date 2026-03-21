@@ -1,0 +1,37 @@
+<script setup>
+import {
+  "mizchi/luna/js/resource" @reactivity,
+  let signal = @reactivity.signal,
+  let computed = @reactivity.computed,
+  let watch = @reactivity.watch,
+  let effect = @reactivity.effect,
+}
+
+struct CounterComposable {
+  count : @reactivity.Signal[Int]
+  doubled : () -> Int
+  last_change : @reactivity.Signal[String]
+}
+
+fn useCounter(initial : Int) -> CounterComposable {
+  let count = signal(initial)
+  let doubled = computed(fn() { count.get() * 2 })
+  let last_change = signal("ready")
+  let doubled_effect = effect(fn() { ignore(doubled()) })
+  let change_watch = watch(fn() { count.get() }, fn(next, prev) {
+    last_change.set(prev.to_string() + " -> " + next.to_string())
+  })
+  { count, doubled, last_change }
+}
+
+let counter = useCounter(2)
+</script>
+
+<template>
+  <section class="composable">
+    <button @click='counter.count.update(fn(n) { n + 1 })'>inc</button>
+    <p>{{ counter.count.get() }}</p>
+    <p>{{ counter.doubled() }}</p>
+    <small>{{ counter.last_change.get() }}</small>
+  </section>
+</template>

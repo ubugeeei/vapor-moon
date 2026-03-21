@@ -46,17 +46,6 @@ fn find_binding_definition_span(
 }
 
 ///|
-fn find_macro_call_span(
-  source : String,
-  search_span : @compiler.SourceSpan,
-  macro_name : String,
-) -> @compiler.SourceSpan? {
-  find_substring_in_span(source, macro_name, search_span).map(fn(start) {
-    { start, end: search_span.end }
-  })
-}
-
-///|
 fn find_field_definition_span(
   source : String,
   search_span : @compiler.SourceSpan,

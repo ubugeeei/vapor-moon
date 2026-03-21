@@ -94,6 +94,37 @@ let count = signal(0)
 
 The recommended reactivity surface is an explicit import with a meaningful alias like `@reactivity`. Vapor Moon examples avoid leaking the older luna-internal alias into authoring code.
 
+## Compile output
+
+Running `moon run src/cmd/vapor_moon -- compile examples/basic.mbtv` prints a client module, an SSR module, scoped CSS, and metadata. An excerpt of the current output looks like this:
+
+```text
+=== client ===
+pub fn render_dom() -> @luna_dom.DomNode {
+  let signal = @reactivity.signal,
+  let count = signal(0)
+  @luna_dom.create_element("div", [("class", @luna_dom.attr_static("counter")), ("data-vm-scope", @luna_dom.attr_static("vm-4048536636"))], [
+      @luna_dom.text_dyn(fn() { count.get().to_string() })
+    ])
+}
+=== server ===
+pub fn render_ssr() -> @luna_core.StaticDomNode {
+  let signal = @reactivity.signal,
+  let count = signal(0)
+  @luna_core.h("div", [("class", @luna_core.attr_static("counter")), ("data-vm-scope", @luna_core.attr_static("vm-4048536636"))], [
+      @luna_core.text_dyn(fn() { count.get().to_string() })
+    ])
+}
+=== css ===
+[data-vm-scope="vm-4048536636"] .counter { color: red; }
+=== meta ===
+component=Basic
+extension=.mbtv
+scope=vm-4048536636
+```
+
+When a component declares `props`, `emits`, or `slots`, the generated module also includes typed contract surfaces and declaration metadata alongside these render functions.
+
 ## Compiler macros
 
 Vapor Moon currently supports MoonBit-flavored macro calls inside `<script setup>`:
@@ -149,6 +180,14 @@ Vapor Moon adds delivery directives directly at the template layer.
 
 The compiler currently treats these as component-only directives and emits luna-aligned client / SSR wrappers.
 
+## Example patterns
+
+- [`examples/reactivity_basics.mbtv`](./examples/reactivity_basics.mbtv): `signal`, `computed` as a derived value, `watch`, and `effect`
+- [`examples/lifecycle_refs.mbtv`](./examples/lifecycle_refs.mbtv): `useId`, `useTemplateRef`, `on_mount`, and `on_cleanup`
+- [`examples/composable_counter.mbtv`](./examples/composable_counter.mbtv): a local composable that bundles signals, derived state, and a watcher
+
+`computed` in these examples comes from luna and is an alias of `memo`, so either naming style works as long as you import it explicitly.
+
 ## Architecture
 
 ### `src/compiler/`
@@ -183,25 +222,45 @@ The compiler currently treats these as component-only directives and emits luna-
 - `definition <file.mbtv> <line> <character>`
 - `complete <file.mbtv> <line> <character>`
 
+### `src/lsp/` and `src/cmd/vapor_moon_lsp/`
+
+- expose a JS-target stdio JSON-RPC server over the existing tooling queries
+- keep document state, diagnostics publishing, hover, definition, and completion in MoonBit
+- provide the editor-facing `vapor-moon-lsp` entrypoint used by VS Code, Zed, and Neovim
+
+## Editor integrations
+
+- a VS Code extension lives in [`editors/vscode/`](./editors/vscode)
+- a Zed extension lives in [`editors/zed/`](./editors/zed)
+- a Neovim runtime bundle lives in [`editors/neovim/`](./editors/neovim)
+- quick install notes live in [`editors/README.md`](./editors/README.md)
+- the repo-local launcher is [`bin/vapor-moon-lsp`](./bin/vapor-moon-lsp)
+
 ## Development
 
 Requirements:
 
 - MoonBit toolchain on `PATH`
+- a JS runtime such as `node`, `bun`, or `deno` on `PATH` for the editor-facing LSP server
 
 Useful commands:
 
 ```bash
+bash scripts/patch_mooncakes.sh
 moon check
 moon test src/compiler
 moon test src/tooling
+moon test --target js src/lsp
 moon run src/cmd/vapor_moon -- compile examples/basic.mbtv
 moon run src/cmd/vapor_moon -- analyze examples/basic.mbtv
 moon run src/cmd/vapor_moon -- diagnostics examples/macros.mbtv
 moon run src/cmd/vapor_moon -- hover examples/macros.mbtv 17 13
 moon run src/cmd/vapor_moon -- definition examples/macros.mbtv 16 39
 moon run src/cmd/vapor_moon -- complete examples/macros.mbtv 17 18
+moon run --target js src/cmd/vapor_moon_lsp
 ```
+
+`bash scripts/patch_mooncakes.sh` reapplies a small local patch for a known `moonbitlang/yacc` dependency warning, and the pre-commit hook runs it automatically before the test suite.
 
 Example components live in [`examples/`](./examples).
 

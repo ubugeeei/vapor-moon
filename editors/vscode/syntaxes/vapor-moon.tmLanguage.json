@@ -1,0 +1,55 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Vapor Moon",
+  "scopeName": "text.html.vapor-moon",
+  "fileTypes": ["mbtv"],
+  "patterns": [
+    { "include": "#template" },
+    { "include": "#script" },
+    { "include": "#style" }
+  ],
+  "repository": {
+    "template": {
+      "begin": "(<template\\b[^>]*>)",
+      "beginCaptures": {
+        "1": { "name": "meta.tag.block.template.vapor-moon" }
+      },
+      "end": "(</template>)",
+      "endCaptures": {
+        "1": { "name": "meta.tag.block.template.vapor-moon" }
+      },
+      "contentName": "text.html.basic",
+      "patterns": [
+        { "include": "text.html.basic" }
+      ]
+    },
+    "script": {
+      "begin": "(<script\\b[^>]*>)",
+      "beginCaptures": {
+        "1": { "name": "meta.tag.block.script.vapor-moon" }
+      },
+      "end": "(</script>)",
+      "endCaptures": {
+        "1": { "name": "meta.tag.block.script.vapor-moon" }
+      },
+      "contentName": "source.moonbit.embedded.vapor-moon",
+      "patterns": [
+        { "include": "source.moonbit" }
+      ]
+    },
+    "style": {
+      "begin": "(<style\\b[^>]*>)",
+      "beginCaptures": {
+        "1": { "name": "meta.tag.block.style.vapor-moon" }
+      },
+      "end": "(</style>)",
+      "endCaptures": {
+        "1": { "name": "meta.tag.block.style.vapor-moon" }
+      },
+      "contentName": "source.css.embedded.vapor-moon",
+      "patterns": [
+        { "include": "source.css" }
+      ]
+    }
+  }
+}

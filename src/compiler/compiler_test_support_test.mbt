@@ -164,3 +164,111 @@ fn media_and_defer_source() -> String {
     #|</template>
   source
 }
+
+///|
+fn reactivity_basics_source() -> String {
+  let source =
+    #|<script setup>
+    #|import {
+    #|  "mizchi/luna/js/resource" @reactivity,
+    #|  let signal = @reactivity.signal,
+    #|  let computed = @reactivity.computed,
+    #|  let watch = @reactivity.watch,
+    #|  let effect = @reactivity.effect,
+    #|}
+    #|
+    #|let count = signal(1)
+    #|let doubled = computed(fn() { count.get() * 2 })
+    #|let summary = computed(fn() {
+    #|  "count=" + count.get().to_string() + ", doubled=" + doubled().to_string()
+    #|})
+    #|let history = signal("1 -> 1")
+    #|let summary_effect = effect(fn() { ignore(summary()) })
+    #|let count_watch = watch(fn() { count.get() }, fn(next, prev) {
+    #|  history.set(prev.to_string() + " -> " + next.to_string())
+    #|})
+    #|</script>
+    #|
+    #|<template>
+    #|  <section class="reactivity">
+    #|    <button @click='count.update(fn(n) { n + 1 })'>+</button>
+    #|    <p>{{ summary() }}</p>
+    #|    <small>{{ history.get() }}</small>
+    #|  </section>
+    #|</template>
+  source
+}
+
+///|
+fn lifecycle_refs_source() -> String {
+  let source =
+    #|<script setup>
+    #|import {
+    #|  "mizchi/luna/js/resource" @reactivity,
+    #|  let signal = @reactivity.signal,
+    #|  let on_mount = @reactivity.on_mount,
+    #|  let on_cleanup = @reactivity.on_cleanup,
+    #|}
+    #|
+    #|let root_ref = useTemplateRef("root")
+    #|let instance_id = useId()
+    #|let phase = signal("booting")
+    #|let mount_registration = on_mount(fn() {
+    #|  phase.set("mounted:" + instance_id)
+    #|  on_cleanup(fn() {
+    #|    ignore(root_ref)
+    #|  })
+    #|})
+    #|</script>
+    #|
+    #|<template>
+    #|  <section ref='root' :data-id='instance_id'>
+    #|    <p>{{ phase.get() }}</p>
+    #|    <p>{{ instance_id }}</p>
+    #|  </section>
+    #|</template>
+  source
+}
+
+///|
+fn composable_counter_source() -> String {
+  let source =
+    #|<script setup>
+    #|import {
+    #|  "mizchi/luna/js/resource" @reactivity,
+    #|  let signal = @reactivity.signal,
+    #|  let computed = @reactivity.computed,
+    #|  let watch = @reactivity.watch,
+    #|  let effect = @reactivity.effect,
+    #|}
+    #|
+    #|struct CounterComposable {
+    #|  count : @reactivity.Signal[Int]
+    #|  doubled : () -> Int
+    #|  last_change : @reactivity.Signal[String]
+    #|}
+    #|
+    #|fn useCounter(initial : Int) -> CounterComposable {
+    #|  let count = signal(initial)
+    #|  let doubled = computed(fn() { count.get() * 2 })
+    #|  let last_change = signal("ready")
+    #|  let doubled_effect = effect(fn() { ignore(doubled()) })
+    #|  let change_watch = watch(fn() { count.get() }, fn(next, prev) {
+    #|    last_change.set(prev.to_string() + " -> " + next.to_string())
+    #|  })
+    #|  { count, doubled, last_change }
+    #|}
+    #|
+    #|let counter = useCounter(2)
+    #|</script>
+    #|
+    #|<template>
+    #|  <section class="composable">
+    #|    <button @click='counter.count.update(fn(n) { n + 1 })'>inc</button>
+    #|    <p>{{ counter.count.get() }}</p>
+    #|    <p>{{ counter.doubled() }}</p>
+    #|    <small>{{ counter.last_change.get() }}</small>
+    #|  </section>
+    #|</template>
+  source
+}

@@ -49,6 +49,7 @@ fn render_client_component(
   static_mode : Bool,
 ) -> String {
   let props = render_client_component_props(element, static_mode)
+  let meta_attrs = render_client_component_meta_attrs(element)
   let children = render_client_children(
     element.children,
     indent + 2,
@@ -57,23 +58,49 @@ fn render_client_component(
   )
   match element.island_mode {
     Load | Idle | Visible | Media(_) | Only | ServerDefer =>
-      "@vm_dom.island_dom(" +
-      quote(element.tag) +
-      ", " +
-      render_mode_expr(element.island_mode) +
-      ", " +
-      props +
-      ", " +
-      children +
-      ")"
+      if meta_attrs == "[]" {
+        "@vm_dom.island_dom(" +
+        quote(element.tag) +
+        ", " +
+        render_mode_expr(element.island_mode) +
+        ", " +
+        props +
+        ", " +
+        children +
+        ")"
+      } else {
+        "@vm_dom.island_dom_meta(" +
+        quote(element.tag) +
+        ", " +
+        render_mode_expr(element.island_mode) +
+        ", " +
+        props +
+        ", " +
+        children +
+        ", " +
+        meta_attrs +
+        ")"
+      }
     None =>
-      "@vm_dom.component_dom(" +
-      quote(element.tag) +
-      ", " +
-      props +
-      ", " +
-      children +
-      ")"
+      if meta_attrs == "[]" {
+        "@vm_dom.component_dom(" +
+        quote(element.tag) +
+        ", " +
+        props +
+        ", " +
+        children +
+        ")"
+      } else {
+        "@vm_dom.component_dom_meta(" +
+        quote(element.tag) +
+        ", " +
+        props +
+        ", " +
+        children +
+        ", " +
+        meta_attrs +
+        ")"
+      }
   }
 }
 
@@ -85,6 +112,7 @@ fn render_server_component(
   static_mode : Bool,
 ) -> String {
   let props = render_server_component_props(element, static_mode)
+  let meta_attrs = render_server_component_meta_attrs(element)
   let children = render_server_children(
     element.children,
     indent + 2,
@@ -93,23 +121,49 @@ fn render_server_component(
   )
   match element.island_mode {
     Load | Idle | Visible | Media(_) | Only | ServerDefer =>
-      "@vm_server.island_ssr(" +
-      quote(element.tag) +
-      ", " +
-      props +
-      ", " +
-      children +
-      ", " +
-      render_mode_expr(element.island_mode) +
-      ")"
+      if meta_attrs == "[]" {
+        "@vm_server.island_ssr(" +
+        quote(element.tag) +
+        ", " +
+        props +
+        ", " +
+        children +
+        ", " +
+        render_mode_expr(element.island_mode) +
+        ")"
+      } else {
+        "@vm_server.island_ssr_meta(" +
+        quote(element.tag) +
+        ", " +
+        props +
+        ", " +
+        children +
+        ", " +
+        render_mode_expr(element.island_mode) +
+        ", " +
+        meta_attrs +
+        ")"
+      }
     None =>
-      "@vm_server.component_ssr(" +
-      quote(element.tag) +
-      ", " +
-      props +
-      ", " +
-      children +
-      ")"
+      if meta_attrs == "[]" {
+        "@vm_server.component_ssr(" +
+        quote(element.tag) +
+        ", " +
+        props +
+        ", " +
+        children +
+        ")"
+      } else {
+        "@vm_server.component_ssr_meta(" +
+        quote(element.tag) +
+        ", " +
+        props +
+        ", " +
+        children +
+        ", " +
+        meta_attrs +
+        ")"
+      }
   }
 }
 
@@ -172,7 +226,9 @@ fn collect_node_islands(node : TemplateNode, result : Array[String]) -> Unit {
     Element(element) => {
       match element.island_mode {
         Load | Idle | Visible | Media(_) | Only | ServerDefer =>
-          result.push(element.tag)
+          if not(local_string_array_contains(result, element.tag)) {
+            result.push(element.tag)
+          }
         None => ()
       }
       for child in element.children {
@@ -181,4 +237,14 @@ fn collect_node_islands(node : TemplateNode, result : Array[String]) -> Unit {
     }
     _ => ()
   }
+}
+
+///|
+fn local_string_array_contains(values : Array[String], target : String) -> Bool {
+  for value in values {
+    if value == target {
+      return true
+    }
+  }
+  false
 }
