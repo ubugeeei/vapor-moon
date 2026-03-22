@@ -1,4 +1,48 @@
 ///|
+fn visitor_on_text(
+  visitor : TemplateTokenVisitor,
+  source : String,
+  start : Int,
+  end_ : Int,
+  has_content : Bool,
+) -> Unit {
+  if not(has_content) {
+    return
+  }
+  append_node(
+    Text(String::unsafe_substring(source, start=start, end=end_)),
+    visitor.roots,
+    visitor.stack,
+  )
+}
+
+///|
+fn visitor_on_interpolation(
+  visitor : TemplateTokenVisitor,
+  expr : String,
+) -> Unit {
+  append_node(Interpolation(expr), visitor.roots, visitor.stack)
+}
+
+///|
+fn visitor_on_start_tag(
+  visitor : TemplateTokenVisitor,
+  tag : String,
+  attrs : Array[ParsedTemplateAttr],
+  self_closing : Bool,
+) -> Unit raise CompilerError {
+  on_start_tag({ name: tag, attrs, self_closing }, visitor.roots, visitor.stack)
+}
+
+///|
+fn visitor_on_end_tag(
+  visitor : TemplateTokenVisitor,
+  name : String,
+) -> Unit raise CompilerError {
+  on_end_tag(name, visitor.roots, visitor.stack)
+}
+
+///|
 fn on_start_tag(
   tag : ParsedTemplateTag,
   roots : Array[TemplateNode],

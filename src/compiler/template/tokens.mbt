@@ -1,49 +1,102 @@
 ///|
-fn read_template_token(
-  source : String,
-  chars : Array[Char],
-  start : Int,
-) -> (TemplateToken, Int) raise CompilerError {
-  if starts_with(chars, start, "<!--") {
-    match skip_html_comment(chars, start) {
-      Some(end) => return (Comment, end)
-      None => raise CompilerError::InvalidTemplate("unterminated HTML comment")
-    }
-  }
-  if starts_with(chars, start, "{{") {
-    return read_interpolation_token(source, start)
-  }
-  if chars[start] == '<' {
-    if start + 1 < chars.length() && chars[start + 1] == '/' {
-      return read_end_tag_token(source, chars, start)
-    }
-    let (tag, next) = read_start_tag_token(source, chars, start)
-    return (StartTagToken(tag), next)
-  }
-  read_text_token(source, chars, start)
+priv enum TemplateTokenizerState {
+  Text
+  TagOpen
+  StartTag
+  EndTag
+  Interpolation
+  Comment
 }
 
 ///|
-fn read_text_token(
+fn visit_template_tokens(
   source : String,
-  chars : Array[Char],
-  start : Int,
-) -> (TemplateToken, Int) {
-  let mut cursor = start
+  visitor : TemplateTokenVisitor,
+) -> Unit raise CompilerError {
+  let chars = source.to_array()
+  let mut cursor = 0
+  let mut text_start = 0
+  let mut text_has_content = false
+  let mut state = TemplateTokenizerState::Text
   while cursor < chars.length() {
-    if chars[cursor] == '<' || starts_with(chars, cursor, "{{") {
-      break
+    match state {
+      Text =>
+        if is_interpolation_open(chars, cursor) {
+          visitor_on_text(visitor, source, text_start, cursor, text_has_content)
+          text_has_content = false
+          state = TemplateTokenizerState::Interpolation
+        } else if chars[cursor] == '<' {
+          visitor_on_text(visitor, source, text_start, cursor, text_has_content)
+          text_has_content = false
+          state = TemplateTokenizerState::TagOpen
+        } else {
+          if not(is_space(chars[cursor])) {
+            text_has_content = true
+          }
+          cursor += 1
+        }
+      TagOpen =>
+        if is_comment_open(chars, cursor) {
+          state = TemplateTokenizerState::Comment
+        } else if is_end_tag_open(chars, cursor) {
+          state = TemplateTokenizerState::EndTag
+        } else {
+          state = TemplateTokenizerState::StartTag
+        }
+      StartTag => {
+        let (tag, attrs, next, self_closing) = read_template_tag(
+          source,
+          chars,
+          cursor,
+        )
+        visitor_on_start_tag(visitor, tag, attrs, self_closing)
+        cursor = next
+        text_start = cursor
+        text_has_content = false
+        state = TemplateTokenizerState::Text
+      }
+      EndTag => {
+        let (name, next) = read_template_end_tag(source, chars, cursor)
+        visitor_on_end_tag(visitor, name)
+        cursor = next
+        text_start = cursor
+        text_has_content = false
+        state = TemplateTokenizerState::Text
+      }
+      Interpolation => {
+        cursor = visit_template_interpolation(source, cursor, visitor)
+        text_start = cursor
+        text_has_content = false
+        state = TemplateTokenizerState::Text
+      }
+      Comment =>
+        match skip_html_comment(chars, cursor) {
+          Some(next) => {
+            cursor = next
+            text_start = cursor
+            text_has_content = false
+            state = TemplateTokenizerState::Text
+          }
+          None =>
+            raise CompilerError::InvalidTemplate("unterminated HTML comment")
+        }
     }
-    cursor += 1
   }
-  (TextToken(String::unsafe_substring(source, start~, end=cursor)), cursor)
+  visitor_on_text(
+    visitor,
+    source,
+    text_start,
+    chars.length(),
+    text_has_content,
+  )
 }
 
 ///|
-fn read_interpolation_token(
+fn visit_template_interpolation(
   source : String,
   start : Int,
-) -> (TemplateToken, Int) raise CompilerError {
+  visitor : TemplateTokenVisitor,
+) -> Int raise CompilerError {
   match find_interpolation_close(source, start) {
     Some(close) => {
       let expr = String::unsafe_substring(source, start=start + 2, end=close)
@@ -52,7 +105,8 @@ fn read_interpolation_token(
       if expr.length() == 0 {
         raise CompilerError::InvalidTemplate("empty interpolation")
       }
-      (InterpolationToken(expr), close + 2)
+      visitor_on_interpolation(visitor, expr)
+      close + 2
     }
     None =>
       raise CompilerError::InvalidTemplate(
@@ -62,21 +116,11 @@ fn read_interpolation_token(
 }
 
 ///|
-fn read_start_tag_token(
+fn read_template_end_tag(
   source : String,
   chars : Array[Char],
   start : Int,
-) -> (ParsedTemplateTag, Int) raise CompilerError {
-  let (tag, attrs, end, self_closing) = read_template_tag(source, chars, start)
-  ({ name: tag, attrs, self_closing }, end)
-}
-
-///|
-fn read_end_tag_token(
-  source : String,
-  chars : Array[Char],
-  start : Int,
-) -> (TemplateToken, Int) raise CompilerError {
+) -> (String, Int) raise CompilerError {
   let mut cursor = start + 2
   cursor = skip_ws(chars, cursor)
   let name_start = cursor
@@ -93,5 +137,24 @@ fn read_end_tag_token(
   if cursor >= chars.length() || chars[cursor] != '>' {
     raise CompilerError::InvalidTemplate("unterminated closing tag </\{name}>")
   }
-  (EndTagToken(name), cursor + 1)
+  (name, cursor + 1)
+}
+
+///|
+fn is_comment_open(chars : Array[Char], start : Int) -> Bool {
+  start + 3 < chars.length() &&
+  chars[start] == '<' &&
+  chars[start + 1] == '!' &&
+  chars[start + 2] == '-' &&
+  chars[start + 3] == '-'
+}
+
+///|
+fn is_end_tag_open(chars : Array[Char], start : Int) -> Bool {
+  start + 1 < chars.length() && chars[start] == '<' && chars[start + 1] == '/'
+}
+
+///|
+fn is_interpolation_open(chars : Array[Char], start : Int) -> Bool {
+  start + 1 < chars.length() && chars[start] == '{' && chars[start + 1] == '{'
 }

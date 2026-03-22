@@ -5,28 +5,9 @@
 pub fn parse_template(
   source : String,
 ) -> Array[TemplateNode] raise CompilerError {
-  let chars = source.to_array()
-  let roots : Array[TemplateNode] = []
-  let stack : Array[TemplateFrame] = []
-  let mut cursor = 0
-  while cursor < chars.length() {
-    let (token, next) = read_template_token(source, chars, cursor)
-    cursor = next
-    match token {
-      Comment => ()
-      TextToken(text) => append_text_like_nodes(text, roots, stack)
-      InterpolationToken(expr) => append_node(Interpolation(expr), roots, stack)
-      StartTagToken(tag) => on_start_tag(tag, roots, stack)
-      EndTagToken(name) => on_end_tag(name, roots, stack)
-    }
-  }
-  if stack.length() > 0 {
-    let frame = stack[stack.length() - 1]
-    raise CompilerError::InvalidTemplate(
-      "missing closing tag </\{frame.element.tag}>",
-    )
-  }
-  roots
+  let visitor = new_template_token_visitor()
+  visit_template_tokens(source, visitor)
+  finish_template_token_visitor(visitor)
 }
 
 ///|
@@ -454,13 +435,28 @@ fn is_identifier_char(c : Char) -> Bool {
 }
 
 ///|
-pub(all) enum TemplateToken {
-  TextToken(String)
-  InterpolationToken(String)
-  StartTagToken(ParsedTemplateTag)
-  EndTagToken(String)
-  Comment
-} derive(Eq, Show)
+priv struct TemplateTokenVisitor {
+  roots : Array[TemplateNode]
+  stack : Array[TemplateFrame]
+}
+
+///|
+fn new_template_token_visitor() -> TemplateTokenVisitor {
+  { roots: [], stack: [] }
+}
+
+///|
+fn finish_template_token_visitor(
+  visitor : TemplateTokenVisitor,
+) -> Array[TemplateNode] raise CompilerError {
+  if visitor.stack.length() > 0 {
+    let frame = visitor.stack[visitor.stack.length() - 1]
+    raise CompilerError::InvalidTemplate(
+      "missing closing tag </\{frame.element.tag}>",
+    )
+  }
+  visitor.roots
+}
 
 ///|
 struct ParsedTemplateTag {
