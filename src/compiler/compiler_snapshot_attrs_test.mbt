@@ -213,3 +213,32 @@ test "snapshot v-model modifiers compile" {
     ),
   )
 }
+
+///|
+test "v-model rewrites spaced getter targets from AST" {
+  let source =
+    #|<script setup>
+    #|import {
+    #|  "mizchi/luna/js/resource" @reactivity,
+    #|  let signal = @reactivity.signal,
+    #|}
+    #|
+    #|let name = signal(" hello ")
+    #|</script>
+    #|
+    #|<template>
+    #|  <input v-model='name.get ()' />
+    #|</template>
+  let output = compile(source, filename="examples/model_spaced_getter.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(
+    output.client_code.contains(
+      ".set(_event._get(\"target\")._get(\"value\").cast())",
+    ),
+  )
+  assert_false(output.client_code.contains("get () ="))
+}

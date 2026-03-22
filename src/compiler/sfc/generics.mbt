@@ -32,10 +32,18 @@ fn validate_generic_usage(
 ///|
 fn generic_used_in_fields(name : String, fields : Array[MacroField]) -> Bool {
   for field in fields {
-    match field.signature {
-      Some(signature) if contains_identifier_token(signature, name) =>
-        return true
-      _ => ()
+    if field_references_type_identifier(field, name) {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn field_references_type_identifier(field : MacroField, target : String) -> Bool {
+  for identifier in field.type_identifiers {
+    if identifier == target {
+      return true
     }
   }
   false
@@ -52,6 +60,7 @@ fn parse_generic_params(
       "`generic` must not be empty in \{filename}",
     )
   }
+  validate_generic_syntax(trimmed, filename)
   let result : Array[GenericParam] = []
   for part in split_generic_parts(trimmed) {
     let declaration = part.trim().to_string()
@@ -69,6 +78,56 @@ fn parse_generic_params(
     result.push({ name, declaration })
   }
   result
+}
+
+///|
+fn validate_generic_syntax(
+  source : String,
+  filename : String,
+) -> Unit raise CompilerError {
+  let chars = source.to_array()
+  let mut paren_depth = 0
+  let mut bracket_depth = 0
+  let mut brace_depth = 0
+  for current in chars {
+    match current {
+      '(' => paren_depth += 1
+      ')' => {
+        if paren_depth == 0 {
+          raise_invalid_generic_syntax(source, filename)
+        }
+        paren_depth = paren_depth - 1
+      }
+      '[' => bracket_depth += 1
+      ']' => {
+        if bracket_depth == 0 {
+          raise_invalid_generic_syntax(source, filename)
+        }
+        bracket_depth = bracket_depth - 1
+      }
+      '{' => brace_depth += 1
+      '}' => {
+        if brace_depth == 0 {
+          raise_invalid_generic_syntax(source, filename)
+        }
+        brace_depth = brace_depth - 1
+      }
+      _ => ()
+    }
+  }
+  if paren_depth != 0 || bracket_depth != 0 || brace_depth != 0 {
+    raise_invalid_generic_syntax(source, filename)
+  }
+}
+
+///|
+fn raise_invalid_generic_syntax(
+  source : String,
+  filename : String,
+) -> Unit raise CompilerError {
+  raise CompilerError::InvalidSfc(
+    "invalid `generic` declaration `\{source}` in \{filename}",
+  )
 }
 
 ///|
@@ -183,40 +242,6 @@ fn contains_generic_name(params : Array[GenericParam], target : String) -> Bool 
     }
   }
   false
-}
-
-///|
-fn contains_identifier_token(source : String, target : String) -> Bool {
-  let chars = source.to_array()
-  let target_chars = target.to_array()
-  if target_chars.is_empty() || chars.length() < target_chars.length() {
-    return false
-  }
-  let mut cursor = 0
-  while cursor + target_chars.length() <= chars.length() {
-    if matches_token_at(chars, target_chars, cursor) {
-      return true
-    }
-    cursor += 1
-  }
-  false
-}
-
-///|
-fn matches_token_at(
-  chars : Array[Char],
-  target : Array[Char],
-  start : Int,
-) -> Bool {
-  for index in 0..<target.length() {
-    if chars[start + index] != target[index] {
-      return false
-    }
-  }
-  let before_ok = start == 0 || not(is_identifier_char(chars[start - 1]))
-  let end_ = start + target.length()
-  let after_ok = end_ == chars.length() || not(is_identifier_char(chars[end_]))
-  before_ok && after_ok
 }
 
 ///|

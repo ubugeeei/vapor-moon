@@ -8,6 +8,7 @@ pub using @common {
   type GenericParam,
   type IslandMode,
   type MacroField,
+  type MacroFieldTypeShape,
   type SfcBlock,
   type SfcDocument,
   type ScriptSetupInfo,

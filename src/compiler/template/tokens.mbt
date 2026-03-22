@@ -5,7 +5,11 @@ fn read_template_token(
   start : Int,
 ) -> (TemplateToken, Int) raise CompilerError {
   if starts_with(chars, start, "<!--") {
-    return (Comment, skip_html_comment(chars, start))
+    match skip_html_comment(chars, start) {
+      Some(end) => return (Comment, end)
+      None =>
+        raise CompilerError::InvalidTemplate("unterminated HTML comment")
+    }
   }
   if starts_with(chars, start, "{{") {
     return read_interpolation_token(source, start)

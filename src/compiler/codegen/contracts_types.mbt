@@ -64,7 +64,7 @@ fn emit_emits_contract(
       sb.write_string("    ")
       sb.write_string(field.name)
       sb.write_string(": ")
-      sb.write_string(render_noop_callback(field.signature))
+      sb.write_string(render_noop_callback(field))
       sb.write_string(",\n")
     }
     sb.write_string("  }\n")
@@ -129,79 +129,53 @@ fn emit_slots_contract(
 ///|
 fn render_emit_callback_type(field : MacroField) -> String {
   match field.signature {
-    Some(signature) if is_unit_contract_signature(signature) => "() -> Unit"
-    Some(signature) => render_function_type(signature, "Unit")
+    Some(signature) => render_callback_type(signature, field.type_shape, "Unit")
     None => "() -> Unit"
   }
 }
 
 ///|
 fn render_slot_callback_type(field : MacroField, node_type : String) -> String {
+  let return_type = "Array[" + node_type + "]"
   match field.signature {
-    Some(signature) if is_unit_contract_signature(signature) =>
-      "() -> Array[" + node_type + "]"
-    Some(signature) =>
-      render_function_type(signature, "Array[" + node_type + "]")
+    Some(signature) => render_callback_type(signature, field.type_shape, return_type)
     None => "() -> Array[" + node_type + "]"
   }
 }
 
 ///|
-fn render_function_type(signature : String, return_type : String) -> String {
+fn render_callback_type(
+  signature : String,
+  type_shape : MacroFieldTypeShape,
+  return_type : String,
+) -> String {
   let trimmed = signature.trim().to_string()
-  if trimmed.has_prefix("(") && trimmed.has_suffix(")") {
-    trimmed + " -> " + return_type
-  } else {
-    "(" + trimmed + ") -> " + return_type
+  match type_shape {
+    UnitLike => "() -> " + return_type
+    TupleValues(_) => trimmed + " -> " + return_type
+    SingleValue => "(" + trimmed + ") -> " + return_type
   }
 }
 
 ///|
-fn render_noop_callback(signature : String?) -> String {
-  match signature {
-    Some(raw) if is_unit_contract_signature(raw) => "fn() { () }"
-    Some(raw) => {
-      let params = callback_param_names(raw)
+fn render_noop_callback(field : MacroField) -> String {
+  match field.type_shape {
+    UnitLike => "fn() { () }"
+    TupleValues(count) => {
+      let params = callback_param_names_from_count(count)
       "fn(" + params.join(", ") + ") { () }"
     }
-    None => "fn() { () }"
+    SingleValue => "fn(_payload) { () }"
   }
 }
 
 ///|
-fn is_unit_contract_signature(signature : String) -> Bool {
-  let trimmed = signature.trim().to_string()
-  trimmed == "Unit" || trimmed == "()"
-}
-
-///|
-fn callback_param_names(signature : String) -> Array[String] {
-  let trimmed = signature.trim().to_string()
-  if trimmed == "()" || trimmed.length() == 0 {
-    return []
+fn callback_param_names_from_count(count : Int) -> Array[String] {
+  let names : Array[String] = []
+  for index in 0..<count {
+    names.push("_arg" + index.to_string())
   }
-  if trimmed.has_prefix("(") && trimmed.has_suffix(")") {
-    let body = String::unsafe_substring(
-        trimmed,
-        start=1,
-        end=trimmed.length() - 1,
-      )
-      .trim()
-      .to_string()
-    if body.length() == 0 {
-      return []
-    }
-    let parts = body
-      .split(",")
-      .map(fn(part) { part.trim().to_string() })
-      .collect()
-    let names : Array[String] = []
-    for index in 0..<parts.length() {
-      names.push("_arg" + index.to_string())
-    }
-    return names
-  }
-  ["_payload"]
+  names
 }
 
 ///|

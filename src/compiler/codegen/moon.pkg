@@ -1,5 +1,9 @@
 import {
   "ubugeeei/vapor_moon/src/compiler/common" @common,
+  "moonbitlang/core/list" @list,
+  "moonbitlang/parser" @mbt_parser,
+  "moonbitlang/parser/basic" @mbt_basic,
+  "moonbitlang/parser/syntax" @mbt_syntax,
 }
 
 options(

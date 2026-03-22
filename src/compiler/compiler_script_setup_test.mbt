@@ -81,6 +81,53 @@ test "rejects unexpected top level tags" {
 }
 
 ///|
+test "rejects missing block attribute values after equals" {
+  let source =
+    #|<script setup generic=>
+    #|struct Props[T] {
+    #|  title : T
+    #|}
+    #|
+    #|let props : Props[T] = defineProps()
+    #|</script>
+    #|<template><div>{{ props.title.to_string() }}</div></template>
+  assert_eq(
+    compile_error(source, "invalid/missing_block_attr_value.mbtv"),
+    "InvalidSfc(\"expected attribute value in <script> start tag of invalid/missing_block_attr_value.mbtv\")",
+  )
+}
+
+///|
+test "rejects unterminated block attribute values" {
+  let source =
+    #|<script setup generic="T>
+    #|struct Props[T] {
+    #|  title : T
+    #|}
+    #|
+    #|let props : Props[T] = defineProps()
+    #|</script>
+    #|<template><div>{{ props.title.to_string() }}</div></template>
+  assert_eq(
+    compile_error(source, "invalid/unterminated_block_attr_value.mbtv"),
+    "InvalidSfc(\"unterminated attribute value in <script> start tag of invalid/unterminated_block_attr_value.mbtv\")",
+  )
+}
+
+///|
+test "rejects unterminated HTML comments in SFC blocks" {
+  let source =
+    #|<template>
+    #|  <!-- broken
+    #|  <div />
+    #|</template>
+  assert_eq(
+    compile_error(source, "invalid/unterminated_html_comment.mbtv"),
+    "InvalidSfc(\"unterminated HTML comment in invalid/unterminated_html_comment.mbtv\")",
+  )
+}
+
+///|
 test "rejects duplicate generic attributes" {
   let source =
     #|<script setup generic="T" generic="U">
@@ -94,6 +141,40 @@ test "rejects duplicate generic attributes" {
   assert_eq(
     compile_error(source, "invalid/duplicate_generic_attr.mbtv"),
     "InvalidSfc(\"duplicate `generic` attribute on <script setup> in invalid/duplicate_generic_attr.mbtv\")",
+  )
+}
+
+///|
+test "rejects unbalanced generic declarations" {
+  let source =
+    #|<script setup generic="T : Array[">
+    #|struct Props[T] {
+    #|  title : T
+    #|}
+    #|
+    #|let props : Props[T] = defineProps()
+    #|</script>
+    #|<template><div>{{ props.title.to_string() }}</div></template>
+  assert_eq(
+    compile_error(source, "invalid/unbalanced_generic_decl.mbtv"),
+    "InvalidSfc(\"invalid `generic` declaration `T : Array[` in invalid/unbalanced_generic_decl.mbtv\")",
+  )
+}
+
+///|
+test "rejects stray generic closing delimiters" {
+  let source =
+    #|<script setup generic="T)">
+    #|struct Props[T] {
+    #|  title : T
+    #|}
+    #|
+    #|let props : Props[T] = defineProps()
+    #|</script>
+    #|<template><div>{{ props.title.to_string() }}</div></template>
+  assert_eq(
+    compile_error(source, "invalid/stray_generic_closer.mbtv"),
+    "InvalidSfc(\"invalid `generic` declaration `T)` in invalid/stray_generic_closer.mbtv\")",
   )
 }
 
@@ -270,6 +351,56 @@ test "rejects unused generic interface parameters" {
 }
 
 ///|
+test "accepts nested generic usage discovered from type AST" {
+  let source =
+    #|<script setup generic="T">
+    #|struct Props[T] {
+    #|  render : (Array[T]) -> T?
+    #|}
+    #|
+    #|let props : Props[T] = defineProps()
+    #|</script>
+    #|<template><div /></template>
+  let doc = parse_sfc(source, filename="examples/nested_generic_usage.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_eq(doc.generics[0].name, "T")
+  assert_eq(doc.props[0].signature, Some("(Array[T]) -> T?"))
+}
+
+///|
+test "captures macro field type metadata from AST" {
+  let source =
+    #|<script setup>
+    #|struct Props {
+    #|  title : String?
+    #|}
+    #|
+    #|struct Emits {
+    #|  save : (String, Int)
+    #|  reset : Unit
+    #|}
+    #|
+    #|let props : Props = defineProps()
+    #|let emit : Emits = defineEmits()
+    #|</script>
+    #|<template><div>{{ props.title.unwrap_or(\"\") }}</div></template>
+  let doc = parse_sfc(source, filename="examples/macro_field_type_metadata.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(doc.props[0].is_optional)
+  assert_eq(doc.props[0].type_shape, SingleValue)
+  assert_eq(doc.emits[0].type_shape, TupleValues(2))
+  assert_eq(doc.emits[1].type_shape, UnitLike)
+}
+
+///|
 test "rejects legacy emit.emit in template expressions" {
   let source =
     #|<script setup>
@@ -284,6 +415,47 @@ test "rejects legacy emit.emit in template expressions" {
     compile_error(source, "invalid/legacy_emit_template.mbtv"),
     "InvalidTemplate(\"legacy `emit.emit(...` is not supported in invalid/legacy_emit_template.mbtv; use typed event calls like `emit.save()`\")",
   )
+}
+
+///|
+test "does not reject emit.emit inside template string literals" {
+  let source =
+    #|<script setup>
+    #|struct Emits {
+    #|  save : Unit
+    #|}
+    #|
+    #|let emit : Emits = defineEmits()
+    #|</script>
+    #|<template><button @click='\"emit.emit(\"'></button></template>
+  let output = compile(source, filename="examples/legacy_emit_template_literal_ok.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_eq(output.emits[0].name, "save")
+}
+
+///|
+test "does not reject emit.emit inside script setup string literals" {
+  let source =
+    #|<script setup>
+    #|struct Emits {
+    #|  save : Unit
+    #|}
+    #|
+    #|let emit : Emits = defineEmits()
+    #|let note = "emit.emit("
+    #|</script>
+    #|<template><div>{{ note }}</div></template>
+  let output = compile(source, filename="examples/legacy_emit_script_literal_ok.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_eq(output.emits[0].name, "save")
 }
 
 ///|

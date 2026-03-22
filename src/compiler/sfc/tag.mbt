@@ -156,7 +156,8 @@ fn read_start_tag(
   source : String,
   chars : Array[Char],
   start : Int,
-) -> (String, Array[BlockAttr], Int, Bool)? {
+  filename : String,
+) -> (String, Array[BlockAttr], Int, Bool)? raise CompilerError {
   if chars[start] != '<' {
     return None
   }
@@ -180,20 +181,36 @@ fn read_start_tag(
         if current == '"' || current == '\'' {
           quote = Some(current)
         } else if current == '/' {
-          self_closing = true
+          let next = skip_spaces(chars, cursor + 1)
+          if next < chars.length() && chars[next] == '>' {
+            self_closing = true
+          } else {
+            raise CompilerError::InvalidSfc(
+              "unexpected `/` in <\{tag.to_string()}> start tag of \{filename}",
+            )
+          }
         } else if current == '>' {
           let header = String::unsafe_substring(
             source,
             start=header_start,
             end=cursor,
           )
-          let attrs = parse_block_attrs(header)
+          let attrs = parse_block_attrs(header, tag.to_string(), filename)
           return Some((tag.to_string(), attrs, cursor + 1, self_closing))
         }
     }
     cursor += 1
   }
-  None
+  match quote {
+    Some(_) =>
+      raise CompilerError::InvalidSfc(
+        "unterminated attribute value in <\{tag.to_string()}> start tag of \{filename}",
+      )
+    None =>
+      raise CompilerError::InvalidSfc(
+        "unterminated <\{tag.to_string()}> start tag in \{filename}",
+      )
+  }
 }
 
 ///|
@@ -222,7 +239,11 @@ fn read_end_tag_name(chars : Array[Char], start : Int) -> (String, Int)? {
 }
 
 ///|
-fn parse_block_attrs(header : String) -> Array[BlockAttr] {
+fn parse_block_attrs(
+  header : String,
+  tag : String,
+  filename : String,
+) -> Array[BlockAttr] raise CompilerError {
   let attrs : Array[BlockAttr] = []
   let chars = header.to_array()
   let mut cursor = 0
@@ -247,7 +268,7 @@ fn parse_block_attrs(header : String) -> Array[BlockAttr] {
     if cursor < chars.length() && chars[cursor] == '=' {
       cursor += 1
       cursor = skip_spaces(chars, cursor)
-      let (value, next) = read_attr_value(header, chars, cursor)
+      let (value, next) = read_attr_value(header, chars, cursor, tag, filename)
       attrs.push({ name, value: Some(value) })
       cursor = next
     } else {
@@ -262,9 +283,13 @@ fn read_attr_value(
   source : String,
   chars : Array[Char],
   start : Int,
-) -> (String, Int) {
+  tag : String,
+  filename : String,
+) -> (String, Int) raise CompilerError {
   if start >= chars.length() {
-    return ("", start)
+    raise CompilerError::InvalidSfc(
+      "expected attribute value in <\{tag}> start tag of \{filename}",
+    )
   }
   let marker = chars[start]
   if marker == '"' || marker == '\'' {
@@ -278,9 +303,8 @@ fn read_attr_value(
       }
       cursor += 1
     }
-    (
-      String::unsafe_substring(source, start=start + 1, end=chars.length()),
-      chars.length(),
+    raise CompilerError::InvalidSfc(
+      "unterminated attribute value in <\{tag}> start tag of \{filename}",
     )
   } else {
     let mut cursor = start
@@ -288,6 +312,11 @@ fn read_attr_value(
           not(is_block_space(chars[cursor])) &&
           chars[cursor] != '/' {
       cursor += 1
+    }
+    if cursor == start {
+      raise CompilerError::InvalidSfc(
+        "expected attribute value in <\{tag}> start tag of \{filename}",
+      )
     }
     (String::unsafe_substring(source, start~, end=cursor), cursor)
   }

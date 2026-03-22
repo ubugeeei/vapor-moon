@@ -53,6 +53,96 @@ test "rejects values on flag island directives" {
 }
 
 ///|
+test "rejects unexpected closing tags in templates" {
+  let source =
+    #|<template></div></template>
+  assert_eq(
+    compile_error(source, "invalid/unexpected_closing_tag.mbtv"),
+    "InvalidTemplate(\"unexpected closing tag </div>\")",
+  )
+}
+
+///|
+test "rejects mismatched closing tags in templates" {
+  let source =
+    #|<template><div></span></template>
+  assert_eq(
+    compile_error(source, "invalid/mismatched_closing_tag.mbtv"),
+    "InvalidTemplate(\"expected </div>, got </span>\")",
+  )
+}
+
+///|
+test "rejects missing closing tags in templates" {
+  let source =
+    #|<template><div></template>
+  assert_eq(
+    compile_error(source, "invalid/missing_closing_tag.mbtv"),
+    "InvalidTemplate(\"missing closing tag </div>\")",
+  )
+}
+
+///|
+test "rejects unterminated attribute values" {
+  let source =
+    #|<template><div title='oops></div></template>
+  assert_eq(
+    compile_error(source, "invalid/unterminated_attr_value.mbtv"),
+    "InvalidTemplate(\"unterminated attribute value\")",
+  )
+}
+
+///|
+test "rejects empty interpolations" {
+  let source =
+    #|<template><div>{{ }}</div></template>
+  assert_eq(
+    compile_error(source, "invalid/empty_interpolation.mbtv"),
+    "InvalidTemplate(\"empty interpolation\")",
+  )
+}
+
+///|
+test "rejects unterminated interpolations" {
+  let source =
+    #|<template><div>{{ value </div></template>
+  assert_eq(
+    compile_error(source, "invalid/unterminated_interpolation.mbtv"),
+    "InvalidTemplate(\"unterminated interpolation in template text\")",
+  )
+}
+
+///|
+test "rejects missing attribute values after equals" {
+  let source =
+    #|<template><div title=></div></template>
+  assert_eq(
+    compile_error(source, "invalid/missing_attr_value_after_equals.mbtv"),
+    "InvalidTemplate(\"expected attribute value\")",
+  )
+}
+
+///|
+test "rejects malformed self closing syntax in templates" {
+  let source =
+    #|<template><div / class='card'></div></template>
+  assert_eq(
+    compile_error(source, "invalid/malformed_self_closing_syntax.mbtv"),
+    "InvalidTemplate(\"unexpected `/` in start tag <div> near offset 5\")",
+  )
+}
+
+///|
+test "rejects invalid template expressions with parser diagnostics" {
+  let source =
+    #|<template><input v-model='name . get()' /></template>
+  assert_eq(
+    compile_error(source, "invalid/template_expr_diagnostic.mbtv"),
+    "InvalidTemplate(\"invalid template expression `name . get()` in invalid/template_expr_diagnostic.mbtv: Unexpected token here.\")",
+  )
+}
+
+///|
 test "rejects v-model without an expression" {
   let source =
     #|<template><input v-model /></template>

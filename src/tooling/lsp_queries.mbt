@@ -229,6 +229,9 @@ fn member_hover_text(entry : ToolingMemberDef) -> String {
   render_field_detail(entry.contract_kind, {
     name: entry.name,
     signature: entry.signature,
+    type_identifiers: [],
+    type_shape: @compiler_common.SingleValue,
+    is_optional: false,
   })
 }
 

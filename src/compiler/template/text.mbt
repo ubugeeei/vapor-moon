@@ -88,15 +88,15 @@ fn starts_with(chars : Array[Char], start : Int, expected : String) -> Bool {
 }
 
 ///|
-fn skip_html_comment(chars : Array[Char], start : Int) -> Int {
+fn skip_html_comment(chars : Array[Char], start : Int) -> Int? {
   let mut cursor = start + 4
   while cursor + 2 < chars.length() {
     if chars[cursor] == '-' &&
       chars[cursor + 1] == '-' &&
       chars[cursor + 2] == '>' {
-      return cursor + 3
+      return Some(cursor + 3)
     }
     cursor += 1
   }
-  chars.length()
+  None
 }

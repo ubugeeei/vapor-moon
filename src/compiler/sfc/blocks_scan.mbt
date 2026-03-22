@@ -1,10 +1,14 @@
 ///|
-fn find_template_block_close(chars : Array[Char], start : Int) -> Int? {
+fn find_template_block_close(
+  chars : Array[Char],
+  start : Int,
+  filename : String,
+) -> Int? raise CompilerError {
   let mut cursor = start
   let mut nested_template_depth = 0
   while cursor < chars.length() {
     if starts_with_chars(chars, cursor, "<!--") {
-      cursor = skip_html_comment(chars, cursor)
+      cursor = skip_html_comment(chars, cursor, filename)
       continue
     }
     if chars[cursor] != '<' {
@@ -74,8 +78,12 @@ fn find_raw_block_close(
 }
 
 ///|
-fn skip_html_comment(chars : Array[Char], start : Int) -> Int {
-  let mut cursor = start + 1
+fn skip_html_comment(
+  chars : Array[Char],
+  start : Int,
+  filename : String,
+) -> Int raise CompilerError {
+  let mut cursor = start + 4
   while cursor + 2 < chars.length() {
     if chars[cursor] == '-' &&
       chars[cursor + 1] == '-' &&
@@ -84,7 +92,7 @@ fn skip_html_comment(chars : Array[Char], start : Int) -> Int {
     }
     cursor += 1
   }
-  chars.length()
+  raise CompilerError::InvalidSfc("unterminated HTML comment in \{filename}")
 }
 
 ///|

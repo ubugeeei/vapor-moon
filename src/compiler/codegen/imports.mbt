@@ -3,6 +3,7 @@ using @common {
   type GenericParam,
   type IslandMode,
   type MacroField,
+  type MacroFieldTypeShape,
   type PropDefault,
   type SfcDocument,
   type StyleBlock,

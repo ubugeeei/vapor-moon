@@ -46,6 +46,16 @@ pub(all) struct StyleBlock {
 pub(all) struct MacroField {
   name : String
   signature : String?
+  type_identifiers : Array[String]
+  type_shape : MacroFieldTypeShape
+  is_optional : Bool
+} derive(Eq, Show)
+
+///|
+pub(all) enum MacroFieldTypeShape {
+  UnitLike
+  SingleValue
+  TupleValues(Int)
 } derive(Eq, Show)
 
 ///|

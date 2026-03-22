@@ -16,22 +16,24 @@ fn read_template_tag(
     )
   }
   let attrs : Array[ParsedTemplateAttr] = []
-  let mut self_closing = false
   while cursor < chars.length() {
     cursor = skip_ws(chars, cursor)
     if cursor >= chars.length() {
       break
     }
     if chars[cursor] == '/' {
-      self_closing = true
+      let slash = cursor
       cursor += 1
       cursor = skip_ws(chars, cursor)
       if cursor < chars.length() && chars[cursor] == '>' {
-        return (tag, attrs, cursor + 1, self_closing)
+        return (tag, attrs, cursor + 1, true)
       }
+      raise CompilerError::InvalidTemplate(
+        "unexpected `/` in start tag <\{tag}> near offset \{slash}",
+      )
     }
     if chars[cursor] == '>' {
-      return (tag, attrs, cursor + 1, self_closing)
+      return (tag, attrs, cursor + 1, false)
     }
     let (attr, next) = parse_template_attr(source, chars, cursor)
     attrs.push(attr)
@@ -94,10 +96,20 @@ fn read_template_attr_value(
   while cursor < chars.length() &&
         not(is_space(chars[cursor])) &&
         chars[cursor] != '>' &&
-        chars[cursor] != '/' {
+        not(is_self_closing_value_boundary(chars, cursor)) {
     cursor += 1
   }
+  if cursor == start {
+    raise CompilerError::InvalidTemplate("expected attribute value")
+  }
   (String::unsafe_substring(source, start~, end=cursor), cursor)
+}
+
+///|
+fn is_self_closing_value_boundary(chars : Array[Char], start : Int) -> Bool {
+  chars[start] == '/' &&
+  start + 1 < chars.length() &&
+  chars[start + 1] == '>'
 }
 
 ///|

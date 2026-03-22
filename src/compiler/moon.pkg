@@ -4,6 +4,9 @@ import {
   "ubugeeei/vapor_moon/src/compiler/script_setup" @script_setup,
   "ubugeeei/vapor_moon/src/compiler/sfc" @sfc,
   "ubugeeei/vapor_moon/src/compiler/template" @template,
+  "moonbitlang/core/list" @list,
+  "moonbitlang/parser" @mbt_parser,
+  "moonbitlang/parser/syntax" @mbt_syntax,
 }
 
 options(

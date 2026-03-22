@@ -17,7 +17,7 @@ fn parse_blocks(
       )
     }
     if cursor + 1 < chars.length() && chars[cursor + 1] == '!' {
-      cursor = skip_html_comment(chars, cursor)
+      cursor = skip_html_comment(chars, cursor, filename)
       continue
     }
     if cursor + 1 < chars.length() && chars[cursor + 1] == '/' {
@@ -32,7 +32,7 @@ fn parse_blocks(
           )
       }
     }
-    match read_start_tag(source, chars, cursor) {
+    match read_start_tag(source, chars, cursor, filename) {
       Some((tag, attrs, tag_end, self_closing)) => {
         if not(is_top_level_tag(tag)) {
           raise CompilerError::InvalidSfc(
@@ -44,7 +44,7 @@ fn parse_blocks(
             "self-closing <\{tag}> blocks are not supported in \{filename}",
           )
         }
-        match find_block_close_start(source, chars, tag, tag_end) {
+        match find_block_close_start(source, chars, tag, tag_end, filename) {
           Some(close_start) => {
             let content = String::unsafe_substring(
               source,
@@ -83,9 +83,10 @@ fn find_block_close_start(
   chars : Array[Char],
   tag : String,
   start : Int,
-) -> Int? {
+  filename : String,
+) -> Int? raise CompilerError {
   if tag == "template" {
-    find_template_block_close(chars, start)
+    find_template_block_close(chars, start, filename)
   } else {
     find_raw_block_close(source, chars, tag, start, tag == "script")
   }

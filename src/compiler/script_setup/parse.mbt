@@ -168,12 +168,10 @@ fn validate_prop_defaults(
           "defineProps() default `\{default_.name}` does not match any declared prop in \{filename}",
         )
     }
-    match field.signature {
-      Some(signature) if is_optional_contract_signature(signature) =>
-        raise CompilerError::InvalidScriptSetup(
-          "defineProps() default `\{default_.name}` requires a non-optional prop type in \{filename}; remove `?` from the contract field and let the default make it optional for callers",
-        )
-      _ => ()
+    if field.is_optional {
+      raise CompilerError::InvalidScriptSetup(
+        "defineProps() default `\{default_.name}` requires a non-optional prop type in \{filename}; remove `?` from the contract field and let the default make it optional for callers",
+      )
     }
     validated.push(default_)
   }
@@ -201,11 +199,6 @@ fn has_prop_default(defaults : Array[PropDefault], name : String) -> Bool {
     }
   }
   false
-}
-
-///|
-fn is_optional_contract_signature(signature : String) -> Bool {
-  signature.trim().to_string().has_suffix("?")
 }
 
 ///|

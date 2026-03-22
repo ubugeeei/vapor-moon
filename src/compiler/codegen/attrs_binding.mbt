@@ -214,13 +214,9 @@ fn render_model_read_expr(model : TemplateModel, checked : Bool) -> String {
 
 ///|
 fn render_model_write_expr(target : String, value_expr : String) -> String {
-  if target.has_suffix(".get()") && target.length() > 6 {
-    String::unsafe_substring(target, start=0, end=target.length() - 6) +
-    ".set(" +
-    value_expr +
-    ")"
-  } else {
-    target + " = " + value_expr
+  match signal_getter_receiver(target) {
+    Some(receiver) => receiver + ".set(" + value_expr + ")"
+    None => target + " = " + value_expr
   }
 }
 
@@ -232,4 +228,94 @@ fn has_model_modifier(model : TemplateModel, expected : String) -> Bool {
     }
   }
   false
+}
+
+///|
+fn signal_getter_receiver(target : String) -> String? {
+  let wrapped = "let __vm_probe = " + target
+  let (impls, reports) = @mbt_parser.parse_string(
+    wrapped,
+    name="__vm_model_target__.mbt",
+  )
+  if not(reports.is_empty()) {
+    return None
+  }
+  for impl_ in impls {
+    match impl_ {
+      TopLetDef(expr~, ..) => return signal_getter_receiver_from_expr(expr, wrapped)
+      _ => ()
+    }
+  }
+  None
+}
+
+///|
+fn signal_getter_receiver_from_expr(
+  expr : @mbt_syntax.Expr,
+  source : String,
+) -> String? {
+  let expr = unwrap_group_expr_model(expr)
+  match expr {
+    Apply(func~, args~, ..) => getter_receiver_from_apply_model(func, args, source)
+    DotApply(self~, method_name~, args~, ..) => {
+      if method_name.name == "get" && argument_list_is_empty_model(args) {
+        Some(slice_location_model(source, self.loc()).trim().to_string())
+      } else {
+        None
+      }
+    }
+    _ => None
+  }
+}
+
+///|
+fn getter_receiver_from_apply_model(
+  func : @mbt_syntax.Expr,
+  args : @list.List[@mbt_syntax.Argument],
+  source : String,
+) -> String? {
+  if not(argument_list_is_empty_model(args)) {
+    return None
+  }
+  let func = unwrap_group_expr_model(func)
+  match func {
+    Field(record~, accessor~, ..) =>
+      if accessor_label_name_model(accessor) == Some("get") {
+        Some(slice_location_model(source, record.loc()).trim().to_string())
+      } else {
+        None
+      }
+    _ => None
+  }
+}
+
+///|
+fn unwrap_group_expr_model(expr : @mbt_syntax.Expr) -> @mbt_syntax.Expr {
+  match expr {
+    Group(expr~, ..) => unwrap_group_expr_model(expr)
+    _ => expr
+  }
+}
+
+///|
+fn accessor_label_name_model(accessor : @mbt_syntax.Accessor) -> String? {
+  match accessor {
+    Label(label) => Some(label.name)
+    Index(..) | Newtype(..) => None
+  }
+}
+
+///|
+fn argument_list_is_empty_model(
+  args : @list.List[@mbt_syntax.Argument],
+) -> Bool {
+  match args {
+    @list.Empty => true
+    @list.More(_, ..) => false
+  }
+}
+
+///|
+fn slice_location_model(source : String, loc : @mbt_basic.Location) -> String {
+  String::unsafe_substring(source, start=loc.start.cnum, end=loc.end.cnum)
 }
