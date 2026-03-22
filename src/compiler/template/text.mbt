@@ -78,10 +78,7 @@ fn find_interpolation_close(source : String, start : Int) -> Int? {
       return Some(cursor)
     }
     let depths = update_interpolation_depths(
-      current,
-      paren_depth,
-      bracket_depth,
-      brace_depth,
+      current, paren_depth, bracket_depth, brace_depth,
     )
     paren_depth = depths.0
     bracket_depth = depths.1
