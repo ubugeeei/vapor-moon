@@ -34,10 +34,10 @@ fn parse_for_binding(source : String) -> ForBinding raise CompilerError {
   match find_top_level_for_separator(source) {
     Some(index) => {
       let left = strip_for_comments(
-        String::unsafe_substring(source, start=0, end=index),
-      )
-      .trim()
-      .to_string()
+          String::unsafe_substring(source, start=0, end=index),
+        )
+        .trim()
+        .to_string()
       let right = String::unsafe_substring(
           source,
           start=index + 4,
@@ -213,13 +213,18 @@ fn split_top_level_for_binding_items(source : String) -> Array[String] {
     }
     cursor += 1
   }
-  current_parts.push(String::unsafe_substring(source, start~, end=source.length()))
+  current_parts.push(
+    String::unsafe_substring(source, start~, end=source.length()),
+  )
   parts.push(current_parts.join("").trim().to_string())
   parts
 }
 
 ///|
-fn has_top_level_for_binding_separator(source : String, separator : Char) -> Bool {
+fn has_top_level_for_binding_separator(
+  source : String,
+  separator : Char,
+) -> Bool {
   let chars = source.to_array()
   let mut cursor = 0
   let mut paren_depth = 0
@@ -257,7 +262,11 @@ fn has_top_level_for_binding_separator(source : String, separator : Char) -> Boo
 }
 
 ///|
-fn starts_with_for_local(source : String, start : Int, expected : String) -> Bool {
+fn starts_with_for_local(
+  source : String,
+  start : Int,
+  expected : String,
+) -> Bool {
   let expected_chars = expected.to_array()
   if start + expected_chars.length() > source.length() {
     return false
@@ -322,7 +331,11 @@ fn update_for_binding_depths(
     '(' => (paren_depth + 1, bracket_depth, brace_depth)
     ')' =>
       (
-        if paren_depth > 0 { paren_depth - 1 } else { 0 },
+        if paren_depth > 0 {
+          paren_depth - 1
+        } else {
+          0
+        },
         bracket_depth,
         brace_depth,
       )
@@ -330,7 +343,11 @@ fn update_for_binding_depths(
     ']' =>
       (
         paren_depth,
-        if bracket_depth > 0 { bracket_depth - 1 } else { 0 },
+        if bracket_depth > 0 {
+          bracket_depth - 1
+        } else {
+          0
+        },
         brace_depth,
       )
     '{' => (paren_depth, bracket_depth, brace_depth + 1)
@@ -338,7 +355,11 @@ fn update_for_binding_depths(
       (
         paren_depth,
         bracket_depth,
-        if brace_depth > 0 { brace_depth - 1 } else { 0 },
+        if brace_depth > 0 {
+          brace_depth - 1
+        } else {
+          0
+        },
       )
     _ => (paren_depth, bracket_depth, brace_depth)
   }
