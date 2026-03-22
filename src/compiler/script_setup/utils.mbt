@@ -1,9 +1,5 @@
 ///|
-fn skip_inline_gap(
-  source : String,
-  chars : Array[Char],
-  start : Int,
-) -> Int {
+fn skip_inline_gap(source : String, chars : Array[Char], start : Int) -> Int {
   let mut cursor = start
   while cursor < chars.length() {
     let current = chars[cursor]

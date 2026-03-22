@@ -632,9 +632,7 @@ test "script setup imports allow comments before braces" {
     #|  title : String
     #|}
     #|let props : Props = defineProps()
-  let info = must_analyze_script_setup(
-    source, "inline/import_comment_gap.mbtv",
-  )
+  let info = must_analyze_script_setup(source, "inline/import_comment_gap.mbtv")
   assert_eq(info.props_binding, Some("props"))
   assert_eq(info.import_entries.length(), 1)
   assert_eq(info.import_entries[0], "\"mizchi/luna/js/resource\" @reactivity,")
@@ -653,7 +651,9 @@ test "script setup imports allow line comments before braces" {
     #|  title : String
     #|}
     #|let props : Props = defineProps()
-  let info = must_analyze_script_setup(source, "inline/import_line_comment_gap.mbtv")
+  let info = must_analyze_script_setup(
+    source, "inline/import_line_comment_gap.mbtv",
+  )
   assert_eq(info.props_binding, Some("props"))
   assert_eq(info.import_entries.length(), 1)
   assert_eq(info.import_entries[0], "\"mizchi/luna/js/resource\" @reactivity,")

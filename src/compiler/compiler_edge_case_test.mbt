@@ -153,6 +153,19 @@ test "rejects invalid template expressions with parser diagnostics" {
 }
 
 ///|
+test "accepts interpolations with close delimiters inside string literals" {
+  let source =
+    #|<template><div>{{ "}}" }}</div></template>
+  let output = compile(source, filename="examples/interpolation_string_close_delimiter.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("\"}}\""))
+}
+
+///|
 test "rejects v-model without an expression" {
   let source =
     #|<template><input v-model /></template>

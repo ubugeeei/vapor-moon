@@ -44,7 +44,7 @@ fn read_interpolation_token(
   source : String,
   start : Int,
 ) -> (TemplateToken, Int) raise CompilerError {
-  match find_substring_local(source, "}}", start + 2) {
+  match find_interpolation_close(source, start) {
     Some(close) => {
       let expr = String::unsafe_substring(source, start=start + 2, end=close)
         .trim()
