@@ -7,8 +7,7 @@ fn read_template_token(
   if starts_with(chars, start, "<!--") {
     match skip_html_comment(chars, start) {
       Some(end) => return (Comment, end)
-      None =>
-        raise CompilerError::InvalidTemplate("unterminated HTML comment")
+      None => raise CompilerError::InvalidTemplate("unterminated HTML comment")
     }
   }
   if starts_with(chars, start, "{{") {

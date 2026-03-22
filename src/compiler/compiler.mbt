@@ -50,7 +50,9 @@ fn reject_legacy_emit_calls(
   match doc.emits_binding {
     Some(binding) =>
       match doc.script_setup {
-        Some(script) if script_setup_contains_legacy_emit_call(script, binding, filename) =>
+        Some(script) if script_setup_contains_legacy_emit_call(
+            script, binding, filename,
+          ) =>
           raise CompilerError::InvalidScriptSetup(
             legacy_emit_message(binding, filename),
           )
@@ -79,15 +81,15 @@ fn validate_template_node(
 ) -> Unit raise CompilerError {
   match node {
     Text(_) => ()
-    Interpolation(expr) =>
-      validate_template_expr(expr, binding, filename)
+    Interpolation(expr) => validate_template_expr(expr, binding, filename)
     Element(element) => {
       match element.if_expr {
         Some(expr) => validate_template_expr(expr, binding, filename)
         None => ()
       }
       match element.for_binding {
-        Some(binding_) => validate_template_expr(binding_.source, binding, filename)
+        Some(binding_) =>
+          validate_template_expr(binding_.source, binding, filename)
         None => ()
       }
       match element.show_expr {
@@ -99,7 +101,8 @@ fn validate_template_node(
         None => ()
       }
       match element.model {
-        Some(model) => validate_template_expr(model.expression, binding, filename)
+        Some(model) =>
+          validate_template_expr(model.expression, binding, filename)
         None => ()
       }
       match element.key_expr {
@@ -188,9 +191,7 @@ fn parse_template_expr_ast(
   }
   raise CompilerError::InvalidTemplate(
     invalid_template_expression_message(
-      expr,
-      filename,
-      "failed to parse expression",
+      expr, filename, "failed to parse expression",
     ),
   )
 }
@@ -214,16 +215,15 @@ fn impl_contains_legacy_emit_call(
       expr_contains_legacy_emit_call(expr, binding)
     TopFuncDef(decl_body~, ..) =>
       decl_body_contains_legacy_emit_call(decl_body, binding)
-    TopImpl(body~, ..) =>
-      decl_body_contains_legacy_emit_call(body, binding)
+    TopImpl(body~, ..) => decl_body_contains_legacy_emit_call(body, binding)
     TopView(body~, ..) => expr_contains_legacy_emit_call(body, binding)
-    TopTypeDef(_) |
-    TopFuncAlias(..) |
-    TopTrait(_) |
-    TopBatchTypeAlias(..) |
-    TopBatchTraitAlias(..) |
-    TopImplRelation(..) |
-    _ => false
+    TopTypeDef(_)
+    | TopFuncAlias(..)
+    | TopTrait(_)
+    | TopBatchTypeAlias(..)
+    | TopBatchTraitAlias(..)
+    | TopImplRelation(..)
+    | _ => false
   }
 }
 
@@ -323,17 +323,13 @@ fn expr_contains_legacy_emit_call(
     Sequence(exprs~, last_expr~, ..) =>
       expr_list_contains_legacy_emit_call(exprs, binding) ||
       expr_contains_legacy_emit_call(last_expr, binding)
-    Record(fields~, ..) =>
-      field_defs_contain_legacy_emit_call(fields, binding)
+    Record(fields~, ..) => field_defs_contain_legacy_emit_call(fields, binding)
     RecordUpdate(record~, fields~, ..) =>
       expr_contains_legacy_emit_call(record, binding) ||
       field_defs_contain_legacy_emit_call(fields, binding)
     Field(record~, ..) => expr_contains_legacy_emit_call(record, binding)
     DotApply(self~, method_name~, args~, ..) =>
-      (
-        is_binding_expr(self, binding) &&
-        method_name.name == "emit"
-      ) ||
+      (is_binding_expr(self, binding) && method_name.name == "emit") ||
       expr_contains_legacy_emit_call(self, binding) ||
       argument_list_contains_legacy_emit_call(args, binding)
     Mutate(record~, field~, ..) =>
@@ -351,7 +347,15 @@ fn expr_contains_legacy_emit_call(
     Loop(arg~, body~, ..) =>
       expr_contains_legacy_emit_call(arg, binding) ||
       case_list_contains_legacy_emit_call(body, binding)
-    For(binders~, condition~, continue_block~, body~, for_else~, where_clause~, ..) =>
+    For(
+      binders~,
+      condition~,
+      continue_block~,
+      body~,
+      for_else~,
+      where_clause~,
+      ..
+    ) =>
       binder_expr_pairs_contain_legacy_emit_call(binders, binding) ||
       expr_option_contains_legacy_emit_call(condition, binding) ||
       binder_expr_pairs_contain_legacy_emit_call(continue_block, binding) ||
@@ -558,11 +562,9 @@ fn function_binding_list_contains_legacy_emit_call(
 
 ///|
 fn typed_function_binding_list_contains_legacy_emit_call(
-  bindings : @list.List[(
-    @mbt_syntax.Binder,
-    @mbt_syntax.Type?,
-    @mbt_syntax.Func,
-  )],
+  bindings : @list.List[
+    (@mbt_syntax.Binder, @mbt_syntax.Type?, @mbt_syntax.Func),
+  ],
   binding : String,
 ) -> Bool {
   for entry in bindings {

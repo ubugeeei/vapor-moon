@@ -388,7 +388,10 @@ test "captures macro field type metadata from AST" {
     #|let emit : Emits = defineEmits()
     #|</script>
     #|<template><div>{{ props.title.unwrap_or(\"\") }}</div></template>
-  let doc = parse_sfc(source, filename="examples/macro_field_type_metadata.mbtv") catch {
+  let doc = parse_sfc(
+    source,
+    filename="examples/macro_field_type_metadata.mbtv",
+  ) catch {
     err => {
       ignore(err)
       panic()
@@ -428,7 +431,10 @@ test "does not reject emit.emit inside template string literals" {
     #|let emit : Emits = defineEmits()
     #|</script>
     #|<template><button @click='\"emit.emit(\"'></button></template>
-  let output = compile(source, filename="examples/legacy_emit_template_literal_ok.mbtv") catch {
+  let output = compile(
+    source,
+    filename="examples/legacy_emit_template_literal_ok.mbtv",
+  ) catch {
     err => {
       ignore(err)
       panic()
@@ -449,7 +455,10 @@ test "does not reject emit.emit inside script setup string literals" {
     #|let note = "emit.emit("
     #|</script>
     #|<template><div>{{ note }}</div></template>
-  let output = compile(source, filename="examples/legacy_emit_script_literal_ok.mbtv") catch {
+  let output = compile(
+    source,
+    filename="examples/legacy_emit_script_literal_ok.mbtv",
+  ) catch {
     err => {
       ignore(err)
       panic()

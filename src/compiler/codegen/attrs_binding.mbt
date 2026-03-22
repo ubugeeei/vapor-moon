@@ -242,7 +242,8 @@ fn signal_getter_receiver(target : String) -> String? {
   }
   for impl_ in impls {
     match impl_ {
-      TopLetDef(expr~, ..) => return signal_getter_receiver_from_expr(expr, wrapped)
+      TopLetDef(expr~, ..) =>
+        return signal_getter_receiver_from_expr(expr, wrapped)
       _ => ()
     }
   }
@@ -256,14 +257,14 @@ fn signal_getter_receiver_from_expr(
 ) -> String? {
   let expr = unwrap_group_expr_model(expr)
   match expr {
-    Apply(func~, args~, ..) => getter_receiver_from_apply_model(func, args, source)
-    DotApply(self~, method_name~, args~, ..) => {
+    Apply(func~, args~, ..) =>
+      getter_receiver_from_apply_model(func, args, source)
+    DotApply(self~, method_name~, args~, ..) =>
       if method_name.name == "get" && argument_list_is_empty_model(args) {
         Some(slice_location_model(source, self.loc()).trim().to_string())
       } else {
         None
       }
-    }
     _ => None
   }
 }

@@ -138,7 +138,8 @@ fn render_emit_callback_type(field : MacroField) -> String {
 fn render_slot_callback_type(field : MacroField, node_type : String) -> String {
   let return_type = "Array[" + node_type + "]"
   match field.signature {
-    Some(signature) => render_callback_type(signature, field.type_shape, return_type)
+    Some(signature) =>
+      render_callback_type(signature, field.type_shape, return_type)
     None => "() -> Array[" + node_type + "]"
   }
 }

@@ -107,9 +107,7 @@ fn read_template_attr_value(
 
 ///|
 fn is_self_closing_value_boundary(chars : Array[Char], start : Int) -> Bool {
-  chars[start] == '/' &&
-  start + 1 < chars.length() &&
-  chars[start + 1] == '>'
+  chars[start] == '/' && start + 1 < chars.length() && chars[start + 1] == '>'
 }
 
 ///|

@@ -11,7 +11,10 @@ fn collect_script_setup_contract_types(
 ) -> Array[ScriptSetupContractType] raise CompilerError {
   let contracts : Array[ScriptSetupContractType] = []
   let parseable_source = contract_parse_source(source)
-  let (impls, reports) = @mbt_parser.parse_string(parseable_source, name=filename)
+  let (impls, reports) = @mbt_parser.parse_string(
+    parseable_source,
+    name=filename,
+  )
   if not(reports.is_empty()) {
     raise CompilerError::InvalidScriptSetup(reports[0].to_string())
   }

@@ -40,7 +40,10 @@ fn generic_used_in_fields(name : String, fields : Array[MacroField]) -> Bool {
 }
 
 ///|
-fn field_references_type_identifier(field : MacroField, target : String) -> Bool {
+fn field_references_type_identifier(
+  field : MacroField,
+  target : String,
+) -> Bool {
   for identifier in field.type_identifiers {
     if identifier == target {
       return true
