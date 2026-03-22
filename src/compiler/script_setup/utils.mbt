@@ -1,13 +1,25 @@
 ///|
-fn skip_inline_ws(chars : Array[Char], start : Int) -> Int {
+fn skip_inline_gap(
+  source : String,
+  chars : Array[Char],
+  start : Int,
+) -> Int {
   let mut cursor = start
   while cursor < chars.length() {
     let current = chars[cursor]
     if current == ' ' || current == '\n' || current == '\t' || current == '\r' {
       cursor += 1
-    } else {
-      return cursor
+      continue
     }
+    if starts_with_local(source, cursor, "//") {
+      cursor = skip_line_comment(chars, cursor)
+      continue
+    }
+    if starts_with_local(source, cursor, "/*") {
+      cursor = skip_block_comment(chars, cursor)
+      continue
+    }
+    return cursor
   }
   cursor
 }

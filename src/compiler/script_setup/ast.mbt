@@ -234,7 +234,7 @@ fn extract_call_args(
   filename : String,
 ) -> String raise CompilerError {
   let chars = source.to_array()
-  let open_index = skip_inline_ws(chars, name.length())
+  let open_index = skip_inline_gap(source, chars, name.length())
   if open_index >= chars.length() || chars[open_index] != '(' {
     raise CompilerError::InvalidScriptSetup(
       "expected \{name}() call in \{filename}",

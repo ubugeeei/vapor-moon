@@ -175,7 +175,8 @@ fn try_parse_for_separator(
   start : Int,
 ) -> Int? {
   let keyword_start = skip_for_separator_gap(source, chars, start)
-  if keyword_start == start || not(starts_with_for_local(source, keyword_start, "in")) {
+  if keyword_start == start ||
+    not(starts_with_for_local(source, keyword_start, "in")) {
     return None
   }
   let right_start = skip_for_separator_gap(source, chars, keyword_start + 2)

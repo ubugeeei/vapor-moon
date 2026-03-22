@@ -206,6 +206,19 @@ test "rejects missing block attribute names" {
 }
 
 ///|
+test "rejects trailing tokens after script setup imports" {
+  let source =
+    #|<script setup>
+    #|import { "mizchi/luna/js/resource" @reactivity, } let signal = @reactivity.signal
+    #|</script>
+    #|<template><div /></template>
+  assert_eq(
+    compile_error(source, "invalid/import_trailing_tokens.mbtv"),
+    "InvalidScriptSetup(\"script setup imports must end after `}` in invalid/import_trailing_tokens.mbtv\")",
+  )
+}
+
+///|
 test "rejects generic on template blocks" {
   let source =
     #|<template generic="T"><div /></template>
@@ -602,6 +615,45 @@ test "script setup imports ignore comment commas" {
   let info = must_analyze_script_setup(
     source, "inline/import_comment_commas.mbtv",
   )
+  assert_eq(info.props_binding, Some("props"))
+  assert_eq(info.import_entries.length(), 1)
+  assert_eq(info.import_entries[0], "\"mizchi/luna/js/resource\" @reactivity,")
+  assert_true(info.transformed.contains("let signal = @reactivity.signal"))
+}
+
+///|
+test "script setup imports allow comments before braces" {
+  let source =
+    #|import /* module table */ {
+    #|  "mizchi/luna/js/resource" @reactivity,
+    #|  let signal = @reactivity.signal,
+    #|}
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|let props : Props = defineProps()
+  let info = must_analyze_script_setup(
+    source, "inline/import_comment_gap.mbtv",
+  )
+  assert_eq(info.props_binding, Some("props"))
+  assert_eq(info.import_entries.length(), 1)
+  assert_eq(info.import_entries[0], "\"mizchi/luna/js/resource\" @reactivity,")
+  assert_true(info.transformed.contains("let signal = @reactivity.signal"))
+}
+
+///|
+test "script setup imports allow line comments before braces" {
+  let source =
+    #|import // module table
+    #|{
+    #|  "mizchi/luna/js/resource" @reactivity,
+    #|  let signal = @reactivity.signal,
+    #|}
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|let props : Props = defineProps()
+  let info = must_analyze_script_setup(source, "inline/import_line_comment_gap.mbtv")
   assert_eq(info.props_binding, Some("props"))
   assert_eq(info.import_entries.length(), 1)
   assert_eq(info.import_entries[0], "\"mizchi/luna/js/resource\" @reactivity,")

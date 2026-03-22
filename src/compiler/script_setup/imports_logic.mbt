@@ -3,11 +3,12 @@ fn is_script_setup_import_statement(source : String) -> Bool {
   if not(source.has_prefix("import")) {
     return false
   }
-  if source.length() == 6 {
+  let chars = source.to_array()
+  if chars.length() == 6 {
     return true
   }
-  let next = source.to_array()[6]
-  next == ' ' || next == '\n' || next == '\t' || next == '\r' || next == '{'
+  let next = skip_inline_gap(source, chars, 6)
+  next >= chars.length() || chars[next] == '{'
 }
 
 ///|
@@ -44,7 +45,7 @@ fn parse_import_statement(
   filename : String,
 ) -> Array[String] raise CompilerError {
   let chars = source.to_array()
-  let open_brace = skip_inline_ws(chars, 6)
+  let open_brace = skip_inline_gap(source, chars, 6)
   if open_brace >= chars.length() || chars[open_brace] != '{' {
     raise CompilerError::InvalidScriptSetup(
       "script setup imports must use `import { ... }` in \{filename}",
@@ -53,6 +54,12 @@ fn parse_import_statement(
   let close_brace = find_matching_delimiter(
     source, chars, open_brace, '{', '}', filename, "import block",
   )
+  let trailing_start = skip_inline_gap(source, chars, close_brace + 1)
+  if trailing_start < chars.length() {
+    raise CompilerError::InvalidScriptSetup(
+      "script setup imports must end after `}` in \{filename}",
+    )
+  }
   let body = String::unsafe_substring(
     source,
     start=open_brace + 1,
