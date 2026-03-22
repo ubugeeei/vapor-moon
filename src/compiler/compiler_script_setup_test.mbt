@@ -652,6 +652,64 @@ test "script setup keeps cascade continuation lines together" {
 }
 
 ///|
+test "script setup keeps else continuation lines together" {
+  let source =
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|let picked = if true {
+    #|  "a"
+    #|}
+    #|else {
+    #|  "b"
+    #|}
+    #|let props : Props = defineProps()
+  let info = must_analyze_script_setup(
+    source, "inline/else_continuation.mbtv",
+  )
+  assert_eq(info.props_binding, Some("props"))
+  assert_true(info.transformed.contains("else {"))
+}
+
+///|
+test "script setup keeps catch continuation lines together" {
+  let source =
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|let picked = try {
+    #|  "a"
+    #|}
+    #|catch {
+    #|  _ => "b"
+    #|}
+    #|let props : Props = defineProps()
+  let info = must_analyze_script_setup(
+    source, "inline/catch_continuation.mbtv",
+  )
+  assert_eq(info.props_binding, Some("props"))
+  assert_true(info.transformed.contains("catch {"))
+}
+
+///|
+test "script setup does not silently merge unary minus lines" {
+  let source =
+    #|<script setup>
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|let negative = 1
+    #|let offset = 42
+    #|-negative
+    #|let props : Props = defineProps()
+    #|</script>
+    #|<template><div /></template>
+  let err = compile_error(source, "invalid/unary_minus_statement_boundary.mbtv")
+  assert_true(err.contains("InvalidScriptSetup"))
+  assert_true(err.contains("Unexpected token `-`"))
+}
+
+///|
 test "rejects duplicate prop defaults" {
   let source =
     #|<script setup>

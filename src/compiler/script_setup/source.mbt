@@ -104,7 +104,6 @@ fn next_significant_token_continues_statement(
   starts_with_local(source, cursor, "|>") ||
   starts_with_local(source, cursor, "..") ||
   chars[cursor] == '.' ||
-  chars[cursor] == '-' ||
   starts_with_continuation_word(source, chars, cursor, "else") ||
   starts_with_continuation_word(source, chars, cursor, "catch")
 }
@@ -153,7 +152,11 @@ fn starts_with_continuation_word(
     return true
   }
   let current = chars[end_]
-  current == ' ' || current == '\n' || current == '\t' || current == '\r' || current == '{'
+  current == ' ' ||
+  current == '\n' ||
+  current == '\t' ||
+  current == '\r' ||
+  current == '{'
 }
 
 ///|
