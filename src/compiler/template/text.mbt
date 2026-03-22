@@ -1,3 +1,4 @@
+///|
 fn find_interpolation_close(source : String, start : Int) -> Int? {
   let chars = source.to_array()
   let mut cursor = start + 2
@@ -37,6 +38,7 @@ fn find_interpolation_close(source : String, start : Int) -> Int? {
   None
 }
 
+///|
 fn skip_template_line_comment(chars : Array[Char], start : Int) -> Int {
   let mut cursor = start + 2
   while cursor < chars.length() {

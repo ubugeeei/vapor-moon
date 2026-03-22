@@ -45,9 +45,7 @@ fn visit_template_tokens(
         }
       StartTag => {
         let (tag, attrs, next, self_closing) = read_template_tag(
-          source,
-          chars,
-          cursor,
+          source, chars, cursor,
         )
         visitor_on_start_tag(visitor, tag, attrs, self_closing)
         cursor = next
@@ -82,13 +80,7 @@ fn visit_template_tokens(
         }
     }
   }
-  visitor_on_text(
-    visitor,
-    source,
-    text_start,
-    chars.length(),
-    text_has_content,
-  )
+  visitor_on_text(visitor, source, text_start, chars.length(), text_has_content)
 }
 
 ///|

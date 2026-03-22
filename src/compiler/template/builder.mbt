@@ -10,7 +10,7 @@ fn visitor_on_text(
     return
   }
   append_node(
-    Text(String::unsafe_substring(source, start=start, end=end_)),
+    Text(String::unsafe_substring(source, start~, end=end_)),
     visitor.roots,
     visitor.stack,
   )
