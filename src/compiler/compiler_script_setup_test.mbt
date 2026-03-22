@@ -196,6 +196,16 @@ test "rejects generic without a value" {
 }
 
 ///|
+test "rejects missing block attribute names" {
+  let source =
+    #|<template ='true'></template>
+  assert_eq(
+    compile_error(source, "invalid/missing_block_attr_name.mbtv"),
+    "InvalidSfc(\"expected attribute name in <template> start tag of invalid/missing_block_attr_name.mbtv\")",
+  )
+}
+
+///|
 test "rejects generic on template blocks" {
   let source =
     #|<template generic="T"><div /></template>
@@ -664,9 +674,7 @@ test "script setup keeps else continuation lines together" {
     #|  "b"
     #|}
     #|let props : Props = defineProps()
-  let info = must_analyze_script_setup(
-    source, "inline/else_continuation.mbtv",
-  )
+  let info = must_analyze_script_setup(source, "inline/else_continuation.mbtv")
   assert_eq(info.props_binding, Some("props"))
   assert_true(info.transformed.contains("else {"))
 }
@@ -684,9 +692,7 @@ test "script setup keeps catch continuation lines together" {
     #|  _ => "b"
     #|}
     #|let props : Props = defineProps()
-  let info = must_analyze_script_setup(
-    source, "inline/catch_continuation.mbtv",
-  )
+  let info = must_analyze_script_setup(source, "inline/catch_continuation.mbtv")
   assert_eq(info.props_binding, Some("props"))
   assert_true(info.transformed.contains("catch {"))
 }

@@ -35,7 +35,7 @@ fn read_template_tag(
     if chars[cursor] == '>' {
       return (tag, attrs, cursor + 1, false)
     }
-    let (attr, next) = parse_template_attr(source, chars, cursor)
+    let (attr, next) = parse_template_attr(source, chars, cursor, tag)
     attrs.push(attr)
     cursor = next
   }
@@ -47,6 +47,7 @@ fn parse_template_attr(
   source : String,
   chars : Array[Char],
   start : Int,
+  tag : String,
 ) -> (ParsedTemplateAttr, Int) raise CompilerError {
   let mut cursor = start
   let name_start = cursor
@@ -56,6 +57,11 @@ fn parse_template_attr(
         chars[cursor] != '>' &&
         chars[cursor] != '/' {
     cursor += 1
+  }
+  if cursor == name_start {
+    raise CompilerError::InvalidTemplate(
+      "expected attribute name in start tag <\{tag}>",
+    )
   }
   let name = String::unsafe_substring(source, start=name_start, end=cursor)
   cursor = skip_ws(chars, cursor)

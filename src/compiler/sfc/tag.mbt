@@ -252,6 +252,13 @@ fn parse_block_attrs(
     if cursor >= chars.length() {
       break
     }
+    if chars[cursor] == '/' {
+      cursor += 1
+      cursor = skip_spaces(chars, cursor)
+      if cursor >= chars.length() {
+        break
+      }
+    }
     let name_start = cursor
     while cursor < chars.length() &&
           not(is_block_space(chars[cursor])) &&
@@ -260,8 +267,9 @@ fn parse_block_attrs(
       cursor += 1
     }
     if cursor == name_start {
-      cursor += 1
-      continue
+      raise CompilerError::InvalidSfc(
+        "expected attribute name in <\{tag}> start tag of \{filename}",
+      )
     }
     let name = String::unsafe_substring(header, start=name_start, end=cursor)
     cursor = skip_spaces(chars, cursor)

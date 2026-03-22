@@ -123,6 +123,16 @@ test "rejects missing attribute values after equals" {
 }
 
 ///|
+test "rejects missing attribute names in templates" {
+  let source =
+    #|<template><div ='title'></div></template>
+  assert_eq(
+    compile_error(source, "invalid/missing_attr_name.mbtv"),
+    "InvalidTemplate(\"expected attribute name in start tag <div>\")",
+  )
+}
+
+///|
 test "rejects malformed self closing syntax in templates" {
   let source =
     #|<template><div / class='card'></div></template>
@@ -433,6 +443,34 @@ test "accepts v-for comments around tuple separators" {
     }
   }
   assert_true(output.client_code.contains("fn(item, index)"))
+}
+
+///|
+test "accepts v-for separators split across newlines" {
+  let source =
+    #|<template><li v-for='(item, index)
+    #|in
+    #|items'></li></template>
+  let output = compile(source, filename="examples/v_for_newline_separator.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("fn(item, index)"))
+}
+
+///|
+test "accepts v-for comments after the `in` keyword" {
+  let source =
+    #|<template><li v-for='item in /* source stays here */ items'></li></template>
+  let output = compile(source, filename="examples/v_for_comment_after_in.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("fn(item, _index)"))
 }
 
 ///|

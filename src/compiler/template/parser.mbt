@@ -32,15 +32,15 @@ pub fn parse_template(
 ///|
 fn parse_for_binding(source : String) -> ForBinding raise CompilerError {
   match find_top_level_for_separator(source) {
-    Some(index) => {
+    Some((left_end, right_start)) => {
       let left = strip_for_comments(
-          String::unsafe_substring(source, start=0, end=index),
+          String::unsafe_substring(source, start=0, end=left_end),
         )
         .trim()
         .to_string()
       let right = String::unsafe_substring(
           source,
-          start=index + 4,
+          start=right_start,
           end=source.length(),
         )
         .trim()
@@ -131,13 +131,19 @@ fn strip_for_comments(source : String) -> String {
 }
 
 ///|
-fn find_top_level_for_separator(source : String) -> Int? {
+fn find_top_level_for_separator(source : String) -> (Int, Int)? {
   let chars = source.to_array()
   let mut cursor = 0
   let mut paren_depth = 0
   let mut bracket_depth = 0
   let mut brace_depth = 0
   while cursor < chars.length() {
+    if paren_depth == 0 && bracket_depth == 0 && brace_depth == 0 {
+      match try_parse_for_separator(source, chars, cursor) {
+        Some(right_start) => return Some((cursor, right_start))
+        None => ()
+      }
+    }
     if starts_with_for_local(source, cursor, "//") {
       cursor = skip_for_line_comment(chars, cursor)
       continue
@@ -145,12 +151,6 @@ fn find_top_level_for_separator(source : String) -> Int? {
     if starts_with_for_local(source, cursor, "/*") {
       cursor = skip_for_block_comment(chars, cursor)
       continue
-    }
-    if starts_with_for_local(source, cursor, " in ") &&
-      paren_depth == 0 &&
-      bracket_depth == 0 &&
-      brace_depth == 0 {
-      return Some(cursor)
     }
     let current = chars[cursor]
     if current == '"' || current == '\'' {
@@ -166,6 +166,49 @@ fn find_top_level_for_separator(source : String) -> Int? {
     cursor += 1
   }
   None
+}
+
+///|
+fn try_parse_for_separator(
+  source : String,
+  chars : Array[Char],
+  start : Int,
+) -> Int? {
+  let keyword_start = skip_for_separator_gap(source, chars, start)
+  if keyword_start == start || not(starts_with_for_local(source, keyword_start, "in")) {
+    return None
+  }
+  let right_start = skip_for_separator_gap(source, chars, keyword_start + 2)
+  if right_start == keyword_start + 2 {
+    return None
+  }
+  Some(right_start)
+}
+
+///|
+fn skip_for_separator_gap(
+  source : String,
+  chars : Array[Char],
+  start : Int,
+) -> Int {
+  let mut cursor = start
+  while cursor < chars.length() {
+    let current = chars[cursor]
+    if current == ' ' || current == '\n' || current == '\t' || current == '\r' {
+      cursor += 1
+      continue
+    }
+    if starts_with_for_local(source, cursor, "//") {
+      cursor = skip_for_line_comment(chars, cursor)
+      continue
+    }
+    if starts_with_for_local(source, cursor, "/*") {
+      cursor = skip_for_block_comment(chars, cursor)
+      continue
+    }
+    return cursor
+  }
+  cursor
 }
 
 ///|
