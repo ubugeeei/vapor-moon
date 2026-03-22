@@ -3,7 +3,18 @@ fn validate_finalized_element(
   element : TemplateElement,
   children : Array[TemplateNode],
 ) -> Unit raise CompilerError {
+  if is_void_html_tag(element.tag) {
+    if not(children.is_empty()) {
+      raise CompilerError::InvalidTemplate(
+        "void element <\{element.tag}> cannot have children",
+      )
+    }
+  }
   match element.html_expr {
+    Some(_) if is_void_html_tag(element.tag) =>
+      raise CompilerError::InvalidDirective(
+        "v-html is not supported on void elements: <\{element.tag}>",
+      )
     Some(_) if not(children.is_empty()) =>
       raise CompilerError::InvalidDirective(
         "v-html cannot be combined with child nodes on <\{element.tag}>",
@@ -38,6 +49,30 @@ fn expect_attr_value(
   raise CompilerError::InvalidDirective(
     "`\{attr.name}` requires a value on <\{tag}>",
   )
+}
+
+///|
+fn reject_unexpected_attr_value(
+  attr : ParsedTemplateAttr,
+  tag : String,
+) -> Unit raise CompilerError {
+  if attr.has_value {
+    raise CompilerError::InvalidDirective(
+      "`\{attr.name}` does not take a value on <\{tag}>",
+    )
+  }
+}
+
+///|
+fn validate_element_tag_form(
+  tag : String,
+  self_closing : Bool,
+) -> Unit raise CompilerError {
+  if is_void_html_tag(tag) && not(self_closing) {
+    raise CompilerError::InvalidTemplate(
+      "void element <\{tag}> must be self closing",
+    )
+  }
 }
 
 ///|
@@ -87,6 +122,29 @@ fn validate_normalized_attr(
       }
     }
     _ => ()
+  }
+}
+
+///|
+fn validate_normalized_attr_conflict(
+  attrs : Array[TemplateAttr],
+  attr : TemplateAttr,
+  tag : String,
+) -> Unit raise CompilerError {
+  match attr.kind {
+    Event =>
+      if has_attr_with_kind(attrs, attr.name, Event) {
+        raise CompilerError::InvalidDirective(
+          "duplicate event listener `\{attr.name}` on <\{tag}>",
+        )
+      }
+    _ =>
+      if not(is_mergeable_attr_name(attr.name)) &&
+        has_non_event_attr(attrs, attr.name) {
+        raise CompilerError::InvalidDirective(
+          "duplicate attribute `\{attr.name}` on <\{tag}>",
+        )
+      }
   }
 }
 
@@ -229,6 +287,8 @@ fn validate_component_bindings(
   attrs : Array[TemplateAttr],
   model : TemplateModel?,
   island_directive : String?,
+  show_expr : String?,
+  html_expr : String?,
 ) -> Unit raise CompilerError {
   match island_directive {
     Some(_) if not(is_component) =>
@@ -238,11 +298,25 @@ fn validate_component_bindings(
     _ => ()
   }
   if not(is_component) {
+    match html_expr {
+      Some(_) if is_void_html_tag(tag) =>
+        raise CompilerError::InvalidDirective(
+          "v-html is not supported on void elements: <\{tag}>",
+        )
+      _ => ()
+    }
     match model {
       Some(binding) => validate_native_model_binding(tag, attrs, binding)
       None => ()
     }
     return
+  }
+  match show_expr {
+    Some(_) =>
+      raise CompilerError::InvalidDirective(
+        "v-show is not supported on component tags: <\{tag}>",
+      )
+    None => ()
   }
   for attr in attrs {
     if attr.kind == Event {
@@ -250,6 +324,13 @@ fn validate_component_bindings(
         "component event listeners are not supported yet on <\{tag}>",
       )
     }
+  }
+  match html_expr {
+    Some(_) =>
+      raise CompilerError::InvalidDirective(
+        "v-html is not supported on component tags: <\{tag}>",
+      )
+    None => ()
   }
   match model {
     Some(_) =>
@@ -284,6 +365,30 @@ fn has_attr(attrs : Array[TemplateAttr], name : String) -> Bool {
 fn has_dynamic_attr(attrs : Array[TemplateAttr], name : String) -> Bool {
   for attr in attrs {
     if attr.name == name && attr.kind == Dynamic {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn has_attr_with_kind(
+  attrs : Array[TemplateAttr],
+  name : String,
+  kind : TemplateAttrKind,
+) -> Bool {
+  for attr in attrs {
+    if attr.name == name && attr.kind == kind {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn has_non_event_attr(attrs : Array[TemplateAttr], name : String) -> Bool {
+  for attr in attrs {
+    if attr.name == name && attr.kind != Event {
       return true
     }
   }
@@ -343,4 +448,27 @@ fn is_supported_directive_name(name : String) -> Bool {
   name.has_prefix("v-bind:") ||
   name.has_prefix("v-on:") ||
   name.has_prefix("v-model")
+}
+
+///|
+fn is_mergeable_attr_name(name : String) -> Bool {
+  name == "class" || name == "className" || name == "style"
+}
+
+///|
+fn is_void_html_tag(tag : String) -> Bool {
+  tag == "area" ||
+  tag == "base" ||
+  tag == "br" ||
+  tag == "col" ||
+  tag == "embed" ||
+  tag == "hr" ||
+  tag == "img" ||
+  tag == "input" ||
+  tag == "link" ||
+  tag == "meta" ||
+  tag == "param" ||
+  tag == "source" ||
+  tag == "track" ||
+  tag == "wbr"
 }

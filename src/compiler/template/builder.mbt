@@ -43,6 +43,7 @@ fn build_template_element(
   attrs : Array[ParsedTemplateAttr],
   self_closing : Bool,
 ) -> TemplateElement raise CompilerError {
+  validate_element_tag_form(tag, self_closing)
   let is_component = is_component_name(tag)
   let mut if_expr : String? = None
   let mut for_binding : ForBinding? = None
@@ -72,6 +73,7 @@ fn build_template_element(
         for_binding = Some(parse_for_binding(expect_attr_value(attr, tag)))
       }
       "client:load" => {
+        reject_unexpected_attr_value(attr, tag)
         island_mode = register_island_mode(
           island_directive,
           attr,
@@ -81,6 +83,7 @@ fn build_template_element(
         island_directive = Some(attr.name)
       }
       "client:idle" => {
+        reject_unexpected_attr_value(attr, tag)
         island_mode = register_island_mode(
           island_directive,
           attr,
@@ -90,6 +93,7 @@ fn build_template_element(
         island_directive = Some(attr.name)
       }
       "client:visible" => {
+        reject_unexpected_attr_value(attr, tag)
         island_mode = register_island_mode(
           island_directive,
           attr,
@@ -99,6 +103,7 @@ fn build_template_element(
         island_directive = Some(attr.name)
       }
       "client:none" => {
+        reject_unexpected_attr_value(attr, tag)
         island_mode = register_island_mode(
           island_directive,
           attr,
@@ -108,6 +113,7 @@ fn build_template_element(
         island_directive = Some(attr.name)
       }
       "client:only" => {
+        reject_unexpected_attr_value(attr, tag)
         island_mode = register_island_mode(
           island_directive,
           attr,
@@ -117,6 +123,7 @@ fn build_template_element(
         island_directive = Some(attr.name)
       }
       "server:defer" => {
+        reject_unexpected_attr_value(attr, tag)
         island_mode = register_island_mode(
           island_directive,
           attr,
@@ -142,7 +149,15 @@ fn build_template_element(
         ensure_empty_expr_directive(html_expr, attr, tag)
         html_expr = Some(expect_attr_value(attr, tag))
       }
-      "v-once" => once = true
+      "v-once" => {
+        reject_unexpected_attr_value(attr, tag)
+        if once {
+          raise CompilerError::InvalidDirective(
+            "duplicate `v-once` on <\{tag}>",
+          )
+        }
+        once = true
+      }
       "key" => {
         ensure_empty_expr_directive(key_expr, attr, tag)
         key_expr = Some(quote_template_literal(expect_attr_value(attr, tag)))
@@ -173,13 +188,14 @@ fn build_template_element(
           None => {
             let normalized = classify_template_attr(attr)
             validate_normalized_attr(attr, normalized, tag)
+            validate_normalized_attr_conflict(final_attrs, normalized, tag)
             final_attrs.push(normalized)
           }
         }
     }
   }
   validate_component_bindings(
-    tag, is_component, final_attrs, model, island_directive,
+    tag, is_component, final_attrs, model, island_directive, show_expr, html_expr,
   )
   {
     tag,

@@ -43,6 +43,16 @@ test "rejects client media without a value" {
 }
 
 ///|
+test "rejects values on flag island directives" {
+  let source =
+    #|<template><Panel client:load='eager' /></template>
+  assert_eq(
+    compile_error(source, "invalid/client_load_with_value.mbtv"),
+    "InvalidDirective(\"`client:load` does not take a value on <Panel>\")",
+  )
+}
+
+///|
 test "rejects v-model without an expression" {
   let source =
     #|<template><input v-model /></template>
@@ -79,6 +89,66 @@ test "rejects component v-model until component linking lands" {
   assert_eq(
     compile_error(source, "invalid/component_v_model.mbtv"),
     "InvalidDirective(\"component v-model is not supported yet on <Panel>\")",
+  )
+}
+
+///|
+test "rejects v-show on component tags" {
+  let source =
+    #|<template><Panel v-show='visible' /></template>
+  assert_eq(
+    compile_error(source, "invalid/component_v_show.mbtv"),
+    "InvalidDirective(\"v-show is not supported on component tags: <Panel>\")",
+  )
+}
+
+///|
+test "rejects v-html on component tags" {
+  let source =
+    #|<template><Panel v-html='content' /></template>
+  assert_eq(
+    compile_error(source, "invalid/component_v_html.mbtv"),
+    "InvalidDirective(\"v-html is not supported on component tags: <Panel>\")",
+  )
+}
+
+///|
+test "rejects v-html on void elements" {
+  let source =
+    #|<template><img v-html='content' /></template>
+  assert_eq(
+    compile_error(source, "invalid/v_html_void_element.mbtv"),
+    "InvalidDirective(\"v-html is not supported on void elements: <img>\")",
+  )
+}
+
+///|
+test "rejects void elements with child nodes" {
+  let source =
+    #|<template><img><span /></img></template>
+  assert_eq(
+    compile_error(source, "invalid/void_element_children.mbtv"),
+    "InvalidTemplate(\"void element <img> must be self closing\")",
+  )
+}
+
+///|
+test "rejects void elements without self closing syntax" {
+  let source =
+    #|<template><input></input></template>
+  assert_eq(
+    compile_error(source, "invalid/void_element_not_self_closing.mbtv"),
+    "InvalidTemplate(\"void element <input> must be self closing\")",
+  )
+}
+
+///|
+test "rejects plain void elements without self closing syntax" {
+  let source =
+    #|<template><input></template>
+  assert_eq(
+    compile_error(source, "invalid/void_element_open_only.mbtv"),
+    "InvalidTemplate(\"void element <input> must be self closing\")",
   )
 }
 
@@ -169,6 +239,46 @@ test "rejects binding directives without an attribute name" {
   assert_eq(
     compile_error(source, "invalid/bind_missing_name.mbtv"),
     "InvalidDirective(\"binding directive requires an attribute name on <div>\")",
+  )
+}
+
+///|
+test "rejects duplicate v-once directives" {
+  let source =
+    #|<template><div v-once v-once></div></template>
+  assert_eq(
+    compile_error(source, "invalid/duplicate_v_once.mbtv"),
+    "InvalidDirective(\"duplicate `v-once` on <div>\")",
+  )
+}
+
+///|
+test "rejects values on v-once" {
+  let source =
+    #|<template><div v-once='true'></div></template>
+  assert_eq(
+    compile_error(source, "invalid/v_once_with_value.mbtv"),
+    "InvalidDirective(\"`v-once` does not take a value on <div>\")",
+  )
+}
+
+///|
+test "rejects duplicate event listeners" {
+  let source =
+    #|<template><button @click='save()' v-on:click='cancel()'></button></template>
+  assert_eq(
+    compile_error(source, "invalid/duplicate_event_listener.mbtv"),
+    "InvalidDirective(\"duplicate event listener `click` on <button>\")",
+  )
+}
+
+///|
+test "rejects duplicate non mergeable attributes" {
+  let source =
+    #|<template><div id='first' :id='second'></div></template>
+  assert_eq(
+    compile_error(source, "invalid/duplicate_attribute_id.mbtv"),
+    "InvalidDirective(\"duplicate attribute `id` on <div>\")",
   )
 }
 

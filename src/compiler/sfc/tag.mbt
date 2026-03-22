@@ -22,6 +22,7 @@ fn reject_unsupported_attrs(
   block : SfcBlock,
   filename : String,
 ) -> Unit raise CompilerError {
+  validate_block_attrs(block, filename)
   for attr in block.attrs {
     if attr.name == "lang" {
       raise CompilerError::InvalidSfc(
@@ -42,6 +43,105 @@ fn reject_unsupported_attrs(
 }
 
 ///|
+fn validate_block_attrs(
+  block : SfcBlock,
+  filename : String,
+) -> Unit raise CompilerError {
+  let seen : Array[String] = []
+  for attr in block.attrs {
+    if has_seen_block_attr(seen, attr.name) {
+      raise CompilerError::InvalidSfc(
+        "duplicate `\{attr.name}` attribute on <\{block_tag_name(block.kind)}\{block_tag_suffix(block.kind)}> in \{filename}",
+      )
+    }
+    seen.push(attr.name)
+    if not(is_supported_block_attr(block.kind, attr.name)) {
+      match attr.name {
+        "setup" =>
+          raise CompilerError::InvalidSfc(
+            "`setup` is only supported on <script> in \{filename}",
+          )
+        "scoped" =>
+          raise CompilerError::InvalidSfc(
+            "`scoped` is only supported on <style> in \{filename}",
+          )
+        _ =>
+          raise CompilerError::InvalidSfc(
+            "unsupported attribute `\{attr.name}` on <\{block_tag_name(block.kind)}\{block_tag_suffix(block.kind)}> in \{filename}",
+          )
+      }
+    }
+    match attr.name {
+      "generic" =>
+        if block.kind == ScriptSetup {
+          match attr.value {
+            Some(value) if value.trim().length() > 0 => ()
+            _ =>
+              raise CompilerError::InvalidSfc(
+                "`generic` requires a value on <script setup> in \{filename}",
+              )
+          }
+        }
+      "setup" =>
+        match attr.value {
+          Some(_) =>
+            raise CompilerError::InvalidSfc(
+              "`setup` does not take a value on <\{block_tag_name(block.kind)}\{block_tag_suffix(block.kind)}> in \{filename}",
+            )
+          None => ()
+        }
+      "scoped" =>
+        match attr.value {
+          Some(_) =>
+            raise CompilerError::InvalidSfc(
+              "`scoped` does not take a value on <style> in \{filename}",
+            )
+          None => ()
+        }
+      _ => ()
+    }
+  }
+}
+
+///|
+fn has_seen_block_attr(seen : Array[String], target : String) -> Bool {
+  for name in seen {
+    if name == target {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn block_tag_name(kind : BlockKind) -> String {
+  match kind {
+    Template => "template"
+    Script | ScriptSetup => "script"
+    Style => "style"
+  }
+}
+
+///|
+fn block_tag_suffix(kind : BlockKind) -> String {
+  match kind {
+    ScriptSetup => " setup"
+    _ => ""
+  }
+}
+
+///|
+fn is_supported_block_attr(kind : BlockKind, name : String) -> Bool {
+  match kind {
+    Template => name == "lang" || name == "src" || name == "generic"
+    Script => name == "lang" || name == "src"
+    ScriptSetup =>
+      name == "setup" || name == "generic" || name == "lang" || name == "src"
+    Style => name == "scoped" || name == "lang" || name == "src"
+  }
+}
+
+///|
 fn find_attr_value(attrs : Array[BlockAttr], name : String) -> String? {
   for attr in attrs {
     if attr.name == name {
@@ -56,7 +156,7 @@ fn read_start_tag(
   source : String,
   chars : Array[Char],
   start : Int,
-) -> (String, Array[BlockAttr], Int)? {
+) -> (String, Array[BlockAttr], Int, Bool)? {
   if chars[start] != '<' {
     return None
   }
@@ -71,6 +171,7 @@ fn read_start_tag(
   }
   let header_start = cursor
   let mut quote : Char? = None
+  let mut self_closing = false
   while cursor < chars.length() {
     let current = chars[cursor]
     match quote {
@@ -78,6 +179,8 @@ fn read_start_tag(
       None =>
         if current == '"' || current == '\'' {
           quote = Some(current)
+        } else if current == '/' {
+          self_closing = true
         } else if current == '>' {
           let header = String::unsafe_substring(
             source,
@@ -85,12 +188,37 @@ fn read_start_tag(
             end=cursor,
           )
           let attrs = parse_block_attrs(header)
-          return Some((tag.to_string(), attrs, cursor + 1))
+          return Some((tag.to_string(), attrs, cursor + 1, self_closing))
         }
     }
     cursor += 1
   }
   None
+}
+
+///|
+fn read_end_tag_name(chars : Array[Char], start : Int) -> (String, Int)? {
+  if start + 2 >= chars.length() ||
+    chars[start] != '<' ||
+    chars[start + 1] != '/' {
+    return None
+  }
+  let mut cursor = start + 2
+  cursor = skip_spaces(chars, cursor)
+  let name_start = cursor
+  while cursor < chars.length() && is_tag_name_char(chars[cursor]) {
+    cursor += 1
+  }
+  if cursor == name_start {
+    return None
+  }
+  let name = chars_to_lower_string(chars, name_start, cursor)
+  cursor = skip_spaces(chars, cursor)
+  if cursor < chars.length() && chars[cursor] == '>' {
+    Some((name, cursor + 1))
+  } else {
+    None
+  }
 }
 
 ///|

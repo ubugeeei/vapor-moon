@@ -38,6 +38,152 @@ test "rejects lang attributes" {
 }
 
 ///|
+test "rejects self closing template blocks" {
+  let source =
+    #|<template />
+  assert_eq(
+    compile_error(source, "invalid/self_closing_template_block.mbtv"),
+    "InvalidSfc(\"self-closing <template> blocks are not supported in invalid/self_closing_template_block.mbtv\")",
+  )
+}
+
+///|
+test "rejects unexpected closing top level blocks" {
+  let source =
+    #|</template>
+    #|<template><div /></template>
+  assert_eq(
+    compile_error(source, "invalid/unexpected_closing_block.mbtv"),
+    "InvalidSfc(\"unexpected closing </template> block at offset 0 in invalid/unexpected_closing_block.mbtv\")",
+  )
+}
+
+///|
+test "rejects unexpected top level text" {
+  let source =
+    #|hello
+    #|<template><div /></template>
+  assert_eq(
+    compile_error(source, "invalid/unexpected_top_level_text.mbtv"),
+    "InvalidSfc(\"unexpected top-level content at offset 0 in invalid/unexpected_top_level_text.mbtv\")",
+  )
+}
+
+///|
+test "rejects unexpected top level tags" {
+  let source =
+    #|<div></div>
+    #|<template><div /></template>
+  assert_eq(
+    compile_error(source, "invalid/unexpected_top_level_tag.mbtv"),
+    "InvalidSfc(\"unexpected top-level tag <div> in invalid/unexpected_top_level_tag.mbtv\")",
+  )
+}
+
+///|
+test "rejects duplicate generic attributes" {
+  let source =
+    #|<script setup generic="T" generic="U">
+    #|struct Props[T] {
+    #|  title : T
+    #|}
+    #|
+    #|let props : Props[T] = defineProps()
+    #|</script>
+    #|<template><div>{{ props.title.to_string() }}</div></template>
+  assert_eq(
+    compile_error(source, "invalid/duplicate_generic_attr.mbtv"),
+    "InvalidSfc(\"duplicate `generic` attribute on <script setup> in invalid/duplicate_generic_attr.mbtv\")",
+  )
+}
+
+///|
+test "rejects generic without a value" {
+  let source =
+    #|<script setup generic>
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|
+    #|let props : Props = defineProps()
+    #|</script>
+    #|<template><div>{{ props.title }}</div></template>
+  assert_eq(
+    compile_error(source, "invalid/generic_missing_value.mbtv"),
+    "InvalidSfc(\"`generic` requires a value on <script setup> in invalid/generic_missing_value.mbtv\")",
+  )
+}
+
+///|
+test "rejects generic on template blocks" {
+  let source =
+    #|<template generic="T"><div /></template>
+  assert_eq(
+    compile_error(source, "invalid/generic_template_block.mbtv"),
+    "InvalidSfc(\"`generic` is only supported on <script setup> in invalid/generic_template_block.mbtv\")",
+  )
+}
+
+///|
+test "rejects setup on template blocks" {
+  let source =
+    #|<template setup><div /></template>
+  assert_eq(
+    compile_error(source, "invalid/setup_template_block.mbtv"),
+    "InvalidSfc(\"`setup` is only supported on <script> in invalid/setup_template_block.mbtv\")",
+  )
+}
+
+///|
+test "rejects scoped on script blocks" {
+  let source =
+    #|<script scoped>
+    #|let count = 1
+    #|</script>
+    #|<template><div>{{ count.to_string() }}</div></template>
+  assert_eq(
+    compile_error(source, "invalid/scoped_script_block.mbtv"),
+    "InvalidSfc(\"`scoped` is only supported on <style> in invalid/scoped_script_block.mbtv\")",
+  )
+}
+
+///|
+test "rejects unknown template block attributes" {
+  let source =
+    #|<template foo><div /></template>
+  assert_eq(
+    compile_error(source, "invalid/unknown_template_attr.mbtv"),
+    "InvalidSfc(\"unsupported attribute `foo` on <template> in invalid/unknown_template_attr.mbtv\")",
+  )
+}
+
+///|
+test "rejects valued setup attributes" {
+  let source =
+    #|<script setup="true">
+    #|let count = 1
+    #|</script>
+    #|<template><div>{{ count.to_string() }}</div></template>
+  assert_eq(
+    compile_error(source, "invalid/setup_with_value.mbtv"),
+    "InvalidSfc(\"`setup` does not take a value on <script setup> in invalid/setup_with_value.mbtv\")",
+  )
+}
+
+///|
+test "rejects valued scoped attributes" {
+  let source =
+    #|<template><div /></template>
+    #|<style scoped="true">
+    #|.root { color: red; }
+    #|</style>
+  assert_eq(
+    compile_error(source, "invalid/scoped_with_value.mbtv"),
+    "InvalidSfc(\"`scoped` does not take a value on <style> in invalid/scoped_with_value.mbtv\")",
+  )
+}
+
+///|
 test "rejects duplicate defineProps" {
   let source =
     #|<script setup>
@@ -56,6 +202,40 @@ test "rejects duplicate defineProps" {
   assert_eq(
     compile_error(source, "invalid/duplicate_props.mbtv"),
     "InvalidScriptSetup(\"duplicate defineProps() in invalid/duplicate_props.mbtv\")",
+  )
+}
+
+///|
+test "rejects duplicate defineEmits" {
+  let source =
+    #|<script setup>
+    #|struct Emits {
+    #|  save : Unit
+    #|}
+    #|
+    #|let emit : Emits = defineEmits()
+    #|let other : Emits = defineEmits()
+    #|</script>
+  assert_eq(
+    compile_error(source, "invalid/duplicate_emits.mbtv"),
+    "InvalidScriptSetup(\"duplicate defineEmits() in invalid/duplicate_emits.mbtv\")",
+  )
+}
+
+///|
+test "rejects duplicate defineSlot" {
+  let source =
+    #|<script setup>
+    #|struct Slots {
+    #|  default : Unit
+    #|}
+    #|
+    #|let slots : Slots = defineSlot()
+    #|let other : Slots = defineSlot()
+    #|</script>
+  assert_eq(
+    compile_error(source, "invalid/duplicate_slots.mbtv"),
+    "InvalidScriptSetup(\"duplicate defineSlot() in invalid/duplicate_slots.mbtv\")",
   )
 }
 
@@ -119,6 +299,42 @@ test "rejects runtime declaration literals for interface macros" {
 }
 
 ///|
+test "rejects runtime declaration literals for defineEmits" {
+  let source =
+    #|<script setup>
+    #|let emit = defineEmits([])
+    #|</script>
+  assert_eq(
+    compile_error(source, "invalid/emits_runtime_decl.mbtv"),
+    "InvalidScriptSetup(\"defineEmits() no longer accepts runtime declaration literals in invalid/emits_runtime_decl.mbtv; defineEmits() requires a typed contract like `struct Emits { ... }` plus `let emit : Emits = defineEmits()` in invalid/emits_runtime_decl.mbtv\")",
+  )
+}
+
+///|
+test "rejects runtime declaration literals for defineSlot" {
+  let source =
+    #|<script setup>
+    #|let slots = defineSlot([])
+    #|</script>
+  assert_eq(
+    compile_error(source, "invalid/slots_runtime_decl.mbtv"),
+    "InvalidScriptSetup(\"defineSlot() no longer accepts runtime declaration literals in invalid/slots_runtime_decl.mbtv; defineSlot() requires a typed contract like `struct Slots { ... }` plus `let slots : Slots = defineSlot()` in invalid/slots_runtime_decl.mbtv\")",
+  )
+}
+
+///|
+test "rejects non local struct contracts for defineProps" {
+  let source =
+    #|<script setup>
+    #|let props : Int = defineProps()
+    #|</script>
+  assert_eq(
+    compile_error(source, "invalid/non_struct_props_contract.mbtv"),
+    "InvalidScriptSetup(\"defineProps() requires a local `struct Int {{ ... }}` contract in invalid/non_struct_props_contract.mbtv\")",
+  )
+}
+
+///|
 test "script setup macros use AST for multiline lets" {
   let source =
     #|struct Props {
@@ -178,6 +394,43 @@ test "script setup macros collect prop defaults from record literal" {
   assert_eq(info.prop_defaults.length(), 1)
   assert_eq(info.prop_defaults[0].name, "count")
   assert_eq(info.prop_defaults[0].expr, "0")
+}
+
+///|
+test "rejects duplicate prop defaults" {
+  let source =
+    #|<script setup>
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|
+    #|let props : Props = defineProps({
+    #|  title: "hello",
+    #|  title: "world",
+    #|})
+    #|</script>
+  assert_eq(
+    compile_error(source, "invalid/duplicate_prop_default.mbtv"),
+    "InvalidScriptSetup(\"duplicate default for prop `title` in invalid/duplicate_prop_default.mbtv\")",
+  )
+}
+
+///|
+test "rejects unknown prop defaults" {
+  let source =
+    #|<script setup>
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|
+    #|let props : Props = defineProps({
+    #|  count: 1,
+    #|})
+    #|</script>
+  assert_eq(
+    compile_error(source, "invalid/unknown_prop_default.mbtv"),
+    "InvalidScriptSetup(\"defineProps() default `count` does not match any declared prop in invalid/unknown_prop_default.mbtv\")",
+  )
 }
 
 ///|

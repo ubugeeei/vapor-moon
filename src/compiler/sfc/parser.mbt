@@ -6,7 +6,7 @@ pub fn parse_sfc(
   source : String,
   filename? : String = "Component.mbtv",
 ) -> SfcDocument raise CompilerError {
-  let blocks = parse_blocks(source)
+  let blocks = parse_blocks(source, filename)
   let mut template : String? = None
   let mut script : String? = None
   let mut script_setup : String? = None

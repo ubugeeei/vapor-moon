@@ -1,26 +1,48 @@
 ///|
-fn parse_blocks(source : String) -> Array[SfcBlock] raise CompilerError {
+fn parse_blocks(
+  source : String,
+  filename : String,
+) -> Array[SfcBlock] raise CompilerError {
   let blocks : Array[SfcBlock] = []
   let chars = source.to_array()
   let mut cursor = 0
   while cursor < chars.length() {
     if chars[cursor] != '<' {
-      cursor += 1
-      continue
+      if is_block_space(chars[cursor]) {
+        cursor += 1
+        continue
+      }
+      raise CompilerError::InvalidSfc(
+        "unexpected top-level content at offset \{cursor} in \{filename}",
+      )
     }
     if cursor + 1 < chars.length() && chars[cursor + 1] == '!' {
       cursor = skip_html_comment(chars, cursor)
       continue
     }
     if cursor + 1 < chars.length() && chars[cursor + 1] == '/' {
-      cursor += 1
-      continue
+      match read_end_tag_name(chars, cursor) {
+        Some((tag, _)) if is_top_level_tag(tag) =>
+          raise CompilerError::InvalidSfc(
+            "unexpected closing </\{tag}> block at offset \{cursor} in \{filename}",
+          )
+        Some(_) | None =>
+          raise CompilerError::InvalidSfc(
+            "unexpected top-level content at offset \{cursor} in \{filename}",
+          )
+      }
     }
     match read_start_tag(source, chars, cursor) {
-      Some((tag, attrs, tag_end)) => {
+      Some((tag, attrs, tag_end, self_closing)) => {
         if not(is_top_level_tag(tag)) {
-          cursor += 1
-          continue
+          raise CompilerError::InvalidSfc(
+            "unexpected top-level tag <\{tag}> in \{filename}",
+          )
+        }
+        if self_closing {
+          raise CompilerError::InvalidSfc(
+            "self-closing <\{tag}> blocks are not supported in \{filename}",
+          )
         }
         match find_block_close_start(source, chars, tag, tag_end) {
           Some(close_start) => {
@@ -46,7 +68,10 @@ fn parse_blocks(source : String) -> Array[SfcBlock] raise CompilerError {
             )
         }
       }
-      None => cursor += 1
+      None =>
+        raise CompilerError::InvalidSfc(
+          "unexpected top-level content at offset \{cursor} in \{filename}",
+        )
     }
   }
   blocks
