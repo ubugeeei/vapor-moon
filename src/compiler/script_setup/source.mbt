@@ -205,6 +205,7 @@ fn update_scan_depths(
 ///|
 fn split_top_level(source : String, separator : Char) -> Array[String] {
   let parts : Array[String] = []
+  let current_parts : Array[String] = []
   let chars = source.to_array()
   let mut cursor = 0
   let mut start = 0
@@ -212,6 +213,18 @@ fn split_top_level(source : String, separator : Char) -> Array[String] {
   let mut bracket_depth = 0
   let mut brace_depth = 0
   while cursor < chars.length() {
+    if starts_with_local(source, cursor, "//") {
+      current_parts.push(String::unsafe_substring(source, start~, end=cursor))
+      cursor = skip_line_comment(chars, cursor)
+      start = cursor
+      continue
+    }
+    if starts_with_local(source, cursor, "/*") {
+      current_parts.push(String::unsafe_substring(source, start~, end=cursor))
+      cursor = skip_block_comment(chars, cursor)
+      start = cursor
+      continue
+    }
     let current = chars[cursor]
     if current == '"' || current == '\'' {
       cursor = skip_quoted(chars, cursor, current)
@@ -227,11 +240,14 @@ fn split_top_level(source : String, separator : Char) -> Array[String] {
       paren_depth == 0 &&
       bracket_depth == 0 &&
       brace_depth == 0 {
-      parts.push(String::unsafe_substring(source, start~, end=cursor))
+      current_parts.push(String::unsafe_substring(source, start~, end=cursor))
+      parts.push(current_parts.join(""))
+      current_parts.clear()
       start = cursor + 1
     }
     cursor += 1
   }
-  parts.push(String::unsafe_substring(source, start~, end=source.length()))
+  current_parts.push(String::unsafe_substring(source, start~, end=source.length()))
+  parts.push(current_parts.join(""))
   parts
 }

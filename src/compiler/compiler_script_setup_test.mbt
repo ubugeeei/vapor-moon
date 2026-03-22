@@ -578,6 +578,25 @@ test "script setup macros collect prop defaults from record literal" {
 }
 
 ///|
+test "script setup imports ignore comment commas" {
+  let source =
+    #|import {
+    #|  "mizchi/luna/js/resource" @reactivity, // module, keep it
+    #|  /* local alias, still one entry */
+    #|  let signal = @reactivity.signal,
+    #|}
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|let props : Props = defineProps()
+  let info = must_analyze_script_setup(source, "inline/import_comment_commas.mbtv")
+  assert_eq(info.props_binding, Some("props"))
+  assert_eq(info.import_entries.length(), 1)
+  assert_eq(info.import_entries[0], "\"mizchi/luna/js/resource\" @reactivity,")
+  assert_true(info.transformed.contains("let signal = @reactivity.signal"))
+}
+
+///|
 test "rejects duplicate prop defaults" {
   let source =
     #|<script setup>
