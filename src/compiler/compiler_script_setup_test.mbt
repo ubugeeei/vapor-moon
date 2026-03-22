@@ -608,7 +608,9 @@ test "script setup multiline strings stay inside one statement" {
     #|  #|hello,
     #|  #|world
     #|let props : Props = defineProps()
-  let info = must_analyze_script_setup(source, "inline/multiline_string_split.mbtv")
+  let info = must_analyze_script_setup(
+    source, "inline/multiline_string_split.mbtv",
+  )
   assert_eq(info.props_binding, Some("props"))
   assert_true(info.transformed.contains("#|hello,"))
   assert_true(info.transformed.contains("#|world"))

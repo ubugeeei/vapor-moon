@@ -423,6 +423,19 @@ test "rejects non identifier index bindings in v-for" {
 }
 
 ///|
+test "accepts v-for comments around tuple separators" {
+  let source =
+    #|<template><li v-for='(item, /* comma, not a separator */ index) /* still not `in` */ in items'></li></template>
+  let output = compile(source, filename="examples/v_for_comment_binding.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("fn(item, index)"))
+}
+
+///|
 test "rejects event modifiers" {
   let source =
     #|<template><button @click.stop='save()'></button></template>
