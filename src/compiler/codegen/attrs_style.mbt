@@ -52,18 +52,16 @@ fn render_style_attr(
 ) -> String? {
   let style_attrs = find_style_attrs(element.attrs)
   if not(style_attrs.is_empty()) {
-      let (base_expr, base_dynamic) = render_merged_attr_expr(
-        style_attrs,
-        static_mode,
-        true,
-      )
-      let dynamic = base_dynamic ||
-        (element.show_expr is Some(_) && not(static_mode))
-      let final_expr = match element.show_expr {
-        Some(expr) => "@vm.show_style(" + expr + ", " + base_expr + ")"
-        None => base_expr
-      }
-      Some(render_style_value(final_expr, dynamic, client))
+    let (base_expr, base_dynamic) = render_merged_attr_expr(
+      style_attrs, static_mode, true,
+    )
+    let dynamic = base_dynamic ||
+      (element.show_expr is Some(_) && not(static_mode))
+    let final_expr = match element.show_expr {
+      Some(expr) => "@vm.show_style(" + expr + ", " + base_expr + ")"
+      None => base_expr
+    }
+    Some(render_style_value(final_expr, dynamic, client))
   } else {
     match element.show_expr {
       Some(expr) =>
@@ -116,15 +114,7 @@ fn render_attr_expr(
   match attr.kind {
     Static => (quote(attr.value), false)
     Dynamic => (attr.value + ".to_string()", not(static_mode))
-    Boolean =>
-      (
-        if style_mode {
-          "\"\""
-        } else {
-          "\"\""
-        },
-        false,
-      )
+    Boolean => (if style_mode { "\"\"" } else { "\"\"" }, false)
     Event => ("\"\"", false)
   }
 }
