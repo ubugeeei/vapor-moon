@@ -53,18 +53,39 @@ fn validate_normalized_attr(
           "event directive requires an event name on <\{tag}>",
         )
       }
+      if has_dynamic_directive_argument(attr.name) {
+        raise CompilerError::InvalidDirective(
+          "dynamic event arguments are not supported on <\{tag}>: `\{raw_attr.name}`",
+        )
+      }
+      if has_directive_modifier(attr.name) {
+        raise CompilerError::InvalidDirective(
+          "event modifiers are not supported on <\{tag}>: `\{raw_attr.name}`",
+        )
+      }
       if not(raw_attr.has_value) || raw_attr.value.trim().length() == 0 {
         raise CompilerError::InvalidDirective(
           "`\{raw_attr.name}` requires an expression",
         )
       }
     }
-    Dynamic =>
+    Dynamic => {
       if attr.name.trim().length() == 0 {
         raise CompilerError::InvalidDirective(
           "binding directive requires an attribute name on <\{tag}>",
         )
       }
+      if has_dynamic_directive_argument(attr.name) {
+        raise CompilerError::InvalidDirective(
+          "dynamic binding arguments are not supported on <\{tag}>: `\{raw_attr.name}`",
+        )
+      }
+      if has_directive_modifier(attr.name) {
+        raise CompilerError::InvalidDirective(
+          "binding modifiers are not supported on <\{tag}>: `\{raw_attr.name}`",
+        )
+      }
+    }
     _ => ()
   }
 }
@@ -182,6 +203,26 @@ fn reject_unsupported_slot_outlet(
 }
 
 ///|
+fn reject_unknown_directive(
+  attr : ParsedTemplateAttr,
+  tag : String,
+) -> Unit raise CompilerError {
+  if is_supported_directive_name(attr.name) {
+    return
+  }
+  if attr.name.has_prefix("v-") {
+    raise CompilerError::InvalidDirective(
+      "unsupported directive on <\{tag}>: `\{attr.name}`",
+    )
+  }
+  if attr.name.has_prefix("client:") || attr.name.has_prefix("server:") {
+    raise CompilerError::InvalidDirective(
+      "unsupported island directive on <\{tag}>: `\{attr.name}`",
+    )
+  }
+}
+
+///|
 fn validate_component_bindings(
   tag : String,
   is_component : Bool,
@@ -265,4 +306,41 @@ fn find_static_attr_value(
     }
   }
   None
+}
+
+///|
+fn has_dynamic_directive_argument(name : String) -> Bool {
+  name.contains("[") || name.contains("]")
+}
+
+///|
+fn has_directive_modifier(name : String) -> Bool {
+  name.contains(".")
+}
+
+///|
+fn is_supported_directive_name(name : String) -> Bool {
+  name == "v-if" ||
+  name == "v-for" ||
+  name == "v-show" ||
+  name == "v-html" ||
+  name == "v-once" ||
+  name == "key" ||
+  name == "ref" ||
+  name == ":key" ||
+  name == "v-bind:key" ||
+  name == ":ref" ||
+  name == "v-bind:ref" ||
+  name == "client:load" ||
+  name == "client:idle" ||
+  name == "client:visible" ||
+  name == "client:none" ||
+  name == "client:only" ||
+  name == "client:media" ||
+  name == "server:defer" ||
+  name.has_prefix(":") ||
+  name.has_prefix("@") ||
+  name.has_prefix("v-bind:") ||
+  name.has_prefix("v-on:") ||
+  name.has_prefix("v-model")
 }

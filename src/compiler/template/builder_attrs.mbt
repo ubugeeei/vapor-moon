@@ -18,27 +18,52 @@ fn parse_model_attr(
   let mut argument : String? = None
   let modifiers : Array[String] = []
   if suffix.length() > 0 {
-    let segments = suffix
-      .split(".")
-      .map(fn(part) { part.to_string() })
-      .collect()
-    if segments.length() > 0 && segments[0].has_prefix(":") {
-      let arg = String::unsafe_substring(
-        segments[0],
+    if suffix.has_prefix(":") {
+      let remainder = String::unsafe_substring(
+        suffix,
         start=1,
-        end=segments[0].length(),
+        end=suffix.length(),
       )
-      if arg.length() > 0 {
-        argument = Some(arg)
+      let segments = remainder
+        .split(".")
+        .map(fn(part) { part.to_string() })
+        .collect()
+      if segments.length() == 0 || segments[0].length() == 0 {
+        raise CompilerError::InvalidDirective(
+          "invalid v-model syntax: `\{attr.name}`",
+        )
       }
-    }
-    for index in 0..<segments.length() {
-      if index == 0 && segments[index].has_prefix(":") {
-        continue
-      }
-      if segments[index].length() > 0 {
+      argument = Some(segments[0])
+      for index in 1..<segments.length() {
+        if segments[index].length() == 0 {
+          raise CompilerError::InvalidDirective(
+            "invalid v-model syntax: `\{attr.name}`",
+          )
+        }
         modifiers.push(segments[index])
       }
+    } else if suffix.has_prefix(".") {
+      let remainder = String::unsafe_substring(
+        suffix,
+        start=1,
+        end=suffix.length(),
+      )
+      let segments = remainder
+        .split(".")
+        .map(fn(part) { part.to_string() })
+        .collect()
+      for segment in segments {
+        if segment.length() == 0 {
+          raise CompilerError::InvalidDirective(
+            "invalid v-model syntax: `\{attr.name}`",
+          )
+        }
+        modifiers.push(segment)
+      }
+    } else {
+      raise CompilerError::InvalidDirective(
+        "invalid v-model syntax: `\{attr.name}`",
+      )
     }
   }
   Some({ argument, expression: attr.value, modifiers })

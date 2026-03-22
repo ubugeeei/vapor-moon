@@ -57,6 +57,7 @@ fn build_template_element(
   let final_attrs : Array[TemplateAttr] = []
   for attr in attrs {
     reject_unsupported_slot_outlet(attr, tag)
+    reject_unknown_directive(attr, tag)
     match attr.name {
       "v-if" => {
         ensure_empty_expr_directive(if_expr, attr, tag)

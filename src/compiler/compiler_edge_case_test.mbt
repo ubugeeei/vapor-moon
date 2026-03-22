@@ -83,6 +83,46 @@ test "rejects component v-model until component linking lands" {
 }
 
 ///|
+test "rejects unsupported generic directives" {
+  let source =
+    #|<template><div v-else></div></template>
+  assert_eq(
+    compile_error(source, "invalid/unsupported_v_else.mbtv"),
+    "InvalidDirective(\"unsupported directive on <div>: `v-else`\")",
+  )
+}
+
+///|
+test "rejects unsupported object v-bind syntax" {
+  let source =
+    #|<template><div v-bind='props'></div></template>
+  assert_eq(
+    compile_error(source, "invalid/unsupported_v_bind_object.mbtv"),
+    "InvalidDirective(\"unsupported directive on <div>: `v-bind`\")",
+  )
+}
+
+///|
+test "rejects unsupported object v-on syntax" {
+  let source =
+    #|<template><button v-on='handlers'></button></template>
+  assert_eq(
+    compile_error(source, "invalid/unsupported_v_on_object.mbtv"),
+    "InvalidDirective(\"unsupported directive on <button>: `v-on`\")",
+  )
+}
+
+///|
+test "rejects unsupported island directives" {
+  let source =
+    #|<template><Panel client:hover /></template>
+  assert_eq(
+    compile_error(source, "invalid/unsupported_client_directive.mbtv"),
+    "InvalidDirective(\"unsupported island directive on <Panel>: `client:hover`\")",
+  )
+}
+
+///|
 test "rejects unsupported slot outlet syntax" {
   let source =
     #|<template><Panel #default></Panel></template>
@@ -163,12 +203,102 @@ test "rejects unparenthesized multi bindings in v-for" {
 }
 
 ///|
+test "rejects non identifier value bindings in v-for" {
+  let source =
+    #|<template><li v-for='(item.value, index) in items'></li></template>
+  assert_eq(
+    compile_error(source, "invalid/v_for_member_value_binding.mbtv"),
+    "InvalidDirective(\"invalid v-for binding: (item.value, index) in items\")",
+  )
+}
+
+///|
+test "rejects non identifier index bindings in v-for" {
+  let source =
+    #|<template><li v-for='(item, index.value) in items'></li></template>
+  assert_eq(
+    compile_error(source, "invalid/v_for_member_index_binding.mbtv"),
+    "InvalidDirective(\"invalid v-for binding: (item, index.value) in items\")",
+  )
+}
+
+///|
+test "rejects event modifiers" {
+  let source =
+    #|<template><button @click.stop='save()'></button></template>
+  assert_eq(
+    compile_error(source, "invalid/event_modifier.mbtv"),
+    "InvalidDirective(\"event modifiers are not supported on <button>: `@click.stop`\")",
+  )
+}
+
+///|
+test "rejects dynamic event arguments" {
+  let source =
+    #|<template><button @[event]='save()'></button></template>
+  assert_eq(
+    compile_error(source, "invalid/event_dynamic_arg.mbtv"),
+    "InvalidDirective(\"dynamic event arguments are not supported on <button>: `@[event]`\")",
+  )
+}
+
+///|
+test "rejects binding modifiers" {
+  let source =
+    #|<template><div :title.prop='label'></div></template>
+  assert_eq(
+    compile_error(source, "invalid/bind_modifier.mbtv"),
+    "InvalidDirective(\"binding modifiers are not supported on <div>: `:title.prop`\")",
+  )
+}
+
+///|
+test "rejects dynamic binding arguments" {
+  let source =
+    #|<template><div :[name]='value'></div></template>
+  assert_eq(
+    compile_error(source, "invalid/bind_dynamic_arg.mbtv"),
+    "InvalidDirective(\"dynamic binding arguments are not supported on <div>: `:[name]`\")",
+  )
+}
+
+///|
 test "rejects native v-model arguments" {
   let source =
     #|<template><input v-model:value='name' /></template>
   assert_eq(
     compile_error(source, "invalid/v_model_argument_native.mbtv"),
     "InvalidDirective(\"native v-model arguments are not supported on <input>: `value`\")",
+  )
+}
+
+///|
+test "rejects invalid v-model empty argument syntax" {
+  let source =
+    #|<template><input v-model:='name' /></template>
+  assert_eq(
+    compile_error(source, "invalid/v_model_empty_argument.mbtv"),
+    "InvalidDirective(\"invalid v-model syntax: `v-model:`\")",
+  )
+}
+
+///|
+test "rejects invalid v-model empty modifier syntax" {
+  let source =
+    #|<template><input v-model..trim='name' /></template>
+  assert_eq(
+    compile_error(source, "invalid/v_model_empty_modifier.mbtv"),
+    "InvalidDirective(\"invalid v-model syntax: `v-model..trim`\")",
+  )
+}
+
+///|
+test "rejects invalid v-model suffix syntax" {
+  let source =
+    #|<template><input v-modelfoo='name' /></template>
+  assert_eq(
+    compile_error(source, "invalid/v_model_invalid_suffix.mbtv"),
+    "InvalidDirective(\"invalid v-model syntax: `v-modelfoo`\")",
   )
 }
 

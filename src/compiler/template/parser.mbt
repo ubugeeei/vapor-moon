@@ -71,6 +71,10 @@ fn parse_for_binding(source : String) -> ForBinding raise CompilerError {
             "invalid v-for binding: \{source}",
           )
         }
+        ensure_valid_for_binding_name(items[0], source)
+        if items.length() == 2 {
+          ensure_valid_for_binding_name(items[1], source)
+        }
         {
           value: items[0],
           index: if items.length() > 1 && items[1].length() > 0 {
@@ -86,6 +90,7 @@ fn parse_for_binding(source : String) -> ForBinding raise CompilerError {
             "invalid v-for binding: \{source}",
           )
         }
+        ensure_valid_for_binding_name(left, source)
         { value: left, index: None, source: right }
       }
     }
@@ -94,6 +99,50 @@ fn parse_for_binding(source : String) -> ForBinding raise CompilerError {
         "expected `item in items`, got: \{source}",
       )
   }
+}
+
+///|
+fn ensure_valid_for_binding_name(
+  name : String,
+  source : String,
+) -> Unit raise CompilerError {
+  if not(is_identifier_literal(name)) {
+    raise CompilerError::InvalidDirective("invalid v-for binding: \{source}")
+  }
+}
+
+///|
+fn is_identifier_literal(source : String) -> Bool {
+  if source.length() == 0 {
+    return false
+  }
+  let chars = source.to_array()
+  let first = chars[0]
+  if not(
+      (first >= 'a' && first <= 'z') ||
+      (first >= 'A' && first <= 'Z') ||
+      first == '_' ||
+      first == '$',
+    ) {
+    return false
+  }
+  let mut cursor = 1
+  while cursor < chars.length() {
+    if not(is_identifier_char(chars[cursor])) {
+      return false
+    }
+    cursor += 1
+  }
+  true
+}
+
+///|
+fn is_identifier_char(c : Char) -> Bool {
+  (c >= 'a' && c <= 'z') ||
+  (c >= 'A' && c <= 'Z') ||
+  (c >= '0' && c <= '9') ||
+  c == '_' ||
+  c == '$'
 }
 
 ///|
