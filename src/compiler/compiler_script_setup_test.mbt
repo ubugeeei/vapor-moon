@@ -589,11 +589,29 @@ test "script setup imports ignore comment commas" {
     #|  title : String
     #|}
     #|let props : Props = defineProps()
-  let info = must_analyze_script_setup(source, "inline/import_comment_commas.mbtv")
+  let info = must_analyze_script_setup(
+    source, "inline/import_comment_commas.mbtv",
+  )
   assert_eq(info.props_binding, Some("props"))
   assert_eq(info.import_entries.length(), 1)
   assert_eq(info.import_entries[0], "\"mizchi/luna/js/resource\" @reactivity,")
   assert_true(info.transformed.contains("let signal = @reactivity.signal"))
+}
+
+///|
+test "script setup multiline strings stay inside one statement" {
+  let source =
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|let banner =
+    #|  #|hello,
+    #|  #|world
+    #|let props : Props = defineProps()
+  let info = must_analyze_script_setup(source, "inline/multiline_string_split.mbtv")
+  assert_eq(info.props_binding, Some("props"))
+  assert_true(info.transformed.contains("#|hello,"))
+  assert_true(info.transformed.contains("#|world"))
 }
 
 ///|

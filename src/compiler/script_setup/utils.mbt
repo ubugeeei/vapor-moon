@@ -68,6 +68,23 @@ fn skip_quoted(chars : Array[Char], start : Int, marker : Char) -> Int {
 }
 
 ///|
+fn starts_multiline_string_line(chars : Array[Char], start : Int) -> Bool {
+  start + 1 < chars.length() && chars[start] == '#' && chars[start + 1] == '|'
+}
+
+///|
+fn skip_multiline_string_line(chars : Array[Char], start : Int) -> Int {
+  let mut cursor = start + 2
+  while cursor < chars.length() {
+    if chars[cursor] == '\n' {
+      return cursor + 1
+    }
+    cursor += 1
+  }
+  chars.length()
+}
+
+///|
 fn is_identifier_literal(source : String) -> Bool {
   if source.length() == 0 {
     return false

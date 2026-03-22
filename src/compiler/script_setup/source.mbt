@@ -8,6 +8,10 @@ fn split_top_level_statements(source : String) -> Array[String] {
   let mut bracket_depth = 0
   let mut brace_depth = 0
   while cursor < chars.length() {
+    if starts_multiline_string_line(chars, cursor) {
+      cursor = skip_multiline_string_line(chars, cursor)
+      continue
+    }
     if starts_with_local(source, cursor, "//") {
       cursor = skip_line_comment(chars, cursor)
       continue
@@ -86,6 +90,10 @@ fn find_top_level_char(
   let mut bracket_depth = 0
   let mut brace_depth = 0
   while cursor < chars.length() {
+    if starts_multiline_string_line(chars, cursor) {
+      cursor = skip_multiline_string_line(chars, cursor)
+      continue
+    }
     if starts_with_local(source, cursor, "//") {
       cursor = skip_line_comment(chars, cursor)
       continue
@@ -129,6 +137,10 @@ fn find_matching_delimiter(
   let mut cursor = open_index + 1
   let mut depth = 1
   while cursor < chars.length() {
+    if starts_multiline_string_line(chars, cursor) {
+      cursor = skip_multiline_string_line(chars, cursor)
+      continue
+    }
     if starts_with_local(source, cursor, "//") {
       cursor = skip_line_comment(chars, cursor)
       continue
@@ -213,6 +225,10 @@ fn split_top_level(source : String, separator : Char) -> Array[String] {
   let mut bracket_depth = 0
   let mut brace_depth = 0
   while cursor < chars.length() {
+    if starts_multiline_string_line(chars, cursor) {
+      cursor = skip_multiline_string_line(chars, cursor)
+      continue
+    }
     if starts_with_local(source, cursor, "//") {
       current_parts.push(String::unsafe_substring(source, start~, end=cursor))
       cursor = skip_line_comment(chars, cursor)
@@ -247,7 +263,9 @@ fn split_top_level(source : String, separator : Char) -> Array[String] {
     }
     cursor += 1
   }
-  current_parts.push(String::unsafe_substring(source, start~, end=source.length()))
+  current_parts.push(
+    String::unsafe_substring(source, start~, end=source.length()),
+  )
   parts.push(current_parts.join(""))
   parts
 }
