@@ -141,3 +141,83 @@ test "rejects v-for bindings with more than value and index" {
     "InvalidDirective(\"invalid v-for binding: (item, index, extra) in items\")",
   )
 }
+
+///|
+test "rejects trailing comma in v-for bindings" {
+  let source =
+    #|<template><li v-for='(item,) in items'></li></template>
+  assert_eq(
+    compile_error(source, "invalid/v_for_trailing_comma.mbtv"),
+    "InvalidDirective(\"invalid v-for binding: (item,) in items\")",
+  )
+}
+
+///|
+test "rejects unparenthesized multi bindings in v-for" {
+  let source =
+    #|<template><li v-for='item, index in items'></li></template>
+  assert_eq(
+    compile_error(source, "invalid/v_for_unparenthesized_tuple.mbtv"),
+    "InvalidDirective(\"invalid v-for binding: item, index in items\")",
+  )
+}
+
+///|
+test "rejects native v-model arguments" {
+  let source =
+    #|<template><input v-model:value='name' /></template>
+  assert_eq(
+    compile_error(source, "invalid/v_model_argument_native.mbtv"),
+    "InvalidDirective(\"native v-model arguments are not supported on <input>: `value`\")",
+  )
+}
+
+///|
+test "rejects unsupported v-model modifiers" {
+  let source =
+    #|<template><input v-model.number='count' /></template>
+  assert_eq(
+    compile_error(source, "invalid/v_model_number_modifier.mbtv"),
+    "InvalidDirective(\"unsupported v-model modifier `.number` on <input>\")",
+  )
+}
+
+///|
+test "rejects dynamic input type with v-model" {
+  let source =
+    #|<template><input :type='kind' v-model='value' /></template>
+  assert_eq(
+    compile_error(source, "invalid/v_model_dynamic_input_type.mbtv"),
+    "InvalidDirective(\"dynamic input `type` is not supported with v-model on <input>\")",
+  )
+}
+
+///|
+test "rejects unsupported radio v-model" {
+  let source =
+    #|<template><input type='radio' v-model='picked' /></template>
+  assert_eq(
+    compile_error(source, "invalid/v_model_radio.mbtv"),
+    "InvalidDirective(\"v-model on <input type=\\\"radio\\\"> is not supported yet\")",
+  )
+}
+
+///|
+test "rejects unsupported file v-model" {
+  let source =
+    #|<template><input type='file' v-model='file' /></template>
+  assert_eq(
+    compile_error(source, "invalid/v_model_file.mbtv"),
+    "InvalidDirective(\"v-model on <input type=\\\"file\\\"> is not supported yet\")",
+  )
+}
+
+///|
+test "rejects unsupported select multiple v-model" {
+  let source =
+    #|<template><select multiple v-model='selected'></select></template>
+  assert_eq(
+    compile_error(source, "invalid/v_model_select_multiple.mbtv"),
+    "InvalidDirective(\"v-model on <select multiple> is not supported yet\")",
+  )
+}

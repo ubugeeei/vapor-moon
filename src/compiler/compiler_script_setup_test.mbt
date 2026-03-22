@@ -198,3 +198,47 @@ test "rejects defaults on optional prop contracts" {
     "InvalidScriptSetup(\"defineProps() default `title` requires a non-optional prop type in invalid/optional_default_prop.mbtv; remove `?` from the contract field and let the default make it optional for callers\")",
   )
 }
+
+///|
+test "rejects useId with arguments" {
+  let source =
+    #|<script setup>
+    #|let instance_id = useId("hero")
+    #|</script>
+    #|<template><div>{{ instance_id }}</div></template>
+  assert_eq(
+    compile_error(source, "invalid/use_id_args.mbtv"),
+    "InvalidScriptSetup(\"useId() does not take arguments in invalid/use_id_args.mbtv\")",
+  )
+}
+
+///|
+test "rejects useTemplateRef without exactly one argument" {
+  let source =
+    #|<script setup>
+    #|let root_ref = useTemplateRef()
+    #|</script>
+    #|<template><div ref='root'></div></template>
+  assert_eq(
+    compile_error(source, "invalid/use_template_ref_arity.mbtv"),
+    "InvalidScriptSetup(\"useTemplateRef() requires exactly one argument in invalid/use_template_ref_arity.mbtv\")",
+  )
+}
+
+///|
+test "rejects duplicate contract fields" {
+  let source =
+    #|<script setup>
+    #|struct Props {
+    #|  title : String
+    #|  title : Int
+    #|}
+    #|
+    #|let props : Props = defineProps()
+    #|</script>
+    #|<template><div>{{ props.title }}</div></template>
+  assert_eq(
+    compile_error(source, "invalid/duplicate_contract_field.mbtv"),
+    "InvalidScriptSetup(\"defineProps() contract contains duplicate field `title` in invalid/duplicate_contract_field.mbtv\")",
+  )
+}

@@ -103,7 +103,7 @@ fn render_client_model_attrs(
   match element.model {
     Some(model) if not(element.is_component) => {
       let checked = infer_model_checked(element)
-      let event_name = if element.tag == "select" { "change" } else { "input" }
+      let event_name = render_model_event_name(element, model, checked)
       let value_expr = if checked {
         "if " + model.expression + " { \"true\" } else { \"false\" }"
       } else {
@@ -184,6 +184,19 @@ fn infer_model_checked(element : TemplateElement) -> Bool {
     }
   }
   false
+}
+
+///|
+fn render_model_event_name(
+  element : TemplateElement,
+  model : TemplateModel,
+  checked : Bool,
+) -> String {
+  if element.tag == "select" || checked || has_model_modifier(model, "lazy") {
+    "change"
+  } else {
+    "input"
+  }
 }
 
 ///|

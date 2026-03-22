@@ -126,8 +126,8 @@ test "snapshot macros compile" {
       #|  }
       #|  (fn() {
       #|      let __vm_el = @vm_dom.element("button")
-      #|      @vm_dom.apply_attr_entry(__vm_el, ("class", @vm_dom.attr_static("primary")))
       #|      @vm_dom.apply_attr_entry(__vm_el, ("click", @vm_dom.attr_handler(fn(_event) { emit.save() })))
+      #|      @vm_dom.apply_attr_entry(__vm_el, ("class", @vm_dom.attr_static("primary")))
       #|      @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { props.title.to_string() }))
       #|      @vm_dom.to_node(__vm_el)
       #|    })()

@@ -76,14 +76,21 @@ fn validate_interface_fields(
   macro_name : String,
   filename : String,
 ) -> Array[MacroField] raise CompilerError {
+  let validated : Array[MacroField] = []
   for field in fields {
     if not(is_identifier_literal(field.name)) {
       raise CompilerError::InvalidScriptSetup(
         "\{macro_name}() entries must be identifier-like for typed interfaces in \{filename}: \{field.name}",
       )
     }
+    if has_interface_field(validated, field.name) {
+      raise CompilerError::InvalidScriptSetup(
+        "\{macro_name}() contract contains duplicate field `\{field.name}` in \{filename}",
+      )
+    }
+    validated.push(field)
   }
-  fields
+  validated
 }
 
 ///|
@@ -199,4 +206,14 @@ fn has_prop_default(defaults : Array[PropDefault], name : String) -> Bool {
 ///|
 fn is_optional_contract_signature(signature : String) -> Bool {
   signature.trim().to_string().has_suffix("?")
+}
+
+///|
+fn has_interface_field(fields : Array[MacroField], name : String) -> Bool {
+  for field in fields {
+    if field.name == name {
+      return true
+    }
+  }
+  false
 }

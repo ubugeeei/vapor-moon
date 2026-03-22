@@ -110,6 +110,35 @@ pub fn show_style(visible : Bool, base : String) -> String {
 }
 
 ///|
+pub fn merge_class_names(parts : Array[String]) -> String {
+  let merged : Array[String] = []
+  for part in parts {
+    let trimmed = part.trim().to_string()
+    if trimmed.length() > 0 {
+      merged.push(trimmed)
+    }
+  }
+  merged.join(" ")
+}
+
+///|
+pub fn merge_styles(parts : Array[String]) -> String {
+  let merged : Array[String] = []
+  for part in parts {
+    let trimmed = normalize_style(part)
+    if trimmed.length() == 0 {
+      continue
+    }
+    if trimmed.has_suffix(";") {
+      merged.push(trimmed)
+    } else {
+      merged.push(trimmed + ";")
+    }
+  }
+  merged.join(" ")
+}
+
+///|
 fn escape_json_string(source : String) -> String {
   let sb = StringBuilder::new()
   sb.write_char('"')

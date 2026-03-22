@@ -102,6 +102,64 @@ fn validate_model_target(
 }
 
 ///|
+fn validate_native_model_binding(
+  tag : String,
+  attrs : Array[TemplateAttr],
+  model : TemplateModel,
+) -> Unit raise CompilerError {
+  match model.argument {
+    Some(argument) =>
+      raise CompilerError::InvalidDirective(
+        "native v-model arguments are not supported on <\{tag}>: `\{argument}`",
+      )
+    None => ()
+  }
+  for modifier in model.modifiers {
+    if modifier != "trim" && modifier != "lazy" {
+      raise CompilerError::InvalidDirective(
+        "unsupported v-model modifier `.\{modifier}` on <\{tag}>",
+      )
+    }
+  }
+  if tag == "input" {
+    if has_dynamic_attr(attrs, "type") {
+      raise CompilerError::InvalidDirective(
+        "dynamic input `type` is not supported with v-model on <input>",
+      )
+    }
+    match find_static_attr_value(attrs, "type") {
+      Some("radio") =>
+        raise CompilerError::InvalidDirective(
+          "v-model on <input type=\"radio\"> is not supported yet",
+        )
+      Some("file") =>
+        raise CompilerError::InvalidDirective(
+          "v-model on <input type=\"file\"> is not supported yet",
+        )
+      Some("checkbox") =>
+        if has_model_modifier_name(model, "trim") {
+          raise CompilerError::InvalidDirective(
+            "unsupported v-model modifier `.trim` on <input type=\"checkbox\">",
+          )
+        }
+      _ => ()
+    }
+  }
+  if tag == "select" {
+    if has_attr(attrs, "multiple") {
+      raise CompilerError::InvalidDirective(
+        "v-model on <select multiple> is not supported yet",
+      )
+    }
+    if has_model_modifier_name(model, "trim") {
+      raise CompilerError::InvalidDirective(
+        "unsupported v-model modifier `.trim` on <select>",
+      )
+    }
+  }
+}
+
+///|
 fn occupied_directive_value(target : String?) -> String? {
   match target {
     Some(_) => Some("used")
@@ -139,6 +197,10 @@ fn validate_component_bindings(
     _ => ()
   }
   if not(is_component) {
+    match model {
+      Some(binding) => validate_native_model_binding(tag, attrs, binding)
+      None => ()
+    }
     return
   }
   for attr in attrs {
@@ -155,4 +217,52 @@ fn validate_component_bindings(
       )
     None => ()
   }
+}
+
+///|
+fn has_model_modifier_name(model : TemplateModel, expected : String) -> Bool {
+  for modifier in model.modifiers {
+    if modifier == expected {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn has_attr(attrs : Array[TemplateAttr], name : String) -> Bool {
+  for attr in attrs {
+    if attr.name == name {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn has_dynamic_attr(attrs : Array[TemplateAttr], name : String) -> Bool {
+  for attr in attrs {
+    if attr.name == name && attr.kind == Dynamic {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn find_static_attr_value(
+  attrs : Array[TemplateAttr],
+  name : String,
+) -> String? {
+  for attr in attrs {
+    if attr.name != name {
+      continue
+    }
+    match attr.kind {
+      Static => return Some(attr.value)
+      Boolean => return Some("")
+      _ => ()
+    }
+  }
+  None
 }

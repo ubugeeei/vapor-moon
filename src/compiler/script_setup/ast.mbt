@@ -100,6 +100,7 @@ fn parse_script_setup_macro(
             for _ in args {
               arg_count += 1
             }
+            validate_runtime_helper_macro(name, arg_count, filename)
             Some({
               name,
               args: extract_call_args(
@@ -135,6 +136,29 @@ fn is_supported_macro(name : String) -> Bool {
   name == "defineSlot" ||
   name == "useId" ||
   name == "useTemplateRef"
+}
+
+///|
+fn validate_runtime_helper_macro(
+  name : String,
+  arg_count : Int,
+  filename : String,
+) -> Unit raise CompilerError {
+  match name {
+    "useId" =>
+      if arg_count != 0 {
+        raise CompilerError::InvalidScriptSetup(
+          "useId() does not take arguments in \{filename}",
+        )
+      }
+    "useTemplateRef" =>
+      if arg_count != 1 {
+        raise CompilerError::InvalidScriptSetup(
+          "useTemplateRef() requires exactly one argument in \{filename}",
+        )
+      }
+    _ => ()
+  }
 }
 
 ///|

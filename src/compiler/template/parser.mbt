@@ -66,6 +66,11 @@ fn parse_for_binding(source : String) -> ForBinding raise CompilerError {
             "invalid v-for binding: \{source}",
           )
         }
+        if items.length() == 2 && items[1].length() == 0 {
+          raise CompilerError::InvalidDirective(
+            "invalid v-for binding: \{source}",
+          )
+        }
         {
           value: items[0],
           index: if items.length() > 1 && items[1].length() > 0 {
@@ -76,7 +81,7 @@ fn parse_for_binding(source : String) -> ForBinding raise CompilerError {
           source: right,
         }
       } else {
-        if left.length() == 0 {
+        if left.length() == 0 || left.contains(",") {
           raise CompilerError::InvalidDirective(
             "invalid v-for binding: \{source}",
           )
