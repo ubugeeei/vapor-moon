@@ -32,7 +32,16 @@ fn split_top_level_statements(source : String) -> Array[String] {
     bracket_depth = depths.1
     brace_depth = depths.2
     if (current == '\n' || current == ';') &&
-      not(continues_top_level_statement(source, start, cursor, current)) &&
+      not(
+        continues_top_level_statement(
+          source,
+          chars,
+          start,
+          cursor,
+          cursor + 1,
+          current,
+        ),
+      ) &&
       paren_depth == 0 &&
       bracket_depth == 0 &&
       brace_depth == 0 {
@@ -48,8 +57,10 @@ fn split_top_level_statements(source : String) -> Array[String] {
 ///|
 fn continues_top_level_statement(
   source : String,
+  chars : Array[Char],
   start : Int,
   end_ : Int,
+  next_start : Int,
   separator : Char,
 ) -> Bool {
   if separator == ';' {
@@ -76,7 +87,73 @@ fn continues_top_level_statement(
   prefix.has_suffix("&&") ||
   prefix.has_suffix("||") ||
   prefix.has_suffix("=>") ||
-  prefix.has_suffix("->")
+  prefix.has_suffix("->") ||
+  next_significant_token_continues_statement(source, chars, next_start)
+}
+
+///|
+fn next_significant_token_continues_statement(
+  source : String,
+  chars : Array[Char],
+  start : Int,
+) -> Bool {
+  let cursor = skip_to_next_significant_token(source, chars, start)
+  if cursor >= chars.length() {
+    return false
+  }
+  starts_with_local(source, cursor, "|>") ||
+  starts_with_local(source, cursor, "..") ||
+  chars[cursor] == '.' ||
+  chars[cursor] == '-' ||
+  starts_with_continuation_word(source, chars, cursor, "else") ||
+  starts_with_continuation_word(source, chars, cursor, "catch")
+}
+
+///|
+fn skip_to_next_significant_token(
+  source : String,
+  chars : Array[Char],
+  start : Int,
+) -> Int {
+  let mut cursor = start
+  while cursor < chars.length() {
+    if starts_multiline_string_line(chars, cursor) {
+      return cursor
+    }
+    if starts_with_local(source, cursor, "//") {
+      cursor = skip_line_comment(chars, cursor)
+      continue
+    }
+    if starts_with_local(source, cursor, "/*") {
+      cursor = skip_block_comment(chars, cursor)
+      continue
+    }
+    let current = chars[cursor]
+    if current == ' ' || current == '\n' || current == '\t' || current == '\r' {
+      cursor += 1
+      continue
+    }
+    return cursor
+  }
+  cursor
+}
+
+///|
+fn starts_with_continuation_word(
+  source : String,
+  chars : Array[Char],
+  start : Int,
+  expected : String,
+) -> Bool {
+  if not(starts_with_local(source, start, expected)) {
+    return false
+  }
+  let end_ = start + expected.length()
+  if end_ >= chars.length() {
+    return true
+  }
+  let current = chars[end_]
+  current == ' ' || current == '\n' || current == '\t' || current == '\r' || current == '{'
 }
 
 ///|

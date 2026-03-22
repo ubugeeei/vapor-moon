@@ -617,6 +617,41 @@ test "script setup multiline strings stay inside one statement" {
 }
 
 ///|
+test "script setup keeps pipeline continuation lines together" {
+  let source =
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|let title = 10
+    #|  |> Int::to_string
+    #|let props : Props = defineProps()
+  let info = must_analyze_script_setup(
+    source, "inline/pipeline_continuation.mbtv",
+  )
+  assert_eq(info.props_binding, Some("props"))
+  assert_true(info.transformed.contains("let title = 10"))
+  assert_true(info.transformed.contains("|> Int::to_string"))
+}
+
+///|
+test "script setup keeps cascade continuation lines together" {
+  let source =
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|let values = []
+    #|  ..push(1)
+    #|  ..push(2)
+    #|let props : Props = defineProps()
+  let info = must_analyze_script_setup(
+    source, "inline/cascade_continuation.mbtv",
+  )
+  assert_eq(info.props_binding, Some("props"))
+  assert_true(info.transformed.contains("..push(1)"))
+  assert_true(info.transformed.contains("..push(2)"))
+}
+
+///|
 test "rejects duplicate prop defaults" {
   let source =
     #|<script setup>
