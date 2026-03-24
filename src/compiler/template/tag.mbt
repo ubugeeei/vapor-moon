@@ -6,7 +6,7 @@ fn read_template_tag(
 ) -> (String, Array[ParsedTemplateAttr], Int, Bool) raise CompilerError {
   let mut cursor = start + 1
   let name_start = cursor
-  while cursor < chars.length() && is_template_name_char(chars[cursor]) {
+  while cursor < chars.length() && is_template_tag_name_char(chars[cursor]) {
     cursor += 1
   }
   let tag = String::unsafe_substring(source, start=name_start, end=cursor)
@@ -51,17 +51,14 @@ fn parse_template_attr(
 ) -> (ParsedTemplateAttr, Int) raise CompilerError {
   let mut cursor = start
   let name_start = cursor
-  while cursor < chars.length() &&
-        not(is_space(chars[cursor])) &&
-        chars[cursor] != '=' &&
-        chars[cursor] != '>' &&
-        chars[cursor] != '/' {
-    cursor += 1
-  }
-  if cursor == name_start {
+  if cursor >= chars.length() || not(is_template_attr_name_start_char(chars[cursor])) {
     raise CompilerError::InvalidTemplate(
       "expected attribute name in start tag <\{tag}>",
     )
+  }
+  cursor += 1
+  while cursor < chars.length() && is_template_attr_name_continue_char(chars[cursor]) {
+    cursor += 1
   }
   let name = String::unsafe_substring(source, start=name_start, end=cursor)
   cursor = skip_ws(chars, cursor)
@@ -88,6 +85,10 @@ fn read_template_attr_value(
     let marker = chars[start]
     let mut cursor = start + 1
     while cursor < chars.length() {
+      if starts_template_multiline_string_line(chars, cursor) {
+        cursor = skip_template_multiline_string_line(chars, cursor)
+        continue
+      }
       if chars[cursor] == '\\' {
         cursor += 2
         continue
@@ -134,18 +135,33 @@ fn is_space(c : Char) -> Bool {
   c == ' ' || c == '\n' || c == '\t' || c == '\r'
 }
 
-///|
-fn is_template_name_char(c : Char) -> Bool {
+fn is_template_tag_name_char(c : Char) -> Bool {
   (c >= 'a' && c <= 'z') ||
   (c >= 'A' && c <= 'Z') ||
   (c >= '0' && c <= '9') ||
   c == '-' ||
   c == '_' ||
+  c == ':'
+}
+
+///|
+fn is_template_attr_name_start_char(c : Char) -> Bool {
+  (c >= 'a' && c <= 'z') ||
+  (c >= 'A' && c <= 'Z') ||
+  c == '_' ||
   c == ':' ||
+  c == '@' ||
+  c == '#'
+}
+
+///|
+fn is_template_attr_name_continue_char(c : Char) -> Bool {
+  is_template_attr_name_start_char(c) ||
+  (c >= '0' && c <= '9') ||
+  c == '-' ||
   c == '.' ||
   c == '[' ||
-  c == ']' ||
-  c == ','
+  c == ']'
 }
 
 ///|

@@ -43,7 +43,10 @@ fn find_interpolation_close(source : String, start : Int) -> Int? {
 }
 
 ///|
-fn starts_template_multiline_string_line(chars : Array[Char], start : Int) -> Bool {
+fn starts_template_multiline_string_line(
+  chars : Array[Char],
+  start : Int,
+) -> Bool {
   start + 1 < chars.length() && chars[start] == '#' && chars[start + 1] == '|'
 }
 

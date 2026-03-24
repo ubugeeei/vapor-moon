@@ -116,7 +116,7 @@ fn read_template_end_tag(
   let mut cursor = start + 2
   cursor = skip_ws(chars, cursor)
   let name_start = cursor
-  while cursor < chars.length() && is_template_name_char(chars[cursor]) {
+  while cursor < chars.length() && is_template_tag_name_char(chars[cursor]) {
     cursor += 1
   }
   let name = String::unsafe_substring(source, start=name_start, end=cursor)
@@ -143,7 +143,11 @@ fn is_comment_open(chars : Array[Char], start : Int) -> Bool {
 
 ///|
 fn is_end_tag_open(chars : Array[Char], start : Int) -> Bool {
-  if not(start + 1 < chars.length() && chars[start] == '<' && chars[start + 1] == '/') {
+  if not(
+      start + 1 < chars.length() &&
+      chars[start] == '<' &&
+      chars[start + 1] == '/',
+    ) {
     return false
   }
   let mut cursor = start + 2

@@ -133,12 +133,32 @@ test "rejects missing attribute names in templates" {
 }
 
 ///|
+test "rejects quoted attribute names in templates" {
+  let source =
+    #|<template><div 'title'='card'></div></template>
+  assert_eq(
+    compile_error(source, "invalid/quoted_attr_name.mbtv"),
+    "InvalidTemplate(\"expected attribute name in start tag <div>\")",
+  )
+}
+
+///|
 test "rejects malformed self closing syntax in templates" {
   let source =
     #|<template><div / class='card'></div></template>
   assert_eq(
     compile_error(source, "invalid/malformed_self_closing_syntax.mbtv"),
     "InvalidTemplate(\"unexpected `/` in start tag <div> near offset 5\")",
+  )
+}
+
+///|
+test "rejects malformed tag name punctuation in templates" {
+  let source =
+    #|<template><div,card /></template>
+  assert_eq(
+    compile_error(source, "invalid/malformed_tag_name_punctuation.mbtv"),
+    "InvalidTemplate(\"expected attribute name in start tag <div>\")",
   )
 }
 
@@ -201,6 +221,24 @@ test "accepts directive expressions with escaped quote delimiters" {
     }
   }
   assert_true(output.client_code.contains("track(\\'x\\')"))
+}
+
+///|
+test "accepts directive expressions with multiline string quote delimiters" {
+  let source =
+    #|<template><button @click='notify(
+    #|  #|it's fine
+    #|)'></button></template>
+  let output = compile(
+    source,
+    filename="examples/multiline_string_attr_quote_delimiter.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("#|it's fine"))
 }
 
 ///|
