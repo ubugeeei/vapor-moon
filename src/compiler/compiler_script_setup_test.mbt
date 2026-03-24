@@ -242,6 +242,88 @@ test "accepts template block comments with closing tags" {
 }
 
 ///|
+test "accepts script setup escaped quote strings with closing tags" {
+  let source =
+    #|<script setup>
+    #|let closing = "\"</script>\""
+    #|</script>
+    #|<template><div>{{ closing }}</div></template>
+  let output = compile(
+    source,
+    filename="examples/script_escaped_quote_close_tag.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("\\\"</script>\\\""))
+}
+
+///|
+test "accepts style escaped quote strings with closing tags" {
+  let source =
+    #|<template><div class="box" /></template>
+    #|<style>
+    #|.box::before { content: "\"</style>\""; }
+    #|.box { color: red; }
+    #|</style>
+  let output = compile(
+    source,
+    filename="examples/style_escaped_quote_close_tag.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.css_output.contains("\\\"</style>\\\""))
+  assert_true(output.css_output.contains(".box { color: red; }"))
+}
+
+///|
+test "accepts nested template attrs with escaped quotes in SFC scanning" {
+  let source =
+    #|<template>
+    #|  <section>
+    #|    <template data-note='say \'/\' hi'>
+    #|      <span>Inner</span>
+    #|    </template>
+    #|  </section>
+    #|</template>
+  let output = compile(
+    source,
+    filename="examples/nested_template_attr_escaped_quote.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("data-note"))
+  assert_true(output.client_code.contains("Inner"))
+}
+
+///|
+test "accepts template block comments with nested template markers" {
+  let source =
+    #|<template>
+    #|  <!-- <template data-path=a/b></template> -->
+    #|  <div />
+    #|</template>
+  let output = compile(
+    source,
+    filename="examples/template_comment_nested_markers.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("element(\"div\")"))
+}
+
+///|
 test "rejects duplicate generic attributes" {
   let source =
     #|<script setup generic="T" generic="U">
