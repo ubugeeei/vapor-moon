@@ -255,6 +255,29 @@ test "accepts raw less-than characters in text nodes" {
 }
 
 ///|
+test "accepts nested template attrs with slashes in SFC scanning" {
+  let source =
+    #|<template>
+    #|  <section>
+    #|    <template data-path=a/b>
+    #|      <span>Inner</span>
+    #|    </template>
+    #|  </section>
+    #|</template>
+  let output = compile(
+    source,
+    filename="examples/nested_template_attr_slash.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("data-path"))
+  assert_true(output.client_code.contains("Inner"))
+}
+
+///|
 test "rejects v-model without an expression" {
   let source =
     #|<template><input v-model /></template>

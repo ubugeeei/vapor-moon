@@ -140,7 +140,8 @@ fn read_nested_tag(
           cursor += 1
         } else if chars[cursor] == '>' {
           return Some((name, cursor + 1, closing, self_closing))
-        } else if chars[cursor] == '/' {
+        } else if chars[cursor] == '/' &&
+          is_nested_self_closing_marker(chars, cursor) {
           self_closing = true
           cursor += 1
         } else {
@@ -149,6 +150,15 @@ fn read_nested_tag(
     }
   }
   None
+}
+
+///|
+fn is_nested_self_closing_marker(chars : Array[Char], start : Int) -> Bool {
+  let mut cursor = start + 1
+  while cursor < chars.length() && is_block_space(chars[cursor]) {
+    cursor += 1
+  }
+  cursor < chars.length() && chars[cursor] == '>'
 }
 
 ///|
