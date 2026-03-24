@@ -51,13 +51,15 @@ fn parse_template_attr(
 ) -> (ParsedTemplateAttr, Int) raise CompilerError {
   let mut cursor = start
   let name_start = cursor
-  if cursor >= chars.length() || not(is_template_attr_name_start_char(chars[cursor])) {
+  if cursor >= chars.length() ||
+    not(is_template_attr_name_start_char(chars[cursor])) {
     raise CompilerError::InvalidTemplate(
       "expected attribute name in start tag <\{tag}>",
     )
   }
   cursor += 1
-  while cursor < chars.length() && is_template_attr_name_continue_char(chars[cursor]) {
+  while cursor < chars.length() &&
+        is_template_attr_name_continue_char(chars[cursor]) {
     cursor += 1
   }
   let name = String::unsafe_substring(source, start=name_start, end=cursor)
@@ -135,6 +137,7 @@ fn is_space(c : Char) -> Bool {
   c == ' ' || c == '\n' || c == '\t' || c == '\r'
 }
 
+///|
 fn is_template_tag_name_char(c : Char) -> Bool {
   (c >= 'a' && c <= 'z') ||
   (c >= 'A' && c <= 'Z') ||
