@@ -162,6 +162,86 @@ test "accepts script setup multiline strings with closing tags" {
 }
 
 ///|
+test "accepts script setup line comments with closing tags" {
+  let source =
+    #|<script setup>
+    #|// </script> stays in the comment
+    #|let count = 1
+    #|</script>
+    #|<template><div>{{ count.to_string() }}</div></template>
+  let output = compile(
+    source,
+    filename="examples/script_line_comment_close_tag.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("let count = 1"))
+}
+
+///|
+test "accepts script setup block comments with closing tags" {
+  let source =
+    #|<script setup>
+    #|/* </script> stays in the comment */
+    #|let count = 1
+    #|</script>
+    #|<template><div>{{ count.to_string() }}</div></template>
+  let output = compile(
+    source,
+    filename="examples/script_block_comment_close_tag.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("let count = 1"))
+}
+
+///|
+test "accepts style block comments with closing tags" {
+  let source =
+    #|<template><div class="box" /></template>
+    #|<style>
+    #|/* </style> stays in the comment */
+    #|.box { color: red; }
+    #|</style>
+  let output = compile(
+    source,
+    filename="examples/style_block_comment_close_tag.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.css_output.contains("/* </style> stays in the comment */"))
+  assert_true(output.css_output.contains(".box { color: red; }"))
+}
+
+///|
+test "accepts template block comments with closing tags" {
+  let source =
+    #|<template>
+    #|  <!-- </template> <template> -->
+    #|  <div />
+    #|</template>
+  let output = compile(
+    source,
+    filename="examples/template_comment_close_tag.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("element(\"div\")"))
+}
+
+///|
 test "rejects duplicate generic attributes" {
   let source =
     #|<script setup generic="T" generic="U">

@@ -77,7 +77,26 @@ fn skip_quoted(chars : Array[Char], start : Int, marker : Char) -> Int {
 
 ///|
 fn starts_multiline_string_line(chars : Array[Char], start : Int) -> Bool {
-  start + 1 < chars.length() && chars[start] == '#' && chars[start + 1] == '|'
+  if not(
+      start + 1 < chars.length() &&
+      chars[start] == '#' &&
+      chars[start + 1] == '|',
+    ) {
+    return false
+  }
+  let mut cursor = start
+  while cursor > 0 {
+    let previous = chars[cursor - 1]
+    if previous == '\n' || previous == '\r' {
+      return true
+    }
+    if previous == ' ' || previous == '\t' {
+      cursor -= 1
+      continue
+    }
+    return false
+  }
+  true
 }
 
 ///|

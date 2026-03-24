@@ -13,11 +13,19 @@ fn split_top_level_statements(source : String) -> Array[String] {
       continue
     }
     if starts_with_local(source, cursor, "//") {
-      cursor = skip_line_comment(chars, cursor)
+      let next = skip_line_comment(chars, cursor)
+      if range_has_only_statement_trivia(chars, start, cursor) {
+        start = next
+      }
+      cursor = next
       continue
     }
     if starts_with_local(source, cursor, "/*") {
-      cursor = skip_block_comment(chars, cursor)
+      let next = skip_block_comment(chars, cursor)
+      if range_has_only_statement_trivia(chars, start, cursor) {
+        start = next
+      }
+      cursor = next
       continue
     }
     let current = chars[cursor]
@@ -52,6 +60,24 @@ fn split_top_level_statements(source : String) -> Array[String] {
   }
   parts.push(String::unsafe_substring(source, start~, end=source.length()))
   parts
+}
+
+///|
+fn range_has_only_statement_trivia(
+  chars : Array[Char],
+  start : Int,
+  end_ : Int,
+) -> Bool {
+  let mut cursor = start
+  while cursor < end_ {
+    let current = chars[cursor]
+    if current == ' ' || current == '\n' || current == '\t' || current == '\r' {
+      cursor += 1
+      continue
+    }
+    return false
+  }
+  true
 }
 
 ///|

@@ -242,6 +242,35 @@ test "accepts directive expressions with multiline string quote delimiters" {
 }
 
 ///|
+test "accepts static attribute values containing hash pipe text" {
+  let source =
+    #|<template><div title='hash #| pipe'></div></template>
+  let output = compile(source, filename="examples/hash_pipe_static_attr.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("hash #| pipe"))
+}
+
+///|
+test "accepts directive expressions with hash pipe in string literals" {
+  let source =
+    #|<template><button @click='notify("hash #| pipe")'></button></template>
+  let output = compile(
+    source,
+    filename="examples/hash_pipe_directive_string.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("hash #| pipe"))
+}
+
+///|
 test "accepts raw less-than characters in text nodes" {
   let source =
     #|<template><div>1 < 2</div></template>
