@@ -25,7 +25,7 @@ fn visit_template_tokens(
           visitor_on_text(visitor, source, text_start, cursor, text_has_content)
           text_has_content = false
           state = TemplateTokenizerState::Interpolation
-        } else if chars[cursor] == '<' {
+        } else if is_template_markup_open(chars, cursor) {
           visitor_on_text(visitor, source, text_start, cursor, text_has_content)
           text_has_content = false
           state = TemplateTokenizerState::TagOpen
@@ -143,10 +143,34 @@ fn is_comment_open(chars : Array[Char], start : Int) -> Bool {
 
 ///|
 fn is_end_tag_open(chars : Array[Char], start : Int) -> Bool {
-  start + 1 < chars.length() && chars[start] == '<' && chars[start + 1] == '/'
+  if not(start + 1 < chars.length() && chars[start] == '<' && chars[start + 1] == '/') {
+    return false
+  }
+  let mut cursor = start + 2
+  cursor = skip_ws(chars, cursor)
+  cursor < chars.length() && is_template_name_start_char(chars[cursor])
 }
 
 ///|
 fn is_interpolation_open(chars : Array[Char], start : Int) -> Bool {
   start + 1 < chars.length() && chars[start] == '{' && chars[start + 1] == '{'
+}
+
+///|
+fn is_template_markup_open(chars : Array[Char], start : Int) -> Bool {
+  is_comment_open(chars, start) ||
+  is_end_tag_open(chars, start) ||
+  is_start_tag_open(chars, start)
+}
+
+///|
+fn is_start_tag_open(chars : Array[Char], start : Int) -> Bool {
+  start + 1 < chars.length() &&
+  chars[start] == '<' &&
+  is_template_name_start_char(chars[start + 1])
+}
+
+///|
+fn is_template_name_start_char(c : Char) -> Bool {
+  (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
 }

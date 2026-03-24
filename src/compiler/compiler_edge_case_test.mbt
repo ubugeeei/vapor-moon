@@ -191,13 +191,29 @@ test "accepts interpolations with close delimiters inside multiline string liter
 test "accepts directive expressions with escaped quote delimiters" {
   let source =
     #|<template><button @click='track(\'x\')'></button></template>
-  let output = compile(source, filename="examples/escaped_quote_attr_value.mbtv") catch {
+  let output = compile(
+    source,
+    filename="examples/escaped_quote_attr_value.mbtv",
+  ) catch {
     err => {
       ignore(err)
       panic()
     }
   }
   assert_true(output.client_code.contains("track(\\'x\\')"))
+}
+
+///|
+test "accepts raw less-than characters in text nodes" {
+  let source =
+    #|<template><div>1 < 2</div></template>
+  let output = compile(source, filename="examples/raw_less_than_text.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("1 < 2"))
 }
 
 ///|
