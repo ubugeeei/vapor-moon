@@ -88,6 +88,10 @@ fn strip_for_comments(source : String) -> String {
   let mut cursor = 0
   let mut start = 0
   while cursor < chars.length() {
+    if starts_for_multiline_string_line(chars, cursor) {
+      cursor = skip_for_multiline_string_line(chars, cursor)
+      continue
+    }
     if starts_with_for_local(source, cursor, "//") {
       parts.push(String::unsafe_substring(source, start~, end=cursor))
       cursor = skip_for_line_comment(chars, cursor)
@@ -124,6 +128,10 @@ fn find_top_level_for_separator(source : String) -> (Int, Int)? {
         Some(right_start) => return Some((cursor, right_start))
         None => ()
       }
+    }
+    if starts_for_multiline_string_line(chars, cursor) {
+      cursor = skip_for_multiline_string_line(chars, cursor)
+      continue
     }
     if starts_with_for_local(source, cursor, "//") {
       cursor = skip_for_line_comment(chars, cursor)
@@ -204,6 +212,10 @@ fn split_top_level_for_binding_items(source : String) -> Array[String] {
   let mut bracket_depth = 0
   let mut brace_depth = 0
   while cursor < chars.length() {
+    if starts_for_multiline_string_line(chars, cursor) {
+      cursor = skip_for_multiline_string_line(chars, cursor)
+      continue
+    }
     if starts_with_for_local(source, cursor, "//") {
       current_parts.push(String::unsafe_substring(source, start~, end=cursor))
       cursor = skip_for_line_comment(chars, cursor)
@@ -256,6 +268,10 @@ fn has_top_level_for_binding_separator(
   let mut bracket_depth = 0
   let mut brace_depth = 0
   while cursor < chars.length() {
+    if starts_for_multiline_string_line(chars, cursor) {
+      cursor = skip_for_multiline_string_line(chars, cursor)
+      continue
+    }
     if starts_with_for_local(source, cursor, "//") {
       cursor = skip_for_line_comment(chars, cursor)
       continue
@@ -338,6 +354,23 @@ fn skip_for_quoted(chars : Array[Char], start : Int, marker : Char) -> Int {
       continue
     }
     if chars[cursor] == marker {
+      return cursor + 1
+    }
+    cursor += 1
+  }
+  chars.length()
+}
+
+///|
+fn starts_for_multiline_string_line(chars : Array[Char], start : Int) -> Bool {
+  start + 1 < chars.length() && chars[start] == '#' && chars[start + 1] == '|'
+}
+
+///|
+fn skip_for_multiline_string_line(chars : Array[Char], start : Int) -> Int {
+  let mut cursor = start + 2
+  while cursor < chars.length() {
+    if chars[cursor] == '\n' {
       return cursor + 1
     }
     cursor += 1

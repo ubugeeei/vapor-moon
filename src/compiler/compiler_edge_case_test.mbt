@@ -576,6 +576,26 @@ test "accepts v-for comments after the `in` keyword" {
 }
 
 ///|
+test "accepts v-for sources with multiline string separators" {
+  let source =
+    #|<template><li v-for='item in format(
+    #|  #|in, still text
+    #|  #|comma, still text
+    #|)'></li></template>
+  let output = compile(
+    source,
+    filename="examples/v_for_multiline_string_source.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("fn(item, _index)"))
+  assert_true(output.client_code.contains("#|in, still text"))
+}
+
+///|
 test "rejects event modifiers" {
   let source =
     #|<template><button @click.stop='save()'></button></template>
