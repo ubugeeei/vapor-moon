@@ -128,6 +128,27 @@ test "rejects unterminated HTML comments in SFC blocks" {
 }
 
 ///|
+test "accepts script setup multiline strings with closing tags" {
+  let source =
+    #|<script setup>
+    #|let banner =
+    #|  #|</script>
+    #|  #|still here
+    #|</script>
+    #|<template><div>{{ banner }}</div></template>
+  let output = compile(
+    source,
+    filename="examples/script_multiline_string_close_tag.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("#|</script>"))
+}
+
+///|
 test "rejects duplicate generic attributes" {
   let source =
     #|<script setup generic="T" generic="U">

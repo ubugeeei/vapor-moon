@@ -58,7 +58,9 @@ fn find_raw_block_close(
           cursor += 1
         }
       None =>
-        if starts_with_chars(chars, cursor, "/*") {
+        if line_comments && starts_raw_multiline_string_line(chars, cursor) {
+          cursor = skip_raw_multiline_string_line(chars, cursor)
+        } else if starts_with_chars(chars, cursor, "/*") {
           cursor = skip_block_comment(chars, cursor)
         } else if line_comments && starts_with_chars(chars, cursor, "//") {
           cursor = skip_line_comment(chars, cursor)
@@ -75,6 +77,23 @@ fn find_raw_block_close(
     }
   }
   None
+}
+
+///|
+fn starts_raw_multiline_string_line(chars : Array[Char], start : Int) -> Bool {
+  start + 1 < chars.length() && chars[start] == '#' && chars[start + 1] == '|'
+}
+
+///|
+fn skip_raw_multiline_string_line(chars : Array[Char], start : Int) -> Int {
+  let mut cursor = start + 2
+  while cursor < chars.length() {
+    if chars[cursor] == '\n' {
+      return cursor + 1
+    }
+    cursor += 1
+  }
+  chars.length()
 }
 
 ///|
