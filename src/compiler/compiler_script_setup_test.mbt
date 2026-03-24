@@ -771,6 +771,23 @@ test "script setup keeps pipeline continuation lines together" {
 }
 
 ///|
+test "script setup keeps pipeline continuation after comments together" {
+  let source =
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|let title = 10
+    #|// keep flowing
+    #|  |> Int::to_string
+    #|let props : Props = defineProps()
+  let info = must_analyze_script_setup(
+    source, "inline/pipeline_comment_continuation.mbtv",
+  )
+  assert_eq(info.props_binding, Some("props"))
+  assert_true(info.transformed.contains("|> Int::to_string"))
+}
+
+///|
 test "script setup keeps cascade continuation lines together" {
   let source =
     #|struct Props {
@@ -786,6 +803,22 @@ test "script setup keeps cascade continuation lines together" {
   assert_eq(info.props_binding, Some("props"))
   assert_true(info.transformed.contains("..push(1)"))
   assert_true(info.transformed.contains("..push(2)"))
+}
+
+///|
+test "script setup keeps cascade continuation after comments together" {
+  let source =
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|let values = [] // still same cascade
+    #|  ..push(1)
+    #|let props : Props = defineProps()
+  let info = must_analyze_script_setup(
+    source, "inline/cascade_comment_continuation.mbtv",
+  )
+  assert_eq(info.props_binding, Some("props"))
+  assert_true(info.transformed.contains("..push(1)"))
 }
 
 ///|
@@ -807,6 +840,27 @@ test "script setup keeps else continuation lines together" {
 }
 
 ///|
+test "script setup keeps else continuation after comments together" {
+  let source =
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|let picked = if true {
+    #|  "a"
+    #|}
+    #|// keep the branch attached
+    #|else {
+    #|  "b"
+    #|}
+    #|let props : Props = defineProps()
+  let info = must_analyze_script_setup(
+    source, "inline/else_comment_continuation.mbtv",
+  )
+  assert_eq(info.props_binding, Some("props"))
+  assert_true(info.transformed.contains("else {"))
+}
+
+///|
 test "script setup keeps catch continuation lines together" {
   let source =
     #|struct Props {
@@ -820,6 +874,26 @@ test "script setup keeps catch continuation lines together" {
     #|}
     #|let props : Props = defineProps()
   let info = must_analyze_script_setup(source, "inline/catch_continuation.mbtv")
+  assert_eq(info.props_binding, Some("props"))
+  assert_true(info.transformed.contains("catch {"))
+}
+
+///|
+test "script setup keeps catch continuation after comments together" {
+  let source =
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|let picked = try {
+    #|  "a"
+    #|} // still catching
+    #|catch {
+    #|  _ => "b"
+    #|}
+    #|let props : Props = defineProps()
+  let info = must_analyze_script_setup(
+    source, "inline/catch_comment_continuation.mbtv",
+  )
   assert_eq(info.props_binding, Some("props"))
   assert_true(info.transformed.contains("catch {"))
 }
