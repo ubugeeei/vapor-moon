@@ -6,6 +6,10 @@ fn find_interpolation_close(source : String, start : Int) -> Int? {
   let mut bracket_depth = 0
   let mut brace_depth = 0
   while cursor < chars.length() {
+    if starts_template_multiline_string_line(chars, cursor) {
+      cursor = skip_template_multiline_string_line(chars, cursor)
+      continue
+    }
     if starts_with(chars, cursor, "//") {
       cursor = skip_template_line_comment(chars, cursor)
       continue
@@ -36,6 +40,23 @@ fn find_interpolation_close(source : String, start : Int) -> Int? {
     cursor += 1
   }
   None
+}
+
+///|
+fn starts_template_multiline_string_line(chars : Array[Char], start : Int) -> Bool {
+  start + 1 < chars.length() && chars[start] == '#' && chars[start + 1] == '|'
+}
+
+///|
+fn skip_template_multiline_string_line(chars : Array[Char], start : Int) -> Int {
+  let mut cursor = start + 2
+  while cursor < chars.length() {
+    if chars[cursor] == '\n' {
+      return cursor + 1
+    }
+    cursor += 1
+  }
+  chars.length()
 }
 
 ///|

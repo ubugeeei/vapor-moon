@@ -88,6 +88,10 @@ fn read_template_attr_value(
     let marker = chars[start]
     let mut cursor = start + 1
     while cursor < chars.length() {
+      if chars[cursor] == '\\' {
+        cursor += 2
+        continue
+      }
       if chars[cursor] == marker {
         return (
           String::unsafe_substring(source, start=start + 1, end=cursor),

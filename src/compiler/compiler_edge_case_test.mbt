@@ -169,6 +169,38 @@ test "accepts interpolations with close delimiters inside string literals" {
 }
 
 ///|
+test "accepts interpolations with close delimiters inside multiline string literals" {
+  let source =
+    #|<template><div>{{ 
+    #|#|}}
+    #|#|moon
+    #|}}</div></template>
+  let output = compile(
+    source,
+    filename="examples/interpolation_multiline_string_close_delimiter.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("#|}}"))
+}
+
+///|
+test "accepts directive expressions with escaped quote delimiters" {
+  let source =
+    #|<template><button @click='track(\'x\')'></button></template>
+  let output = compile(source, filename="examples/escaped_quote_attr_value.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("track(\\'x\\')"))
+}
+
+///|
 test "rejects v-model without an expression" {
   let source =
     #|<template><input v-model /></template>
