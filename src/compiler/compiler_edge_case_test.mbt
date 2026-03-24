@@ -271,6 +271,40 @@ test "accepts directive expressions with hash pipe in string literals" {
 }
 
 ///|
+test "accepts template comments with tag and interpolation markers inside" {
+  let source =
+    #|<template><div>before<!-- <span>{{ nope }}</span> --><span>after</span></div></template>
+  let output = compile(
+    source,
+    filename="examples/template_comment_embedded_markup.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("before"))
+  assert_true(output.client_code.contains("after"))
+}
+
+///|
+test "accepts template comments between sibling elements" {
+  let source =
+    #|<template><section><span>one</span><!-- <div /> --> <span>two</span></section></template>
+  let output = compile(
+    source,
+    filename="examples/template_comment_between_siblings.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("one"))
+  assert_true(output.client_code.contains("two"))
+}
+
+///|
 test "accepts raw less-than characters in text nodes" {
   let source =
     #|<template><div>1 < 2</div></template>
