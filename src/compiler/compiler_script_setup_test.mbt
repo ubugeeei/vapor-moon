@@ -38,6 +38,19 @@ test "rejects lang attributes" {
 }
 
 ///|
+test "keeps escaped quotes in block attr values until validation" {
+  let source =
+    #|<script setup lang='m\'bt'>
+    #|let count = 1
+    #|</script>
+    #|<template><div>{{ count.to_string() }}</div></template>
+  assert_eq(
+    compile_error(source, "invalid/lang_escaped_quote.mbtv"),
+    "InvalidSfc(\"`lang` is not supported in invalid/lang_escaped_quote.mbtv; Vapor Moon blocks are always MoonBit / plain CSS\")",
+  )
+}
+
+///|
 test "rejects self closing template blocks" {
   let source =
     #|<template />

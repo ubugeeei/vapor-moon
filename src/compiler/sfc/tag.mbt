@@ -176,7 +176,12 @@ fn read_start_tag(
   while cursor < chars.length() {
     let current = chars[cursor]
     match quote {
-      Some(marker) => if current == marker { quote = None }
+      Some(marker) =>
+        if current == '\\' {
+          cursor += 1
+        } else if current == marker {
+          quote = None
+        }
       None =>
         if current == '"' || current == '\'' {
           quote = Some(current)
@@ -258,13 +263,15 @@ fn parse_block_attrs(
       )
     }
     let name_start = cursor
-    if cursor >= chars.length() || not(is_block_attr_name_start_char(chars[cursor])) {
+    if cursor >= chars.length() ||
+      not(is_block_attr_name_start_char(chars[cursor])) {
       raise CompilerError::InvalidSfc(
         "expected attribute name in <\{tag}> start tag of \{filename}",
       )
     }
     cursor += 1
-    while cursor < chars.length() && is_block_attr_name_continue_char(chars[cursor]) {
+    while cursor < chars.length() &&
+          is_block_attr_name_continue_char(chars[cursor]) {
       cursor += 1
     }
     let name = String::unsafe_substring(header, start=name_start, end=cursor)
@@ -299,6 +306,10 @@ fn read_attr_value(
   if marker == '"' || marker == '\'' {
     let mut cursor = start + 1
     while cursor < chars.length() {
+      if chars[cursor] == '\\' {
+        cursor += 2
+        continue
+      }
       if chars[cursor] == marker {
         return (
           String::unsafe_substring(source, start=start + 1, end=cursor),
@@ -327,7 +338,10 @@ fn read_attr_value(
 }
 
 ///|
-fn is_attr_value_self_closing_boundary(chars : Array[Char], start : Int) -> Bool {
+fn is_attr_value_self_closing_boundary(
+  chars : Array[Char],
+  start : Int,
+) -> Bool {
   if chars[start] != '/' {
     return false
   }
