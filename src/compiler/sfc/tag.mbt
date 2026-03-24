@@ -184,10 +184,6 @@ fn read_start_tag(
           let next = skip_spaces(chars, cursor + 1)
           if next < chars.length() && chars[next] == '>' {
             self_closing = true
-          } else {
-            raise CompilerError::InvalidSfc(
-              "unexpected `/` in <\{tag.to_string()}> start tag of \{filename}",
-            )
           }
         } else if current == '>' {
           let header = String::unsafe_substring(
@@ -253,23 +249,23 @@ fn parse_block_attrs(
       break
     }
     if chars[cursor] == '/' {
-      cursor += 1
-      cursor = skip_spaces(chars, cursor)
-      if cursor >= chars.length() {
+      let next = skip_spaces(chars, cursor + 1)
+      if next >= chars.length() {
         break
       }
+      raise CompilerError::InvalidSfc(
+        "unexpected `/` in <\{tag}> start tag of \{filename}",
+      )
     }
     let name_start = cursor
-    while cursor < chars.length() &&
-          not(is_block_space(chars[cursor])) &&
-          chars[cursor] != '=' &&
-          chars[cursor] != '/' {
-      cursor += 1
-    }
-    if cursor == name_start {
+    if cursor >= chars.length() || not(is_block_attr_name_start_char(chars[cursor])) {
       raise CompilerError::InvalidSfc(
         "expected attribute name in <\{tag}> start tag of \{filename}",
       )
+    }
+    cursor += 1
+    while cursor < chars.length() && is_block_attr_name_continue_char(chars[cursor]) {
+      cursor += 1
     }
     let name = String::unsafe_substring(header, start=name_start, end=cursor)
     cursor = skip_spaces(chars, cursor)
@@ -318,7 +314,7 @@ fn read_attr_value(
     let mut cursor = start
     while cursor < chars.length() &&
           not(is_block_space(chars[cursor])) &&
-          chars[cursor] != '/' {
+          not(is_attr_value_self_closing_boundary(chars, cursor)) {
       cursor += 1
     }
     if cursor == start {
@@ -328,6 +324,28 @@ fn read_attr_value(
     }
     (String::unsafe_substring(source, start~, end=cursor), cursor)
   }
+}
+
+///|
+fn is_attr_value_self_closing_boundary(chars : Array[Char], start : Int) -> Bool {
+  if chars[start] != '/' {
+    return false
+  }
+  let next = skip_spaces(chars, start + 1)
+  next >= chars.length()
+}
+
+///|
+fn is_block_attr_name_start_char(c : Char) -> Bool {
+  (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+}
+
+///|
+fn is_block_attr_name_continue_char(c : Char) -> Bool {
+  is_block_attr_name_start_char(c) ||
+  (c >= '0' && c <= '9') ||
+  c == '-' ||
+  c == '_'
 }
 
 ///|

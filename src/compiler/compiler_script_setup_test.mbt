@@ -227,6 +227,37 @@ test "rejects missing block attribute names" {
 }
 
 ///|
+test "rejects quoted block attribute names" {
+  let source =
+    #|<template 'foo'='true'><div /></template>
+  assert_eq(
+    compile_error(source, "invalid/quoted_block_attr_name.mbtv"),
+    "InvalidSfc(\"expected attribute name in <template> start tag of invalid/quoted_block_attr_name.mbtv\")",
+  )
+}
+
+///|
+test "keeps slashes in top level block attr values until validation" {
+  let source =
+    #|<style src=styles/main.css></style>
+    #|<template><div /></template>
+  assert_eq(
+    compile_error(source, "invalid/style_src_slash_value.mbtv"),
+    "InvalidSfc(\"`src` is not supported in invalid/style_src_slash_value.mbtv; keep the SFC self-contained\")",
+  )
+}
+
+///|
+test "rejects malformed block attribute name punctuation" {
+  let source =
+    #|<template foo,bar><div /></template>
+  assert_eq(
+    compile_error(source, "invalid/malformed_block_attr_punctuation.mbtv"),
+    "InvalidSfc(\"expected attribute name in <template> start tag of invalid/malformed_block_attr_punctuation.mbtv\")",
+  )
+}
+
+///|
 test "rejects trailing tokens after script setup imports" {
   let source =
     #|<script setup>
@@ -236,6 +267,16 @@ test "rejects trailing tokens after script setup imports" {
   assert_eq(
     compile_error(source, "invalid/import_trailing_tokens.mbtv"),
     "InvalidScriptSetup(\"script setup imports must end after `}` in invalid/import_trailing_tokens.mbtv\")",
+  )
+}
+
+///|
+test "rejects stray slashes in top level block tags" {
+  let source =
+    #|<template / foo><div /></template>
+  assert_eq(
+    compile_error(source, "invalid/stray_block_slash.mbtv"),
+    "InvalidSfc(\"unexpected `/` in <template> start tag of invalid/stray_block_slash.mbtv\")",
   )
 }
 
