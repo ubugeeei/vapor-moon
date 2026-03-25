@@ -34,7 +34,7 @@ pub fn analyze_script_setup(
                     props_binding = let_stmt.binding
                     props = resolve_macro_fields(
                       macro_,
-                      let_stmt.annotation_name,
+                      let_stmt.annotation,
                       contract_types,
                       filename,
                     )
@@ -56,7 +56,7 @@ pub fn analyze_script_setup(
                     emits_binding = let_stmt.binding
                     emits = resolve_macro_fields(
                       macro_,
-                      let_stmt.annotation_name,
+                      let_stmt.annotation,
                       contract_types,
                       filename,
                     )
@@ -72,7 +72,7 @@ pub fn analyze_script_setup(
                     slots_binding = let_stmt.binding
                     slots = resolve_macro_fields(
                       macro_,
-                      let_stmt.annotation_name,
+                      let_stmt.annotation,
                       contract_types,
                       filename,
                     )

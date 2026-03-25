@@ -401,10 +401,7 @@ test "accepts member assignment targets for v-model" {
 test "accepts array element targets for v-model" {
   let source =
     #|<template><input v-model='items[0]' /></template>
-  let output = compile(
-    source,
-    filename="examples/v_model_array_target.mbtv",
-  ) catch {
+  let output = compile(source, filename="examples/v_model_array_target.mbtv") catch {
     err => {
       ignore(err)
       panic()

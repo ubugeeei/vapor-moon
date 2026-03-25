@@ -1,13 +1,13 @@
 ///|
 fn resolve_macro_fields(
   macro_ : ScriptSetupMacro,
-  annotation_name : String?,
+  annotation : ScriptSetupTypeAnnotation?,
   contract_types : Array[ScriptSetupContractType],
   filename : String,
 ) -> Array[MacroField] raise CompilerError {
   let fields = if accepts_typed_contract_macro(macro_) {
     resolve_typed_contract_fields(
-      macro_, annotation_name, contract_types, filename,
+      macro_, annotation, contract_types, filename,
     )
   } else {
     raise CompilerError::InvalidScriptSetup(
@@ -43,12 +43,19 @@ fn resolve_prop_defaults(
 ///|
 fn resolve_typed_contract_fields(
   macro_ : ScriptSetupMacro,
-  annotation_name : String?,
+  annotation : ScriptSetupTypeAnnotation?,
   contract_types : Array[ScriptSetupContractType],
   filename : String,
 ) -> Array[MacroField] raise CompilerError {
-  let type_name = match annotation_name {
-    Some(name) => name
+  let type_name = match annotation {
+    Some(annotation) =>
+      if annotation.is_local {
+        annotation.name
+      } else {
+        raise CompilerError::InvalidScriptSetup(
+          "\{macro_.name}() requires a local `struct \{annotation.name} {{ ... }}` contract in \{filename}; qualified type annotation `\{annotation.source}` is not supported",
+        )
+      }
     None =>
       raise CompilerError::InvalidScriptSetup(
         typed_contract_message(macro_.name, filename),

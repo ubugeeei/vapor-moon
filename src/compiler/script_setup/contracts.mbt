@@ -221,22 +221,3 @@ fn find_contract_type(
   }
   None
 }
-
-///|
-fn type_name_from_annotation(ty : @mbt_syntax.Type?) -> String? {
-  match ty {
-    Some(type_) =>
-      match type_ {
-        Name(constr_id~, ..) =>
-          match constr_id.id {
-            Ident(name~) => Some(name)
-            Dot(pkg~, id~) => {
-              ignore(pkg)
-              Some(id)
-            }
-          }
-        _ => None
-      }
-    None => None
-  }
-}

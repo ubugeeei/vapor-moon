@@ -15,8 +15,15 @@ priv enum ScriptSetupStatement {
 priv struct ScriptSetupLet {
   declaration : String
   binding : String?
-  annotation_name : String?
+  annotation : ScriptSetupTypeAnnotation?
   expr : ScriptSetupExpression
+}
+
+///|
+priv struct ScriptSetupTypeAnnotation {
+  name : String
+  source : String
+  is_local : Bool
 }
 
 ///|
@@ -60,7 +67,7 @@ fn script_setup_statement_from_ast(
       LetStatement({
         declaration: extract_let_declaration(source, expr.loc(), filename),
         binding: Some(binder.name),
-        annotation_name: type_name_from_annotation(ty),
+        annotation: type_annotation_from_ast(source, ty),
         expr: parse_script_setup_expr_ast(source, expr, filename),
       })
     TopExpr(expr~, ..) =>
@@ -69,6 +76,30 @@ fn script_setup_statement_from_ast(
         macro_expr => ExpressionStatement(macro_expr)
       }
     _ => RawStatement(source.trim().to_string())
+  }
+}
+
+///|
+fn type_annotation_from_ast(
+  source : String,
+  ty : @mbt_syntax.Type?,
+) -> ScriptSetupTypeAnnotation? {
+  match ty {
+    Some(type_) =>
+      match type_ {
+        Name(constr_id~, ..) => {
+          let source_text = slice_location(source, type_.loc()).trim().to_string()
+          match constr_id.id {
+            Ident(name~) => Some({ name, source: source_text, is_local: true })
+            Dot(pkg~, id~) => {
+              ignore(pkg)
+              Some({ name: id, source: source_text, is_local: false })
+            }
+          }
+        }
+        _ => None
+      }
+    None => None
   }
 }
 

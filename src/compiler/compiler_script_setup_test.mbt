@@ -776,6 +776,23 @@ test "rejects non local struct contracts for defineProps" {
 }
 
 ///|
+test "rejects qualified type annotations for defineProps" {
+  let source =
+    #|<script setup>
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|
+    #|let props : @model.Props = defineProps()
+    #|</script>
+    #|<template><div>{{ props.title }}</div></template>
+  assert_eq(
+    compile_error(source, "invalid/qualified_props_contract.mbtv"),
+    "InvalidScriptSetup(\"defineProps() requires a local `struct Props {{ ... }}` contract in invalid/qualified_props_contract.mbtv; qualified type annotation `@model.Props` is not supported\")",
+  )
+}
+
+///|
 test "script setup macros use AST for multiline lets" {
   let source =
     #|struct Props {
