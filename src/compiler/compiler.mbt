@@ -251,8 +251,7 @@ fn expr_is_assignable_model_target(expr : @mbt_syntax.Expr) -> Bool {
 fn expr_is_signal_getter_model_target(expr : @mbt_syntax.Expr) -> Bool {
   let expr = unwrap_group_expr_local(expr)
   match expr {
-    Apply(func~, args~, ..) =>
-      is_field_getter_call_model_target(func, args)
+    Apply(func~, args~, ..) => is_field_getter_call_model_target(func, args)
     DotApply(self~, method_name~, args~, ..) => {
       ignore(self)
       method_name.name == "get" && argument_list_is_empty_model_target(args)

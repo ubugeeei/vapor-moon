@@ -371,13 +371,20 @@ test "rejects non assignable v-model expressions" {
 }
 
 ///|
+test "rejects call result member targets for v-model" {
+  let source =
+    #|<template><input v-model='lookup().name' /></template>
+  assert_eq(
+    compile_error(source, "invalid/v_model_call_result_target.mbtv"),
+    "InvalidDirective(\"v-model requires an assignable target or signal getter on <input>: `lookup().name`\")",
+  )
+}
+
+///|
 test "accepts member assignment targets for v-model" {
   let source =
     #|<template><input v-model='profile.name' /></template>
-  let output = compile(
-    source,
-    filename="examples/v_model_member_target.mbtv",
-  ) catch {
+  let output = compile(source, filename="examples/v_model_member_target.mbtv") catch {
     err => {
       ignore(err)
       panic()
@@ -386,6 +393,26 @@ test "accepts member assignment targets for v-model" {
   assert_true(
     output.client_code.contains(
       "profile.name = _event._get(\"target\")._get(\"value\").cast()",
+    ),
+  )
+}
+
+///|
+test "accepts array element targets for v-model" {
+  let source =
+    #|<template><input v-model='items[0]' /></template>
+  let output = compile(
+    source,
+    filename="examples/v_model_array_target.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(
+    output.client_code.contains(
+      "items[0] = _event._get(\"target\")._get(\"value\").cast()",
     ),
   )
 }
