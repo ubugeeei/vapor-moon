@@ -361,6 +361,56 @@ test "rejects v-model on unsupported native elements" {
 }
 
 ///|
+test "rejects non assignable v-model expressions" {
+  let source =
+    #|<template><input v-model='name.trim()' /></template>
+  assert_eq(
+    compile_error(source, "invalid/v_model_non_assignable.mbtv"),
+    "InvalidDirective(\"v-model requires an assignable target or signal getter on <input>: `name.trim()`\")",
+  )
+}
+
+///|
+test "accepts member assignment targets for v-model" {
+  let source =
+    #|<template><input v-model='profile.name' /></template>
+  let output = compile(
+    source,
+    filename="examples/v_model_member_target.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(
+    output.client_code.contains(
+      "profile.name = _event._get(\"target\")._get(\"value\").cast()",
+    ),
+  )
+}
+
+///|
+test "accepts member signal getter targets for v-model" {
+  let source =
+    #|<template><input v-model='profile.name.get()' /></template>
+  let output = compile(
+    source,
+    filename="examples/v_model_member_signal_target.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(
+    output.client_code.contains(
+      "profile.name.set(_event._get(\"target\")._get(\"value\").cast())",
+    ),
+  )
+}
+
+///|
 test "rejects component event listeners until component linking lands" {
   let source =
     #|<template><Panel @save='on_save()' /></template>

@@ -101,8 +101,14 @@ fn validate_template_node(
         None => ()
       }
       match element.model {
-        Some(model) =>
-          validate_template_expr(model.expression, binding, filename)
+        Some(model) => {
+          let parsed = validate_template_expr_with_ast(
+            model.expression,
+            binding,
+            filename,
+          )
+          validate_model_target_expr(parsed, model.expression, element.tag)
+        }
         None => ()
       }
       match element.key_expr {
@@ -133,6 +139,15 @@ fn validate_template_expr(
   binding : String?,
   filename : String,
 ) -> Unit raise CompilerError {
+  ignore(validate_template_expr_with_ast(expr, binding, filename))
+}
+
+///|
+fn validate_template_expr_with_ast(
+  expr : String,
+  binding : String?,
+  filename : String,
+) -> @mbt_syntax.Expr raise CompilerError {
   let parsed = parse_template_expr_ast(expr, filename)
   match binding {
     Some(binding) =>
@@ -143,6 +158,7 @@ fn validate_template_expr(
       }
     None => ()
   }
+  parsed
 }
 
 ///|
@@ -203,6 +219,74 @@ fn invalid_template_expression_message(
   message : String,
 ) -> String {
   "invalid template expression `\{expr.trim().to_string()}` in \{filename}: \{message}"
+}
+
+///|
+fn validate_model_target_expr(
+  expr : @mbt_syntax.Expr,
+  source : String,
+  tag : String,
+) -> Unit raise CompilerError {
+  if expr_is_assignable_model_target(expr) ||
+    expr_is_signal_getter_model_target(expr) {
+    return
+  }
+  raise CompilerError::InvalidDirective(
+    "v-model requires an assignable target or signal getter on <\{tag}>: `\{source}`",
+  )
+}
+
+///|
+fn expr_is_assignable_model_target(expr : @mbt_syntax.Expr) -> Bool {
+  let expr = unwrap_group_expr_local(expr)
+  match expr {
+    Ident(..) => true
+    Field(record~, ..) => expr_is_assignable_model_target(record)
+    ArrayGet(array~, ..) => expr_is_assignable_model_target(array)
+    _ => false
+  }
+}
+
+///|
+fn expr_is_signal_getter_model_target(expr : @mbt_syntax.Expr) -> Bool {
+  let expr = unwrap_group_expr_local(expr)
+  match expr {
+    Apply(func~, args~, ..) =>
+      is_field_getter_call_model_target(func, args)
+    DotApply(self~, method_name~, args~, ..) => {
+      ignore(self)
+      method_name.name == "get" && argument_list_is_empty_model_target(args)
+    }
+    _ => false
+  }
+}
+
+///|
+fn is_field_getter_call_model_target(
+  func : @mbt_syntax.Expr,
+  args : @list.List[@mbt_syntax.Argument],
+) -> Bool {
+  if not(argument_list_is_empty_model_target(args)) {
+    return false
+  }
+  let func = unwrap_group_expr_local(func)
+  match func {
+    Field(record~, accessor~, ..) => {
+      ignore(record)
+      accessor_label_name(accessor) == Some("get")
+    }
+    _ => false
+  }
+}
+
+///|
+fn argument_list_is_empty_model_target(
+  args : @list.List[@mbt_syntax.Argument],
+) -> Bool {
+  match args {
+    @list.Empty => true
+    @list.More(_, ..) => false
+  }
 }
 
 ///|
