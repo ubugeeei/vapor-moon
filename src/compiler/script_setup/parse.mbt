@@ -6,9 +6,7 @@ fn resolve_macro_fields(
   filename : String,
 ) -> Array[MacroField] raise CompilerError {
   let fields = if accepts_typed_contract_macro(macro_) {
-    resolve_typed_contract_fields(
-      macro_, annotation, contract_types, filename,
-    )
+    resolve_typed_contract_fields(macro_, annotation, contract_types, filename)
   } else {
     raise CompilerError::InvalidScriptSetup(
       legacy_runtime_decl_message(macro_.name, filename),

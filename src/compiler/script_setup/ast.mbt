@@ -88,7 +88,9 @@ fn type_annotation_from_ast(
     Some(type_) =>
       match type_ {
         Name(constr_id~, ..) => {
-          let source_text = slice_location(source, type_.loc()).trim().to_string()
+          let source_text = slice_location(source, type_.loc())
+            .trim()
+            .to_string()
           match constr_id.id {
             Ident(name~) => Some({ name, source: source_text, is_local: true })
             Dot(pkg~, id~) => {
