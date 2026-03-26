@@ -1,8 +1,8 @@
 version 1
 key hub/work-item/10/meta
 kind work-item
-clock mizchi=1
-timestamp 1774521069
+clock mizchi=2
+timestamp 1774521255
 node mizchi
 deleted 0
 
@@ -10,11 +10,14 @@ work-item 10
 title feat: v-text directive
 author mizchi
 created 1774520811
-updated 1774520811
+updated 1774521255
 state open
+label medium
 
-\`v-text\` is not implemented. It should set the element's text content, equivalent to \`{{ expr }}\` but replacing all children.
+Set element's text content. Equivalent to {{ expr }} but replaces all children.
 
 ```html
 <span v-text='message'></span>
 ```
+
+Priority: Medium
