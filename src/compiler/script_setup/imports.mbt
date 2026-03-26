@@ -6,4 +6,5 @@ using @common {
   type PropDefault,
   type ScriptExternInfo,
   type ScriptSetupInfo,
+  type ScriptSetupTemplateRef,
 }

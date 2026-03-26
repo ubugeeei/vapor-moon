@@ -9,6 +9,7 @@ pub fn analyze_script_setup(
   let (ir, contract_types) = parse_script_setup_module_with_contracts(
     source, filename,
   )
+  let template_refs = collect_script_setup_template_refs(ir)
   let mut props_declaration : String? = None
   let mut props_binding : String? = None
   let mut emits_binding : String? = None
@@ -146,6 +147,7 @@ pub fn analyze_script_setup(
     source: render_script_setup_module(ir, false),
     transformed: render_script_setup_module(lowered, false),
     import_entries: collect_script_setup_import_entries(ir),
+    template_refs,
     props_declaration,
     props_binding,
     props,
@@ -295,6 +297,39 @@ fn collect_script_setup_import_entries(ir : ScriptSetupModule) -> Array[String] 
     }
   }
   entries
+}
+
+///|
+fn collect_script_setup_template_refs(
+  ir : ScriptSetupModule,
+) -> Array[ScriptSetupTemplateRef] {
+  let refs : Array[ScriptSetupTemplateRef] = []
+  for statement in ir.statements {
+    match statement {
+      LetStatement(let_stmt) =>
+        collect_template_ref_expr(let_stmt.binding, let_stmt.expr, refs)
+      ExpressionStatement(expr) => collect_template_ref_expr(None, expr, refs)
+      ImportStatement(_) | RawStatement(_) => ()
+    }
+  }
+  refs
+}
+
+///|
+fn collect_template_ref_expr(
+  binding_name : String?,
+  expr : ScriptSetupExpression,
+  refs : Array[ScriptSetupTemplateRef],
+) -> Unit {
+  match expr {
+    MacroExpr(macro_) if macro_.name == "useTemplateRef" =>
+      refs.push({
+        binding_name,
+        arg_source: macro_.args,
+        ref_name: macro_.static_string_arg,
+      })
+    _ => ()
+  }
 }
 
 ///|

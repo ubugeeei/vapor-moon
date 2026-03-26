@@ -212,13 +212,39 @@ extern "js" fn lookup_template_ref(name : String) -> @js.Any? =
   #| (name) => globalThis.__vaporMoonTemplateRefs?.get(name) ?? null
 
 ///|
-pub fn bind_template_ref(name : String, target : @js.Any) -> Unit {
+extern "js" fn register_bound_template_ref(
+  ref_ : @js.Any,
+  target : @js.Any,
+) -> Unit =
+  #| (ref_, target) => {
+  #|   globalThis.__vaporMoonBoundTemplateRefs ??= new WeakMap();
+  #|   globalThis.__vaporMoonBoundTemplateRefs.set(ref_, target);
+  #| }
+
+///|
+extern "js" fn lookup_bound_template_ref(ref_ : @js.Any) -> @js.Any? =
+  #| (ref_) => globalThis.__vaporMoonBoundTemplateRefs?.get(ref_) ?? null
+
+///|
+pub fn bind_template_ref_name(name : String, target : @js.Any) -> Unit {
   register_template_ref(name, target)
 }
 
 ///|
-pub fn resolve_template_ref(ref_ : @vm.TemplateRef) -> @js.Any? {
-  lookup_template_ref(ref_.name())
+pub fn[T] bind_template_ref(ref_ : @vm.TemplateRef[T], target : @js.Any) -> Unit {
+  register_bound_template_ref(@js.any(ref_), target)
+}
+
+///|
+pub fn[T] resolve_template_ref(ref_ : @vm.TemplateRef[T]) -> T? {
+  match lookup_bound_template_ref(@js.any(ref_)) {
+    Some(target) => Some(target.cast())
+    None =>
+      match lookup_template_ref(ref_.name()) {
+        Some(target) => Some(target.cast())
+        None => None
+      }
+  }
 }
 
 ///|

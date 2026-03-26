@@ -14,6 +14,7 @@ pub using @compiler {
   type SfcBlock,
   type SfcDocument,
   type ScriptSetupInfo,
+  type ScriptSetupTemplateRef,
   type SourceSpan,
   type StyleBlock,
   type TemplateAttr,

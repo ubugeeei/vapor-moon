@@ -38,6 +38,7 @@ priv struct ScriptSetupMacro {
   args : String
   arg_count : Int
   prop_defaults : Array[PropDefault]?
+  static_string_arg : String?
 }
 
 ///|
@@ -127,6 +128,7 @@ fn parse_script_setup_macro(
               ),
               arg_count,
               prop_defaults: parse_define_props_defaults(args, source),
+              static_string_arg: extract_static_string_arg(args),
             })
           } else {
             None
@@ -190,6 +192,22 @@ fn parse_define_props_defaults(
       match type_name {
         Some(_) => None
         None => Some(parse_record_defaults(fields, source))
+      }
+    _ => None
+  }
+}
+
+///|
+fn extract_static_string_arg(
+  args : @list.List[@mbt_syntax.Argument],
+) -> String? {
+  guard args is @list.More(arg, tail=@list.Empty) else { return None }
+  guard arg.kind is Positional else { return None }
+  match unwrap_group_expr(arg.value) {
+    Constant(c~, ..) =>
+      match c {
+        String(value) => Some(value)
+        _ => None
       }
     _ => None
   }

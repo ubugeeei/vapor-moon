@@ -146,13 +146,14 @@ test "snapshot lifecycle refs compile" {
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
       #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
       #|  "mizchi/luna/js/resource" @reactivity,
+      #|  "mizchi/js/browser/dom" @js_dom,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  let signal = @reactivity.signal,
       #|  let on_mount = @reactivity.on_mount,
       #|  let on_cleanup = @reactivity.on_cleanup,
-      #|  let root_ref = @vm.use_template_ref("root")
+      #|  let root_ref = @vm.use_template_ref[@js_dom.HTMLElement]("root")
       #|  let instance_id = @vm.use_id(component_name, 0)
       #|  let phase = signal("booting")
       #|  let mount_registration = on_mount(fn() {
@@ -164,7 +165,7 @@ test "snapshot lifecycle refs compile" {
       #|  (fn() {
       #|      let __vm_el = @vm_dom.element("section")
       #|      @vm_dom.apply_attr_entry(__vm_el, ("data-id", @vm_dom.attr_dynamic(fn() { instance_id.to_string() })))
-      #|      @vm_dom.apply_attr_entry(__vm_el, ("__ref", @vm_dom.attr_handler(fn(target) { @vm_dom.bind_template_ref("root", target) })))
+      #|      @vm_dom.apply_attr_entry(__vm_el, ("__ref", @vm_dom.attr_handler(fn(target) { @vm_dom.bind_template_ref(root_ref, target) })))
       #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
       #|                let __vm_el = @vm_dom.element("p")
       #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { phase.get().to_string() }))
@@ -198,13 +199,14 @@ test "snapshot lifecycle refs compile" {
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|  "mizchi/luna/js/resource" @reactivity,
+      #|  "mizchi/js/browser/dom" @js_dom,
       #|}
       #|
       #|pub fn render_ssr() -> @luna_core.StaticDomNode {
       #|  let signal = @reactivity.signal,
       #|  let on_mount = @reactivity.on_mount,
       #|  let on_cleanup = @reactivity.on_cleanup,
-      #|  let root_ref = @vm.use_template_ref("root")
+      #|  let root_ref = @vm.use_template_ref[@js_dom.HTMLElement]("root")
       #|  let instance_id = @vm.use_id(component_name, 0)
       #|  let phase = signal("booting")
       #|  let mount_registration = on_mount(fn() {

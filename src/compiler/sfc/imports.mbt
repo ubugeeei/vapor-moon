@@ -8,6 +8,7 @@ using @common {
   type PropDefault,
   type SfcBlock,
   type SfcDocument,
+  type ScriptSetupTemplateRef,
   type StyleBlock,
 }
 

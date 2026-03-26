@@ -75,6 +75,7 @@ pub(all) struct ScriptSetupInfo {
   source : String
   transformed : String
   import_entries : Array[String]
+  template_refs : Array[ScriptSetupTemplateRef]
   props_declaration : String?
   props_binding : String?
   props : Array[MacroField]
@@ -103,6 +104,7 @@ pub(all) struct SfcDocument {
   script_setup : String?
   script_setup_transformed : String?
   script_setup_import_entries : Array[String]
+  template_refs : Array[ScriptSetupTemplateRef]
   generics : Array[GenericParam]
   props_declaration : String?
   props_binding : String?
@@ -121,6 +123,13 @@ pub(all) struct TemplateModel {
   argument : String?
   expression : String
   modifiers : Array[String]
+} derive(Eq, Show)
+
+///|
+pub(all) struct ScriptSetupTemplateRef {
+  binding_name : String?
+  arg_source : String
+  ref_name : String?
 } derive(Eq, Show)
 
 ///|
@@ -172,6 +181,8 @@ pub(all) struct TemplateElement {
   model : TemplateModel?
   key_expr : String?
   ref_name : String?
+  ref_static_name : String?
+  ref_binding_name : String?
   once : Bool
   else_if_expr : String?
   is_else : Bool

@@ -106,6 +106,7 @@ fn build_template_element(
   let mut model : TemplateModel? = None
   let mut key_expr : String? = None
   let mut ref_name : String? = None
+  let mut ref_static_name : String? = None
   let mut once = false
   let mut match_expr : String? = None
   let mut case_pattern : String? = None
@@ -275,11 +276,14 @@ fn build_template_element(
       }
       "ref" => {
         ensure_empty_expr_directive(ref_name, attr, tag)
-        ref_name = Some(quote_template_literal(expect_attr_value(attr, tag)))
+        let value = expect_attr_value(attr, tag)
+        ref_name = Some(quote_template_literal(value))
+        ref_static_name = Some(value)
       }
       ":ref" | "v-bind:ref" => {
         ensure_empty_expr_directive(ref_name, attr, tag)
         ref_name = Some(expect_attr_value(attr, tag))
+        ref_static_name = None
       }
       _ =>
         match parse_model_attr(attr) {
@@ -318,6 +322,8 @@ fn build_template_element(
     model,
     key_expr,
     ref_name,
+    ref_static_name,
+    ref_binding_name: None,
     once,
     else_if_expr,
     is_else,

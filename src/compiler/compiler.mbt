@@ -20,30 +20,47 @@ pub fn compile_from_parts(
   filename : String,
 ) -> CompileOutput raise CompilerError {
   reject_legacy_emit_calls(doc, template, filename)
+  let resolved_template_refs = resolve_template_refs(doc.template_refs, template)
+  let resolved_doc = resolve_template_ref_doc(doc, resolved_template_refs)
+  let bound_template = bind_template_ref_nodes(template, resolved_template_refs)
   let component_name = @codegen.pascal_case(@codegen.base_name(filename))
-  let scope_id = compute_scope_id(doc, filename)
-  let css_output = @codegen.emit_css(doc.styles, scope_id)
+  let scope_id = compute_scope_id(resolved_doc, filename)
+  let css_output = @codegen.emit_css(resolved_doc.styles, scope_id)
   {
     filename,
     component_name,
-    extension: doc.extension,
+    extension: resolved_doc.extension,
     client_code: @codegen.emit_client_module(
-      doc, template, component_name, scope_id,
+      resolved_doc,
+      bound_template,
+      component_name,
+      scope_id,
     ),
     server_code: @codegen.emit_server_module(
-      doc, template, component_name, scope_id,
+      resolved_doc,
+      bound_template,
+      component_name,
+      scope_id,
     ),
     css_output,
     scope_id,
-    island_components: @codegen.collect_island_components(template),
-    generics: doc.generics,
-    props_binding: doc.props_binding,
-    props: doc.props,
-    emits_binding: doc.emits_binding,
-    emits: doc.emits,
-    slots_binding: doc.slots_binding,
-    slots: doc.slots,
+    island_components: @codegen.collect_island_components(bound_template),
+    generics: resolved_doc.generics,
+    props_binding: resolved_doc.props_binding,
+    props: resolved_doc.props,
+    emits_binding: resolved_doc.emits_binding,
+    emits: resolved_doc.emits,
+    slots_binding: resolved_doc.slots_binding,
+    slots: resolved_doc.slots,
   }
+}
+
+///|
+priv struct ResolvedTemplateRef {
+  binding_name : String?
+  arg_source : String
+  ref_name : String?
+  type_name : String
 }
 
 ///|
@@ -158,6 +175,268 @@ fn validate_template_node(
         validate_template_node(Element(branch.element), binding, filename)
       }
   }
+}
+
+///|
+fn resolve_template_refs(
+  template_refs : Array[ScriptSetupTemplateRef],
+  nodes : Array[TemplateNode],
+) -> Array[ResolvedTemplateRef] {
+  let static_ref_types = collect_static_template_ref_types(nodes)
+  let resolved : Array[ResolvedTemplateRef] = []
+  for template_ref in template_refs {
+    let type_name = match template_ref.ref_name {
+      Some(name) =>
+        find_static_template_ref_type(static_ref_types, name)
+        .unwrap_or("@js_dom.Element")
+      None => "@js_dom.Element"
+    }
+    resolved.push({
+      binding_name: template_ref.binding_name,
+      arg_source: template_ref.arg_source,
+      ref_name: template_ref.ref_name,
+      type_name,
+    })
+  }
+  resolved
+}
+
+///|
+fn collect_static_template_ref_types(
+  nodes : Array[TemplateNode],
+) -> Array[(String, String)] {
+  let refs : Array[(String, String)] = []
+  for node in nodes {
+    collect_static_template_ref_types_into(node, refs)
+  }
+  refs
+}
+
+///|
+fn collect_static_template_ref_types_into(
+  node : TemplateNode,
+  refs : Array[(String, String)],
+) -> Unit {
+  match node {
+    Text(_) | Interpolation(_) => ()
+    Element(element) => {
+      match element.ref_static_name {
+        Some(name) =>
+          register_static_template_ref_type(
+            refs,
+            name,
+            infer_template_ref_type(element),
+          )
+        None => ()
+      }
+      for child in element.children {
+        collect_static_template_ref_types_into(child, refs)
+      }
+    }
+    Conditional(branches) =>
+      for branch in branches {
+        collect_static_template_ref_types_into(Element(branch.element), refs)
+      }
+    Match(node) =>
+      for branch in node.branches {
+        collect_static_template_ref_types_into(Element(branch.element), refs)
+      }
+  }
+}
+
+///|
+fn register_static_template_ref_type(
+  refs : Array[(String, String)],
+  name : String,
+  next_type : String,
+) -> Unit {
+  for i in 0..<refs.length() {
+    if refs[i].0 == name {
+      refs[i] = (name, merge_template_ref_type(refs[i].1, next_type))
+      return
+    }
+  }
+  refs.push((name, next_type))
+}
+
+///|
+fn infer_template_ref_type(element : TemplateElement) -> String {
+  if element.is_component {
+    return "@js_dom.HTMLElement"
+  }
+  infer_native_template_ref_type(element.tag)
+}
+
+///|
+fn infer_native_template_ref_type(tag : String) -> String {
+  match tag {
+    "a" => "@js_dom.HTMLAnchorElement"
+    "body" => "@js_dom.HTMLBodyElement"
+    "button" => "@js_dom.HTMLButtonElement"
+    "canvas" => "@js_dom.HTMLCanvasElement"
+    "div" => "@js_dom.HTMLDivElement"
+    "form" => "@js_dom.HTMLFormElement"
+    "h1" | "h2" | "h3" | "h4" | "h5" | "h6" =>
+      "@js_dom.HTMLHeadingElement"
+    "head" => "@js_dom.HTMLHeadElement"
+    "html" => "@js_dom.HTMLHtmlElement"
+    "iframe" => "@js_dom.HTMLIFrameElement"
+    "img" => "@js_dom.HTMLImageElement"
+    "input" => "@js_dom.HTMLInputElement"
+    "label" => "@js_dom.HTMLLabelElement"
+    "li" => "@js_dom.HTMLLIElement"
+    "ol" => "@js_dom.HTMLOListElement"
+    "option" => "@js_dom.HTMLOptionElement"
+    "p" => "@js_dom.HTMLParagraphElement"
+    "select" => "@js_dom.HTMLSelectElement"
+    "span" => "@js_dom.HTMLSpanElement"
+    "textarea" => "@js_dom.HTMLTextAreaElement"
+    "ul" => "@js_dom.HTMLUListElement"
+    _ => "@js_dom.HTMLElement"
+  }
+}
+
+///|
+fn merge_template_ref_type(current : String, next_ : String) -> String {
+  if current == next_ {
+    return current
+  }
+  if current == "@js_dom.Element" || next_ == "@js_dom.Element" {
+    return "@js_dom.Element"
+  }
+  "@js_dom.HTMLElement"
+}
+
+///|
+fn find_static_template_ref_type(
+  refs : Array[(String, String)],
+  name : String,
+) -> String? {
+  for ref_ in refs {
+    if ref_.0 == name {
+      return Some(ref_.1)
+    }
+  }
+  None
+}
+
+///|
+fn resolve_template_ref_doc(
+  doc : SfcDocument,
+  resolved_refs : Array[ResolvedTemplateRef],
+) -> SfcDocument {
+  if resolved_refs.is_empty() {
+    return doc
+  }
+  let transformed = match doc.script_setup_transformed {
+    Some(script_setup) => Some(
+      specialize_template_ref_calls(script_setup, resolved_refs),
+    )
+    None => None
+  }
+  let imports = append_unique_import(
+    doc.script_setup_import_entries,
+    "\"mizchi/js/browser/dom\" @js_dom,",
+  )
+  { ..doc, script_setup_transformed: transformed, script_setup_import_entries: imports }
+}
+
+///|
+fn specialize_template_ref_calls(
+  script_setup : String,
+  resolved_refs : Array[ResolvedTemplateRef],
+) -> String {
+  let mut current = script_setup
+  for ref_ in resolved_refs {
+    current = current.replace_all(
+      old="@vm.use_template_ref(" + ref_.arg_source + ")",
+      new="@vm.use_template_ref[" + ref_.type_name + "](" + ref_.arg_source + ")",
+    )
+  }
+  current
+}
+
+///|
+fn append_unique_import(entries : Array[String], entry : String) -> Array[String] {
+  let merged = entries.copy()
+  for current in merged {
+    if current == entry {
+      return merged
+    }
+  }
+  merged.push(entry)
+  merged
+}
+
+///|
+fn bind_template_ref_nodes(
+  nodes : Array[TemplateNode],
+  resolved_refs : Array[ResolvedTemplateRef],
+) -> Array[TemplateNode] {
+  let bound : Array[TemplateNode] = []
+  for node in nodes {
+    bound.push(bind_template_ref_node(node, resolved_refs))
+  }
+  bound
+}
+
+///|
+fn bind_template_ref_node(
+  node : TemplateNode,
+  resolved_refs : Array[ResolvedTemplateRef],
+) -> TemplateNode {
+  match node {
+    Text(_) | Interpolation(_) => node
+    Element(element) =>
+      Element(bind_template_ref_element(element, resolved_refs))
+    Conditional(branches) => {
+      let next_branches = []
+      for branch in branches {
+        next_branches.push({
+          ..branch,
+          element: bind_template_ref_element(branch.element, resolved_refs),
+        })
+      }
+      Conditional(next_branches)
+    }
+    Match(node) => {
+      let next_branches = []
+      for branch in node.branches {
+        next_branches.push({
+          ..branch,
+          element: bind_template_ref_element(branch.element, resolved_refs),
+        })
+      }
+      Match({ expr: node.expr, branches: next_branches })
+    }
+  }
+}
+
+///|
+fn bind_template_ref_element(
+  element : TemplateElement,
+  resolved_refs : Array[ResolvedTemplateRef],
+) -> TemplateElement {
+  let children = bind_template_ref_nodes(element.children, resolved_refs)
+  let ref_binding_name = match element.ref_static_name {
+    Some(name) => find_template_ref_binding_name(resolved_refs, name)
+    None => None
+  }
+  { ..element, children, ref_binding_name }
+}
+
+///|
+fn find_template_ref_binding_name(
+  resolved_refs : Array[ResolvedTemplateRef],
+  name : String,
+) -> String? {
+  for ref_ in resolved_refs {
+    if ref_.binding_name is Some(binding_name) &&
+      ref_.ref_name == Some(name) {
+      return Some(binding_name)
+    }
+  }
+  None
 }
 
 ///|
