@@ -1,0 +1,30 @@
+version 1
+key hub/work-item/14/meta
+kind work-item
+clock mizchi=1
+timestamp 1774521069
+node mizchi
+deleted 0
+
+work-item 14
+title feat: provide/inject for dependency injection
+author mizchi
+created 1774520836
+updated 1774520836
+state open
+
+Vue 3's \`provide\`/\`inject\` pattern for passing data through the component tree without prop drilling is not implemented.
+
+In MoonBit, this could be modeled as a typed context mechanism:
+
+```html
+<script setup>
+let theme = provide("theme", signal("dark"))
+</script>
+```
+
+```html
+<script setup>
+let theme = inject("theme")
+</script>
+```
