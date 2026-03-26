@@ -1,0 +1,38 @@
+version 1
+key hub/work-item/5/meta
+kind work-item
+clock mizchi=1
+timestamp 1774521069
+node mizchi
+deleted 0
+
+work-item 5
+title feat: v-else / v-else-if support
+author mizchi
+created 1774520776
+updated 1774520776
+state open
+label enhancement
+
+## Summary
+
+Add `v-else` and `v-else-if` directive support to the template compiler.
+
+Currently only `v-if` is supported. `v-else` and `v-else-if` are explicitly rejected in `builder_validate.mbt`.
+
+## Expected behavior
+
+```html
+<template>
+  <div v-if='count > 0'>positive</div>
+  <div v-else-if='count == 0'>zero</div>
+  <div v-else>negative</div>
+</template>
+```
+
+Should generate conditional branching in both client and server codegen.
+
+## Notes
+
+- Requires sibling element tracking in the template builder
+- Must validate that `v-else`/`v-else-if` follows a `v-if` or `v-else-if` sibling
