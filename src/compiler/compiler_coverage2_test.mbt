@@ -225,16 +225,16 @@ test "component with dynamic class generates merge" {
   assert_true(output.contains("base"))
 }
 
-// ── v-html on component is rejected ───────────────────────────
+// ── v-unsafe-html on component is rejected ────────────────────
 
 ///|
-test "v-html on component is rejected" {
+test "v-unsafe-html on component is rejected" {
   let source =
     #|<template>
-    #|  <MyWidget v-html='content' />
+    #|  <MyWidget v-unsafe-html='content' />
     #|</template>
-  let error = compile_error(source, "VHtmlComp.mbtv")
-  assert_true(error.contains("v-html"))
+  let error = compile_error(source, "VUnsafeHtmlComp.mbtv")
+  assert_true(error.contains("v-unsafe-html"))
 }
 
 // ── Checkbox v-model (attrs_binding.mbt) ──────────────────────

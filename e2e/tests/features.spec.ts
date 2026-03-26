@@ -182,17 +182,17 @@ let visible = true
   });
 });
 
-test.describe("v-html directive", () => {
-  test("v-html generates raw html rendering", () => {
+test.describe("v-unsafe-html directive", () => {
+  test("v-unsafe-html generates raw html rendering", () => {
     const output = compileSource(
       `<script setup>
 let html_content = "<b>bold</b>"
 </script>
 
 <template>
-  <div v-html='html_content'></div>
+  <div v-unsafe-html='html_content'></div>
 </template>`,
-      "VHtml.mbtv"
+      "VUnsafeHtml.mbtv"
     );
 
     expect(output.server_code).toContain("raw_html");
