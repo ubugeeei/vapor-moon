@@ -107,6 +107,24 @@ pub fn attr_handler(handler : (@js.Any) -> Unit) -> @luna_dom.AttrValue {
 }
 
 ///|
+extern "js" fn attach_event_modifiers(
+  handler : (@js.Any) -> Unit,
+  modifiers : Array[String],
+) -> (@js.Any) -> Unit =
+  #| (handler, modifiers) => {
+  #|   handler.__vaporMoonModifiers = modifiers.slice();
+  #|   return handler;
+  #| }
+
+///|
+pub fn attr_handler_with_modifiers(
+  handler : (@js.Any) -> Unit,
+  modifiers : Array[String],
+) -> @luna_dom.AttrValue {
+  @luna_dom.attr_handler(attach_event_modifiers(handler, modifiers))
+}
+
+///|
 pub fn attr_style(style : String) -> @luna_dom.AttrValue {
   @luna_dom.attr_style(style)
 }
@@ -282,6 +300,13 @@ extern "js" fn bind_event_handler(
   #|     const capture = new Set(["blur", "focus"]);
   #|     const docs = new WeakMap();
   #|     const storeKey = "__vaporMoonHandlers";
+  #|     const modifierKey = "__vaporMoonModifiers";
+  #|     const normalizeTarget = (target) => {
+  #|       if (target && target.nodeType === 3) {
+  #|         return target.parentNode;
+  #|       }
+  #|       return target;
+  #|     };
   #|     const wrapEvent = (event, currentTarget) =>
   #|       new Proxy(event, {
   #|         get(target, prop) {
@@ -295,16 +320,45 @@ extern "js" fn bind_event_handler(
   #|           return typeof value === "function" ? value.bind(target) : value;
   #|         },
   #|       });
-  #|     const dispatch = (name, event) => {
-  #|       let current = event.target;
-  #|       if (current && current.nodeType === 3) {
-  #|         current = current.parentNode;
+  #|     const handlerModifiers = (handler) => {
+  #|       if (!handler || !Array.isArray(handler[modifierKey])) {
+  #|         return [];
   #|       }
+  #|       return handler[modifierKey].slice();
+  #|     };
+  #|     const listenerOptions = (modifiers) => {
+  #|       let options = null;
+  #|       for (const modifier of modifiers) {
+  #|         if (modifier !== "capture" && modifier !== "once" && modifier !== "passive") {
+  #|           continue;
+  #|         }
+  #|         options ??= {};
+  #|         options[modifier] = true;
+  #|       }
+  #|       return options;
+  #|     };
+  #|     const runHandler = (handler, modifiers, event, currentTarget) => {
+  #|       const wrapped = wrapEvent(event, currentTarget);
+  #|       const target = normalizeTarget(wrapped.target);
+  #|       for (const modifier of modifiers) {
+  #|         if (modifier === "stop") {
+  #|           wrapped.stopPropagation();
+  #|         } else if (modifier === "prevent") {
+  #|           wrapped.preventDefault?.();
+  #|         } else if (modifier === "self") {
+  #|           if (target !== currentTarget) {
+  #|             return;
+  #|           }
+  #|         }
+  #|       }
+  #|       handler(wrapped);
+  #|     };
+  #|     const dispatch = (name, event) => {
+  #|       let current = normalizeTarget(event.target);
   #|       while (current) {
   #|         const candidate = current[storeKey]?.[name];
   #|         if (candidate) {
-  #|           const currentTarget = current;
-  #|           candidate(wrapEvent(event, currentTarget));
+  #|           runHandler(candidate.handler, candidate.modifiers, event, current);
   #|           if (event.cancelBubble) {
   #|             return;
   #|           }
@@ -312,22 +366,37 @@ extern "js" fn bind_event_handler(
   #|         current = current.parentNode || current.host || null;
   #|       }
   #|     };
-  #|     return { direct, capture, docs, storeKey, dispatch };
+  #|     return {
+  #|       direct,
+  #|       capture,
+  #|       docs,
+  #|       storeKey,
+  #|       dispatch,
+  #|       handlerModifiers,
+  #|       listenerOptions,
+  #|       runHandler,
+  #|     };
   #|   })();
   #|
-  #|   if (runtime.direct.has(name)) {
-  #|     elem.addEventListener(name, handler);
+  #|   const modifiers = runtime.handlerModifiers(handler);
+  #|   const options = runtime.listenerOptions(modifiers);
+  #|   const bindDirect = runtime.direct.has(name) || options !== null;
+  #|
+  #|   if (bindDirect) {
+  #|     const listener = (event) => runtime.runHandler(handler, modifiers, event, elem);
+  #|     elem.addEventListener(name, listener, options ?? false);
   #|     return;
   #|   }
   #|
   #|   const doc = elem.ownerDocument ?? globalThis.document;
   #|   if (!doc) {
-  #|     elem.addEventListener(name, handler);
+  #|     const listener = (event) => runtime.runHandler(handler, modifiers, event, elem);
+  #|     elem.addEventListener(name, listener, options ?? false);
   #|     return;
   #|   }
   #|
   #|   const store = elem[runtime.storeKey] ??= Object.create(null);
-  #|   store[name] = handler;
+  #|   store[name] = { handler, modifiers };
   #|
   #|   let listeners = runtime.docs.get(doc);
   #|   if (!listeners) {

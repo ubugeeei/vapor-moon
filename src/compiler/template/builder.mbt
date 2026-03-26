@@ -487,7 +487,9 @@ fn build_match_node(
 }
 
 ///|
-fn classify_template_attr(attr : ParsedTemplateAttr) -> TemplateAttr {
+fn classify_template_attr(
+  attr : ParsedTemplateAttr,
+) -> TemplateAttr raise CompilerError {
   if attr.name.has_prefix(":") {
     {
       kind: Dynamic,
@@ -497,6 +499,7 @@ fn classify_template_attr(attr : ParsedTemplateAttr) -> TemplateAttr {
       } else {
         String::unsafe_substring(attr.name, start=1, end=attr.name.length())
       },
+      modifiers: [],
     }
   } else if attr.name.has_prefix("v-bind:") {
     {
@@ -507,22 +510,33 @@ fn classify_template_attr(attr : ParsedTemplateAttr) -> TemplateAttr {
       } else {
         String::unsafe_substring(attr.name, start=7, end=attr.name.length())
       },
+      modifiers: [],
     }
   } else if attr.name.has_prefix("@") {
+    let (name, modifiers) = parse_event_attr(
+      String::unsafe_substring(attr.name, start=1, end=attr.name.length()),
+      attr.name,
+    )
     {
       kind: Event,
-      name: String::unsafe_substring(attr.name, start=1, end=attr.name.length()),
+      name,
       value: attr.value,
+      modifiers,
     }
   } else if attr.name.has_prefix("v-on:") {
+    let (name, modifiers) = parse_event_attr(
+      String::unsafe_substring(attr.name, start=5, end=attr.name.length()),
+      attr.name,
+    )
     {
       kind: Event,
-      name: String::unsafe_substring(attr.name, start=5, end=attr.name.length()),
+      name,
       value: attr.value,
+      modifiers,
     }
   } else if attr.has_value {
-    { kind: Static, name: attr.name, value: attr.value }
+    { kind: Static, name: attr.name, value: attr.value, modifiers: [] }
   } else {
-    { kind: Boolean, name: attr.name, value: "true" }
+    { kind: Boolean, name: attr.name, value: "true", modifiers: [] }
   }
 }

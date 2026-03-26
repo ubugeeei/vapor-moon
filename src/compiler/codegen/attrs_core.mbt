@@ -103,12 +103,7 @@ fn render_client_attr(attr : TemplateAttr, static_mode : Bool) -> String {
         attr.value +
         ".to_string() }))"
       }
-    Event =>
-      "(\"" +
-      attr.name +
-      "\", @vm_dom.attr_handler(fn(_event) { " +
-      attr.value +
-      " }))"
+    Event => render_client_event_attr(attr)
     Boolean => "(\"" + attr.name + "\", @vm_dom.attr_static(\"\"))"
   }
 }
@@ -147,4 +142,32 @@ fn push_if_some(parts : Array[String], value : String?) -> Unit {
     Some(item) => parts.push(item)
     None => ()
   }
+}
+
+///|
+fn render_client_event_attr(attr : TemplateAttr) -> String {
+  let handler = "fn(_event) { " + attr.value + " }"
+  if attr.modifiers.is_empty() {
+    "(\"" + attr.name + "\", @vm_dom.attr_handler(" + handler + "))"
+  } else {
+    "(\"" +
+    attr.name +
+    "\", @vm_dom.attr_handler_with_modifiers(" +
+    handler +
+    ", " +
+    render_string_array(attr.modifiers) +
+    "))"
+  }
+}
+
+///|
+fn render_string_array(values : Array[String]) -> String {
+  if values.is_empty() {
+    return "[]"
+  }
+  let quoted : Array[String] = []
+  for value in values {
+    quoted.push(quote(value))
+  }
+  "[" + quoted.join(", ") + "]"
 }

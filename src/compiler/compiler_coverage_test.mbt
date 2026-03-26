@@ -378,6 +378,24 @@ test "event handler generates attr_handler" {
 }
 
 ///|
+test "event modifiers generate attr_handler_with_modifiers" {
+  let source =
+    #|<script setup>
+    #|fn save() { () }
+    #|</script>
+    #|
+    #|<template>
+    #|  <button @click.stop.prevent.self='save()'>save</button>
+    #|  <button @click.capture.once.passive='save()'>options</button>
+    #|</template>
+  let output = compile_snapshot(source, "EventModifiers.mbtv")
+  assert_true(output.contains("attr_handler_with_modifiers"))
+  assert_true(output.contains("[\"stop\", \"prevent\", \"self\"]"))
+  assert_true(output.contains("[\"capture\", \"once\", \"passive\"]"))
+  assert_true(output.contains("save()"))
+}
+
+///|
 test "deeply nested elements compile correctly" {
   let source =
     #|<template>
