@@ -153,6 +153,10 @@ fn validate_template_node(
         }
         validate_template_node(Element(branch.element), binding, filename)
       }
+    Match(node) =>
+      for branch in node.branches {
+        validate_template_node(Element(branch.element), binding, filename)
+      }
   }
 }
 

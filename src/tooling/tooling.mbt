@@ -194,5 +194,13 @@ fn collect_template_metadata(
           island_components,
         )
       }
+    @compiler_common.Match(node) =>
+      for branch in node.branches {
+        collect_template_metadata(
+          @compiler_common.Element(branch.element),
+          expressions,
+          island_components,
+        )
+      }
   }
 }

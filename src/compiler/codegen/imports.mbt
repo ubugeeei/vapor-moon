@@ -2,6 +2,8 @@
 using @common {
   type ConditionalBranch,
   type GenericParam,
+  type MatchBranch,
+  type MatchNode,
   type IslandMode,
   type MacroField,
   type MacroFieldTypeShape,

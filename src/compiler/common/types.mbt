@@ -165,6 +165,9 @@ pub(all) struct TemplateElement {
   once : Bool
   else_if_expr : String?
   is_else : Bool
+  match_expr : String?
+  case_pattern : String?
+  is_case_default : Bool
 } derive(Eq, Show)
 
 ///|
@@ -174,11 +177,25 @@ pub(all) struct ConditionalBranch {
 } derive(Eq, Show)
 
 ///|
+pub(all) struct MatchBranch {
+  pattern : String
+  is_default : Bool
+  element : TemplateElement
+} derive(Eq, Show)
+
+///|
+pub(all) struct MatchNode {
+  expr : String
+  branches : Array[MatchBranch]
+} derive(Eq, Show)
+
+///|
 pub(all) enum TemplateNode {
   Element(TemplateElement)
   Text(String)
   Interpolation(String)
   Conditional(Array[ConditionalBranch])
+  Match(MatchNode)
 } derive(Eq, Show)
 
 ///|
