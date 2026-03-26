@@ -1,8 +1,8 @@
 version 1
 key hub/work-item/20/meta
 kind work-item
-clock mizchi=1
-timestamp 1774521069
+clock mizchi=2
+timestamp 1774521255
 node mizchi
 deleted 0
 
@@ -10,13 +10,16 @@ work-item 20
 title feat: dynamic components (<component :is>)
 author mizchi
 created 1774520866
-updated 1774520866
+updated 1774521255
 state open
+label medium
 
-Vue 3's dynamic component rendering via \`<component :is=\"currentComponent\">\` is not implemented.
+Render components dynamically based on a runtime value.
 
 ```html
-<template>
-  <component :is='activeTab' />
-</template>
+<component :is='currentTab' />
 ```
+
+Requires component registry or resolution mechanism. Depends on #13 (component linking).
+
+Priority: Medium
