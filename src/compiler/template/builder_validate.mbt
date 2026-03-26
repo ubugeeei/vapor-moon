@@ -43,7 +43,7 @@ fn expect_attr_value(
   attr : ParsedTemplateAttr,
   tag : String,
 ) -> String raise CompilerError {
-  if attr.has_value && attr.value.trim().length() > 0 {
+  if attr.has_value && not(attr.value.trim().is_empty()) {
     return attr.value
   }
   raise CompilerError::InvalidDirective(
@@ -83,7 +83,7 @@ fn validate_normalized_attr(
 ) -> Unit raise CompilerError {
   match attr.kind {
     Event => {
-      if attr.name.trim().length() == 0 {
+      if attr.name.trim().is_empty() {
         raise CompilerError::InvalidDirective(
           "event directive requires an event name on <\{tag}>",
         )
@@ -98,14 +98,14 @@ fn validate_normalized_attr(
           "event modifiers are not supported on <\{tag}>: `\{raw_attr.name}`",
         )
       }
-      if not(raw_attr.has_value) || raw_attr.value.trim().length() == 0 {
+      if not(raw_attr.has_value) || raw_attr.value.trim().is_empty() {
         raise CompilerError::InvalidDirective(
           "`\{raw_attr.name}` requires an expression",
         )
       }
     }
     Dynamic => {
-      if attr.name.trim().length() == 0 {
+      if attr.name.trim().is_empty() {
         raise CompilerError::InvalidDirective(
           "binding directive requires an attribute name on <\{tag}>",
         )

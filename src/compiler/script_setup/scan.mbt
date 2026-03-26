@@ -6,10 +6,10 @@ fn parse_script_setup_module_with_contracts(
   let statements : Array[ScriptSetupStatement] = []
   let contracts : Array[ScriptSetupContractType] = []
   for chunk in split_top_level_statements(source) {
-    let trimmed = chunk.trim().to_string()
-    if trimmed.length() == 0 {
+    if chunk.trim().is_empty() {
       continue
     }
+    let trimmed = chunk.trim().to_string()
     if is_script_setup_import_statement(trimmed) {
       for statement in expand_import_statement(trimmed, filename) {
         statements.push(statement)

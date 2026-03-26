@@ -16,7 +16,7 @@ pub fn emit_client_module(
   sb.write_string(emit_component_contracts(doc, component_name, true))
   sb.write_string(render_component_signature(doc, component_name, true))
   if doc.script_setup_transformed is Some(script_setup) &&
-    script_setup.trim().length() > 0 {
+    not(script_setup.trim().is_empty()) {
     sb.write_string(indent_block(script_setup.trim().to_string(), 2))
     sb.write_string("\n")
   }
@@ -53,7 +53,7 @@ pub fn emit_server_module(
   sb.write_string(emit_component_contracts(doc, component_name, false))
   sb.write_string(render_component_signature(doc, component_name, false))
   if doc.script_setup_transformed is Some(script_setup) &&
-    script_setup.trim().length() > 0 {
+    not(script_setup.trim().is_empty()) {
     sb.write_string(indent_block(script_setup.trim().to_string(), 2))
     sb.write_string("\n")
   }

@@ -114,31 +114,28 @@ fn is_identifier_literal(source : String) -> Bool {
   if source.length() == 0 {
     return false
   }
-  let chars = source.to_array()
-  let first = chars[0]
+  let first = source[0].to_int()
   if not(
-      (first >= 'a' && first <= 'z') ||
-      (first >= 'A' && first <= 'Z') ||
-      first == '_' ||
-      first == '$',
+      (first >= 'a'.to_int() && first <= 'z'.to_int()) ||
+      (first >= 'A'.to_int() && first <= 'Z'.to_int()) ||
+      first == '_'.to_int() ||
+      first == '$'.to_int(),
     ) {
     return false
   }
-  let mut cursor = 1
-  while cursor < chars.length() {
-    if not(is_identifier_char(chars[cursor])) {
+  for i in 1..<source.length() {
+    if not(is_identifier_charcode(source[i].to_int())) {
       return false
     }
-    cursor += 1
   }
   true
 }
 
 ///|
-fn is_identifier_char(c : Char) -> Bool {
-  (c >= 'a' && c <= 'z') ||
-  (c >= 'A' && c <= 'Z') ||
-  (c >= '0' && c <= '9') ||
-  c == '_' ||
-  c == '$'
+fn is_identifier_charcode(c : Int) -> Bool {
+  (c >= 'a'.to_int() && c <= 'z'.to_int()) ||
+  (c >= 'A'.to_int() && c <= 'Z'.to_int()) ||
+  (c >= '0'.to_int() && c <= '9'.to_int()) ||
+  c == '_'.to_int() ||
+  c == '$'.to_int()
 }

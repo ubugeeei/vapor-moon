@@ -5,7 +5,7 @@ fn parse_model_attr(
   if not(attr.name.has_prefix("v-model")) {
     return None
   }
-  if not(attr.has_value) || attr.value.trim().length() == 0 {
+  if not(attr.has_value) || attr.value.trim().is_empty() {
     raise CompilerError::InvalidDirective(
       "`\{attr.name}` requires an expression",
     )

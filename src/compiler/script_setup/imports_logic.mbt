@@ -68,7 +68,7 @@ fn parse_import_statement(
   let entries : Array[String] = []
   for line in split_top_level(body, ',') {
     let trimmed = line.trim().to_string()
-    if trimmed.length() == 0 {
+    if trimmed.is_empty() {
       continue
     }
     let entry = if trimmed.has_suffix(",") { trimmed } else { trimmed + "," }
