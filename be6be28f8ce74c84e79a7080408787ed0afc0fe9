@@ -1,0 +1,26 @@
+version 1
+key hub/work-item/13/meta
+kind work-item
+clock mizchi=1
+timestamp 1774521069
+node mizchi
+deleted 0
+
+work-item 13
+title feat: component import and linking across .mbtv files
+author mizchi
+created 1774520835
+updated 1774520835
+state open
+
+README lists this as intentionally excluded: \"a finalized component import / linking story across generated files\".
+
+When \`<CounterPanel>\` is used in a template, there is no mechanism to resolve it to another \`.mbtv\` file, compile it, and link the generated modules together.
+
+This is the most critical gap for building real applications.
+
+## Needed
+
+- Convention for component resolution (file-based or explicit import)
+- Cross-file dependency tracking
+- Bundle/module assembly from compiled outputs
