@@ -6,10 +6,19 @@
 pub struct IncrementalCompiler {
   db : @ripple.Database
   file_sources : @ripple.Input[String, String]
-  sfc_query : @ripple.Query[String, Result[@common.SfcDocument, @common.CompilerError]]
-  template_query : @ripple.Query[String, Result[Array[@common.TemplateNode], @common.CompilerError]]
+  sfc_query : @ripple.Query[
+    String,
+    Result[@common.SfcDocument, @common.CompilerError],
+  ]
+  template_query : @ripple.Query[
+    String,
+    Result[Array[@common.TemplateNode], @common.CompilerError],
+  ]
   css_query : @ripple.Query[String, Result[String, @common.CompilerError]]
-  compile_query : @ripple.Query[String, Result[@common.CompileOutput, @common.CompilerError]]
+  compile_query : @ripple.Query[
+    String,
+    Result[@common.CompileOutput, @common.CompilerError],
+  ]
 }
 
 ///|
@@ -21,28 +30,36 @@ pub fn IncrementalCompiler::new() -> IncrementalCompiler {
   let not_found = fn(filename : String) -> @common.CompilerError {
     @common.CompilerError::InvalidSfc("file not found: " + filename)
   }
-  let sfc_query : @ripple.Query[String, Result[@common.SfcDocument, @common.CompilerError]] = db.query(
-    fn(rt, filename) {
-      match file_sources.get(rt, filename) {
-        Some(source) =>
-          try { Ok(@compiler.parse_sfc(source, filename~)) } catch { e => Err(e) }
-        None => Err(not_found(filename))
-      }
-    },
-  )
+  let sfc_query : @ripple.Query[
+    String,
+    Result[@common.SfcDocument, @common.CompilerError],
+  ] = db.query(fn(rt, filename) {
+    match file_sources.get(rt, filename) {
+      Some(source) =>
+        Ok(@compiler.parse_sfc(source, filename~)) catch {
+          e => Err(e)
+        }
+      None => Err(not_found(filename))
+    }
+  })
   sfc_query.register(rt)
-  let template_query : @ripple.Query[String, Result[Array[@common.TemplateNode], @common.CompilerError]] = db.query(
-    fn(rt, filename) {
-      match sfc_query.fetch(rt, filename) {
-        Ok(doc) =>
-          try { Ok(@compiler.parse_template(doc.template)) } catch { e => Err(e) }
-        Err(e) => Err(e)
-      }
-    },
-  )
+  let template_query : @ripple.Query[
+    String,
+    Result[Array[@common.TemplateNode], @common.CompilerError],
+  ] = db.query(fn(rt, filename) {
+    match sfc_query.fetch(rt, filename) {
+      Ok(doc) =>
+        Ok(@compiler.parse_template(doc.template)) catch {
+          e => Err(e)
+        }
+      Err(e) => Err(e)
+    }
+  })
   template_query.register(rt)
-  let css_query : @ripple.Query[String, Result[String, @common.CompilerError]] = db.query(
-    fn(rt, filename) {
+  let css_query : @ripple.Query[String, Result[String, @common.CompilerError]] = db.query(fn(
+      rt,
+      filename,
+    ) {
       match sfc_query.fetch(rt, filename) {
         Ok(doc) => {
           let scope_id = @compiler.compute_scope_id(doc, filename)
@@ -53,23 +70,22 @@ pub fn IncrementalCompiler::new() -> IncrementalCompiler {
     },
   )
   css_query.register(rt)
-  let compile_query : @ripple.Query[String, Result[@common.CompileOutput, @common.CompilerError]] = db.query(
-    fn(rt, filename) {
-      let doc = match sfc_query.fetch(rt, filename) {
-        Ok(doc) => doc
-        Err(e) => return Err(e)
-      }
-      let template = match template_query.fetch(rt, filename) {
-        Ok(nodes) => nodes
-        Err(e) => return Err(e)
-      }
-      try {
-        Ok(@compiler.compile_from_parts(doc, template, filename))
-      } catch {
-        e => Err(e)
-      }
-    },
-  )
+  let compile_query : @ripple.Query[
+    String,
+    Result[@common.CompileOutput, @common.CompilerError],
+  ] = db.query(fn(rt, filename) {
+    let doc = match sfc_query.fetch(rt, filename) {
+      Ok(doc) => doc
+      Err(e) => return Err(e)
+    }
+    let template = match template_query.fetch(rt, filename) {
+      Ok(nodes) => nodes
+      Err(e) => return Err(e)
+    }
+    Ok(@compiler.compile_from_parts(doc, template, filename)) catch {
+      e => Err(e)
+    }
+  })
   compile_query.register(rt)
   { db, file_sources, sfc_query, template_query, css_query, compile_query }
 }

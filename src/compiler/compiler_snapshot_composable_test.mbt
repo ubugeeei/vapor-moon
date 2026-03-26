@@ -36,30 +36,30 @@ test "snapshot composable counter compile" {
       #|  }
       #|  let counter = useCounter(2)
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.element("section")
-      #|      @vm_dom.apply_attr_entry(__vm_el, ("class", @vm_dom.attr_static("composable")))
-      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.element("button")
-      #|                @vm_dom.apply_attr_entry(__vm_el, ("click", @vm_dom.attr_handler(fn(_event) { counter.count.update(fn(n) { n + 1 }) })))
-      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text("inc"))
-      #|                @vm_dom.to_node(__vm_el)
+      #|      let __vm_el = @vm_dom.el("section")
+      #|      @vm_dom.setAttr(__vm_el, ("class", @vm_dom.attr("composable")))
+      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @vm_dom.el("button")
+      #|                @vm_dom.setAttr(__vm_el, ("click", @vm_dom.on(fn(_event) { counter.count.update(fn(n) { n + 1 }) })))
+      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.text("inc"))
+      #|                @vm_dom.into(__vm_el)
       #|              })())
-      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.element("p")
-      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { counter.count.get().to_string() }))
-      #|                @vm_dom.to_node(__vm_el)
+      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @vm_dom.el("p")
+      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { counter.count.get().to_string() }))
+      #|                @vm_dom.into(__vm_el)
       #|              })())
-      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.element("p")
-      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { counter.doubled().to_string() }))
-      #|                @vm_dom.to_node(__vm_el)
+      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @vm_dom.el("p")
+      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { counter.doubled().to_string() }))
+      #|                @vm_dom.into(__vm_el)
       #|              })())
-      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.element("small")
-      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { counter.last_change.get().to_string() }))
-      #|                @vm_dom.to_node(__vm_el)
+      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @vm_dom.el("small")
+      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { counter.last_change.get().to_string() }))
+      #|                @vm_dom.into(__vm_el)
       #|              })())
-      #|      @vm_dom.to_node(__vm_el)
+      #|      @vm_dom.into(__vm_el)
       #|    })()
       #|}
       #|

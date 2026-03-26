@@ -123,9 +123,9 @@ fn render_attr_expr(
 fn render_class_value(expr : String, dynamic : Bool, client : Bool) -> String {
   if client {
     if dynamic {
-      "(\"class\", @vm_dom.attr_dynamic(fn() { " + expr + " }))"
+      "(\"class\", @vm_dom.dynAttr(fn() { " + expr + " }))"
     } else {
-      "(\"class\", @vm_dom.attr_static(" + expr + "))"
+      "(\"class\", @vm_dom.attr(" + expr + "))"
     }
   } else if dynamic {
     "(\"class\", @luna_core.attr_dynamic(fn() { " + expr + " }))"
@@ -138,9 +138,9 @@ fn render_class_value(expr : String, dynamic : Bool, client : Bool) -> String {
 fn render_style_value(expr : String, dynamic : Bool, client : Bool) -> String {
   if client {
     if dynamic {
-      "(\"style\", @vm_dom.attr_dynamic_style(fn() { " + expr + " }))"
+      "(\"style\", @vm_dom.dynStyle(fn() { " + expr + " }))"
     } else {
-      "(\"style\", @vm_dom.attr_style(" + expr + "))"
+      "(\"style\", @vm_dom.style(" + expr + "))"
     }
   } else if dynamic {
     "(\"style\", @luna_core.attr_dynamic(fn() { " + expr + " }))"

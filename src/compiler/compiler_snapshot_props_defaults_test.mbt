@@ -45,9 +45,9 @@ test "snapshot props defaults compile" {
       #|    tone: __vm_props_input.tone.unwrap_or("primary"),
       #|  }
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.element("div")
-      #|      @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { props.title + ":" + props.count.to_string() + ":" + props.tone.to_string() }))
-      #|      @vm_dom.to_node(__vm_el)
+      #|      let __vm_el = @vm_dom.el("div")
+      #|      @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { props.title + ":" + props.count.to_string() + ":" + props.tone.to_string() }))
+      #|      @vm_dom.into(__vm_el)
       #|    })()
       #|}
       #|

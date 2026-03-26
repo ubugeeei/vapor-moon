@@ -192,11 +192,11 @@ test "error then fix: recovers and compiles successfully" {
   let f = "Recover.mbtv"
   // set broken source
   ic.set_source(f, fixture_broken()) |> ignore
-  let err_result = try { Ok(ic.compile(f)) } catch { e => Err(e) }
+  let err_result = Ok(ic.compile(f)) catch { e => Err(e) }
   assert_true(err_result is Err(_))
   // fix the source
   ic.set_source(f, fixture_full()) |> ignore
-  let ok_result = try { Ok(ic.compile(f)) } catch { e => Err(e) }
+  let ok_result = Ok(ic.compile(f)) catch { e => Err(e) }
   assert_true(ok_result is Ok(_))
 }
 

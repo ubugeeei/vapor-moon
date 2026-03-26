@@ -18,7 +18,10 @@ test "plain script blocks default to setup scope" {
     #|let count = 1
     #|</script>
     #|<template><div>{{ count.to_string() }}</div></template>
-  let output = compile(source, filename="examples/plain_script_defaults_to_setup.mbtv") catch {
+  let output = compile(
+    source,
+    filename="examples/plain_script_defaults_to_setup.mbtv",
+  ) catch {
     err => {
       ignore(err)
       panic()
@@ -47,10 +50,14 @@ test "script extern is emitted at module scope" {
     }
   }
   assert_true(
-    output.client_code.contains("fn read_shared() -> Int { shared }\n\npub fn render_dom"),
+    output.client_code.contains(
+      "fn read_shared() -> Int { shared }\n\npub fn render_dom",
+    ),
   )
   assert_true(
-    output.server_code.contains("fn read_shared() -> Int { shared }\n\npub fn render_ssr"),
+    output.server_code.contains(
+      "fn read_shared() -> Int { shared }\n\npub fn render_ssr",
+    ),
   )
 }
 
@@ -281,7 +288,7 @@ test "accepts template block comments with closing tags" {
       panic()
     }
   }
-  assert_true(output.client_code.contains("element(\"div\")"))
+  assert_true(output.client_code.contains("el(\"div\")"))
 }
 
 ///|
@@ -363,7 +370,7 @@ test "accepts template block comments with nested template markers" {
       panic()
     }
   }
-  assert_true(output.client_code.contains("element(\"div\")"))
+  assert_true(output.client_code.contains("el(\"div\")"))
 }
 
 ///|
@@ -595,10 +602,7 @@ test "scoped false disables style scoping" {
     #|<style scoped="false">
     #|.root { color: red; }
     #|</style>
-  let output = compile(
-    source,
-    filename="examples/unscoped_style_opt_out.mbtv",
-  ) catch {
+  let output = compile(source, filename="examples/unscoped_style_opt_out.mbtv") catch {
     err => {
       ignore(err)
       panic()

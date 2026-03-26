@@ -15,11 +15,11 @@ test "snapshot basic compile" {
       #|  let signal = @reactivity.signal,
       #|  let count = signal(0)
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.element("div")
-      #|      @vm_dom.apply_attr_entry(__vm_el, ("class", @vm_dom.attr_static("counter")))
-      #|      @vm_dom.apply_attr_entry(__vm_el, ("data-vm-scope", @vm_dom.attr_static("vm-4048536636")))
-      #|      @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { count.get().to_string() }))
-      #|      @vm_dom.to_node(__vm_el)
+      #|      let __vm_el = @vm_dom.el("div")
+      #|      @vm_dom.setAttr(__vm_el, ("class", @vm_dom.attr("counter")))
+      #|      @vm_dom.setAttr(__vm_el, ("data-vm-scope", @vm_dom.attr("vm-4048536636")))
+      #|      @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { count.get().to_string() }))
+      #|      @vm_dom.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -125,11 +125,11 @@ test "snapshot macros compile" {
       #|    cancel : Unit
       #|  }
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.element("button")
-      #|      @vm_dom.apply_attr_entry(__vm_el, ("click", @vm_dom.attr_handler(fn(_event) { emit.save() })))
-      #|      @vm_dom.apply_attr_entry(__vm_el, ("class", @vm_dom.attr_static("primary")))
-      #|      @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { props.title.to_string() }))
-      #|      @vm_dom.to_node(__vm_el)
+      #|      let __vm_el = @vm_dom.el("button")
+      #|      @vm_dom.setAttr(__vm_el, ("click", @vm_dom.on(fn(_event) { emit.save() })))
+      #|      @vm_dom.setAttr(__vm_el, ("class", @vm_dom.attr("primary")))
+      #|      @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { props.title.to_string() }))
+      #|      @vm_dom.into(__vm_el)
       #|    })()
       #|}
       #|

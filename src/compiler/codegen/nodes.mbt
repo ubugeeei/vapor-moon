@@ -8,7 +8,7 @@ fn render_client_nodes(
     indent_block(render_client_node(nodes[0], indent, scope_id, false), indent)
   } else {
     let children = render_client_children(nodes, indent, scope_id, false)
-    indent_block("@vm_dom.fragment(" + children + ")", indent)
+    indent_block("@vm_dom.frag(" + children + ")", indent)
   }
 }
 
@@ -39,7 +39,7 @@ fn render_client_node(
       if static_mode {
         "@vm_dom.text(" + expr + ".to_string())"
       } else {
-        "@vm_dom.text_expr(fn() { " + expr + ".to_string() })"
+        "@vm_dom.setText(fn() { " + expr + ".to_string() })"
       }
     Element(element) => {
       let next_static = static_mode || element.once
@@ -52,8 +52,7 @@ fn render_client_node(
     }
     Conditional(branches) =>
       render_client_conditional(branches, indent, scope_id, static_mode)
-    Match(node) =>
-      render_client_match(node, indent, scope_id, static_mode)
+    Match(node) => render_client_match(node, indent, scope_id, static_mode)
   }
 }
 
@@ -68,7 +67,10 @@ fn render_client_match(
   sb.write_string("match " + node.expr + " {\n")
   for branch in node.branches {
     let rendered = render_client_node(
-      Element(branch.element), indent + 4, scope_id, static_mode,
+      Element(branch.element),
+      indent + 4,
+      scope_id,
+      static_mode,
     )
     sb.write_string(spaces(indent + 2) + branch.pattern + " =>\n")
     sb.write_string(indent_block(rendered, indent + 4))
@@ -88,7 +90,10 @@ fn render_client_conditional(
   let sb = StringBuilder::new()
   for i, branch in branches {
     let rendered = render_client_node(
-      Element(branch.element), indent + 2, scope_id, static_mode,
+      Element(branch.element),
+      indent + 2,
+      scope_id,
+      static_mode,
     )
     match branch.condition {
       Some(condition) =>
@@ -116,7 +121,7 @@ fn render_client_append_statements(
   let statements : Array[String] = []
   for node in nodes {
     statements.push(
-      "@vm_dom.append_child(" +
+      "@vm_dom.append(" +
       target_expr +
       ", " +
       render_client_node(node, indent + 2, scope_id, static_mode) +
@@ -152,8 +157,7 @@ fn render_server_node(
     }
     Conditional(branches) =>
       render_server_conditional(branches, indent, scope_id, static_mode)
-    Match(node) =>
-      render_server_match(node, indent, scope_id, static_mode)
+    Match(node) => render_server_match(node, indent, scope_id, static_mode)
   }
 }
 
@@ -168,7 +172,10 @@ fn render_server_match(
   sb.write_string("match " + node.expr + " {\n")
   for branch in node.branches {
     let rendered = render_server_node(
-      Element(branch.element), indent + 4, scope_id, static_mode,
+      Element(branch.element),
+      indent + 4,
+      scope_id,
+      static_mode,
     )
     sb.write_string(spaces(indent + 2) + branch.pattern + " =>\n")
     sb.write_string(indent_text(rendered, indent + 4))
@@ -188,7 +195,10 @@ fn render_server_conditional(
   let sb = StringBuilder::new()
   for i, branch in branches {
     let rendered = render_server_node(
-      Element(branch.element), indent + 2, scope_id, static_mode,
+      Element(branch.element),
+      indent + 2,
+      scope_id,
+      static_mode,
     )
     match branch.condition {
       Some(condition) =>
@@ -219,7 +229,7 @@ fn wrap_client_directives(
   match element.for_binding {
     Some(binding) => {
       let index_name = binding.index.unwrap_or("_index")
-      current = "@vm_dom.for_each(fn() { " +
+      current = "@vm_dom.each(fn() { " +
         binding.source +
         " }, fn(" +
         binding.value +

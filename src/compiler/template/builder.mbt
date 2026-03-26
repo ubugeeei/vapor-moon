@@ -350,7 +350,7 @@ fn append_node(
     stack[stack.length() - 1].element.match_expr is Some(_)
   }
   match node {
-    Element(element) => {
+    Element(element) =>
       if element.else_if_expr is Some(_) || element.is_else {
         append_conditional_branch(target, element)
       } else if (element.case_pattern is Some(_) || element.is_case_default) &&
@@ -363,7 +363,6 @@ fn append_node(
       } else {
         target.push(node)
       }
-    }
     _ => target.push(node)
   }
 }
@@ -523,23 +522,13 @@ fn classify_template_attr(
       String::unsafe_substring(attr.name, start=1, end=attr.name.length()),
       attr.name,
     )
-    {
-      kind: Event,
-      name,
-      value: attr.value,
-      modifiers,
-    }
+    { kind: Event, name, value: attr.value, modifiers }
   } else if attr.name.has_prefix("v-on:") {
     let (name, modifiers) = parse_event_attr(
       String::unsafe_substring(attr.name, start=5, end=attr.name.length()),
       attr.name,
     )
-    {
-      kind: Event,
-      name,
-      value: attr.value,
-      modifiers,
-    }
+    { kind: Event, name, value: attr.value, modifiers }
   } else if attr.has_value {
     { kind: Static, name: attr.name, value: attr.value, modifiers: [] }
   } else {

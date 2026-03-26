@@ -6,10 +6,10 @@ fn render_client_element(
   static_mode : Bool,
 ) -> String {
   let statements : Array[String] = [
-    "let __vm_el = @vm_dom.element(" + quote(element.tag) + ")",
+    "let __vm_el = @vm_dom.el(" + quote(element.tag) + ")",
   ]
   for attr in collect_client_attr_entries(element, scope_id, static_mode) {
-    statements.push("@vm_dom.apply_attr_entry(__vm_el, " + attr + ")")
+    statements.push("@vm_dom.setAttr(__vm_el, " + attr + ")")
   }
   if element.html_expr is None && not(element.children.is_empty()) {
     for
@@ -23,7 +23,7 @@ fn render_client_element(
       statements.push(statement)
     }
   }
-  statements.push("@vm_dom.to_node(__vm_el)")
+  statements.push("@vm_dom.into(__vm_el)")
   render_client_iife(statements, indent)
 }
 
@@ -66,7 +66,7 @@ fn render_client_component(
   match element.island_mode {
     Load | Idle | Visible | Media(_) | Only | ServerDefer =>
       if meta_attrs == "[]" {
-        "@vm_dom.island_dom(" +
+        "@vm_dom.island(" +
         quote(element.tag) +
         ", " +
         render_mode_expr(element.island_mode) +
@@ -76,7 +76,7 @@ fn render_client_component(
         children +
         ")"
       } else {
-        "@vm_dom.island_dom_meta(" +
+        "@vm_dom.islandMeta(" +
         quote(element.tag) +
         ", " +
         render_mode_expr(element.island_mode) +
@@ -90,7 +90,7 @@ fn render_client_component(
       }
     None =>
       if meta_attrs == "[]" {
-        "@vm_dom.component_dom(" +
+        "@vm_dom.component(" +
         quote(element.tag) +
         ", " +
         props +
@@ -98,7 +98,7 @@ fn render_client_component(
         children +
         ")"
       } else {
-        "@vm_dom.component_dom_meta(" +
+        "@vm_dom.componentMeta(" +
         quote(element.tag) +
         ", " +
         props +

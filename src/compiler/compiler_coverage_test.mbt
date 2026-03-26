@@ -363,7 +363,7 @@ test "void elements must be self-closing" {
 // ── Event handlers ────────────────────────────────────────────
 
 ///|
-test "event handler generates attr_handler" {
+test "event handler generates short on alias" {
   let source =
     #|<script setup>
     #|fn handle() { () }
@@ -373,12 +373,12 @@ test "event handler generates attr_handler" {
     #|  <button @click='handle()'>click</button>
     #|</template>
   let output = compile_snapshot(source, "EventHandler.mbtv")
-  assert_true(output.contains("attr_handler"))
+  assert_true(output.contains("@vm_dom.on("))
   assert_true(output.contains("handle()"))
 }
 
 ///|
-test "event modifiers generate attr_handler_with_modifiers" {
+test "event modifiers generate short onWith alias" {
   let source =
     #|<script setup>
     #|fn save() { () }
@@ -389,7 +389,7 @@ test "event modifiers generate attr_handler_with_modifiers" {
     #|  <button @click.capture.once.passive='save()'>options</button>
     #|</template>
   let output = compile_snapshot(source, "EventModifiers.mbtv")
-  assert_true(output.contains("attr_handler_with_modifiers"))
+  assert_true(output.contains("@vm_dom.onWith("))
   assert_true(output.contains("[\"stop\", \"prevent\", \"self\"]"))
   assert_true(output.contains("[\"capture\", \"once\", \"passive\"]"))
   assert_true(output.contains("save()"))

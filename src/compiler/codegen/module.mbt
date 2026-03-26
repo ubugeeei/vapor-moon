@@ -117,8 +117,7 @@ fn emit_import_block(
 
 ///|
 fn emit_extern_script(sb : StringBuilder, doc : SfcDocument) -> Unit {
-  if doc.script_transformed is Some(script) &&
-    not(script.trim().is_empty()) {
+  if doc.script_transformed is Some(script) && not(script.trim().is_empty()) {
     sb.write_string(script.trim().to_string())
     sb.write_string("\n\n")
   }

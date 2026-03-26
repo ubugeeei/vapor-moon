@@ -7,13 +7,28 @@ pub fn element(tag : String) -> @js_dom.Element {
 }
 
 ///|
+pub fn el(tag : String) -> @js_dom.Element {
+  element(tag)
+}
+
+///|
 pub fn to_node(elem : @js_dom.Element) -> @luna_dom.DomNode {
   @luna_dom.dom_node(elem)
 }
 
 ///|
+pub fn into(elem : @js_dom.Element) -> @luna_dom.DomNode {
+  to_node(elem)
+}
+
+///|
 pub fn append_child(node : @js_dom.Node, child : @luna_dom.DomNode) -> Unit {
   node.appendChild(child.to_dom()) |> ignore
+}
+
+///|
+pub fn append(node : @js_dom.Node, child : @luna_dom.DomNode) -> Unit {
+  append_child(node, child)
 }
 
 ///|
@@ -45,6 +60,14 @@ pub fn apply_attr_entry(
 }
 
 ///|
+pub fn setAttr(
+  elem : @js_dom.Element,
+  attr : (String, @luna_dom.AttrValue),
+) -> Unit {
+  apply_attr_entry(elem, attr)
+}
+
+///|
 pub fn text(content : String) -> @luna_dom.DomNode {
   @luna_dom.dom_node(@js_dom.document().createTextNode(content))
 }
@@ -57,6 +80,11 @@ pub fn text_expr(content : () -> String) -> @luna_dom.DomNode {
     node.as_node().setTextContent(content())
   })
   @luna_dom.dom_node(node)
+}
+
+///|
+pub fn setText(content : () -> String) -> @luna_dom.DomNode {
+  text_expr(content)
 }
 
 ///|
@@ -76,6 +104,11 @@ pub fn fragment(children : Array[@luna_dom.DomNode]) -> @luna_dom.DomNode {
 }
 
 ///|
+pub fn frag(children : Array[@luna_dom.DomNode]) -> @luna_dom.DomNode {
+  fragment(children)
+}
+
+///|
 pub fn show(
   when : () -> Bool,
   render_fn : () -> @luna_dom.DomNode,
@@ -92,13 +125,31 @@ pub fn[T] for_each(
 }
 
 ///|
+pub fn[T] each(
+  items : () -> Array[T],
+  render_item : (T, Int) -> @luna_dom.DomNode,
+) -> @luna_dom.DomNode {
+  for_each(items, render_item)
+}
+
+///|
 pub fn attr_static(value : String) -> @luna_dom.AttrValue {
   @luna_dom.attr_static(value)
 }
 
 ///|
+pub fn attr(value : String) -> @luna_dom.AttrValue {
+  attr_static(value)
+}
+
+///|
 pub fn attr_dynamic(getter : () -> String) -> @luna_dom.AttrValue {
   @luna_dom.attr_dynamic(getter)
+}
+
+///|
+pub fn dynAttr(getter : () -> String) -> @luna_dom.AttrValue {
+  attr_dynamic(getter)
 }
 
 ///|
@@ -125,13 +176,36 @@ pub fn attr_handler_with_modifiers(
 }
 
 ///|
+pub fn on(handler : (@js.Any) -> Unit) -> @luna_dom.AttrValue {
+  attr_handler(handler)
+}
+
+///|
+pub fn onWith(
+  handler : (@js.Any) -> Unit,
+  modifiers : Array[String],
+) -> @luna_dom.AttrValue {
+  attr_handler_with_modifiers(handler, modifiers)
+}
+
+///|
 pub fn attr_style(style : String) -> @luna_dom.AttrValue {
   @luna_dom.attr_style(style)
 }
 
 ///|
+pub fn style(value : String) -> @luna_dom.AttrValue {
+  attr_style(value)
+}
+
+///|
 pub fn attr_dynamic_style(getter : () -> String) -> @luna_dom.AttrValue {
   @luna_dom.attr_dynamic_style(getter)
+}
+
+///|
+pub fn dynStyle(getter : () -> String) -> @luna_dom.AttrValue {
+  attr_dynamic_style(getter)
 }
 
 ///|
@@ -163,6 +237,25 @@ pub fn component_dom_meta(
   apply_attrs(elem, attrs)
   append_children(elem.as_node(), children)
   to_node(elem)
+}
+
+///|
+pub fn component(
+  name : String,
+  props : Array[(String, () -> String)],
+  children : Array[@luna_dom.DomNode],
+) -> @luna_dom.DomNode {
+  component_dom(name, props, children)
+}
+
+///|
+pub fn componentMeta(
+  name : String,
+  props : Array[(String, () -> String)],
+  children : Array[@luna_dom.DomNode],
+  meta_attrs : Array[(String, @luna_dom.AttrValue)],
+) -> @luna_dom.DomNode {
+  component_dom_meta(name, props, children, meta_attrs)
 }
 
 ///|
@@ -201,6 +294,27 @@ pub fn island_dom_meta(
 }
 
 ///|
+pub fn island(
+  name : String,
+  mode : @vm.HydrationMode,
+  props : Array[(String, () -> String)],
+  children : Array[@luna_dom.DomNode],
+) -> @luna_dom.DomNode {
+  island_dom(name, mode, props, children)
+}
+
+///|
+pub fn islandMeta(
+  name : String,
+  mode : @vm.HydrationMode,
+  props : Array[(String, () -> String)],
+  children : Array[@luna_dom.DomNode],
+  meta_attrs : Array[(String, @luna_dom.AttrValue)],
+) -> @luna_dom.DomNode {
+  island_dom_meta(name, mode, props, children, meta_attrs)
+}
+
+///|
 extern "js" fn register_template_ref(name : String, target : @js.Any) -> Unit =
   #| (name, target) => {
   #|   globalThis.__vaporMoonTemplateRefs ??= new Map();
@@ -231,8 +345,21 @@ pub fn bind_template_ref_name(name : String, target : @js.Any) -> Unit {
 }
 
 ///|
-pub fn[T] bind_template_ref(ref_ : @vm.TemplateRef[T], target : @js.Any) -> Unit {
+pub fn bindRefName(name : String, target : @js.Any) -> Unit {
+  bind_template_ref_name(name, target)
+}
+
+///|
+pub fn[T] bind_template_ref(
+  ref_ : @vm.TemplateRef[T],
+  target : @js.Any,
+) -> Unit {
   register_bound_template_ref(@js.any(ref_), target)
+}
+
+///|
+pub fn[T] bindRef(ref_ : @vm.TemplateRef[T], target : @js.Any) -> Unit {
+  bind_template_ref(ref_, target)
 }
 
 ///|

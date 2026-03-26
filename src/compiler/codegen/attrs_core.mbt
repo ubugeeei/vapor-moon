@@ -20,7 +20,7 @@ fn collect_client_attr_entries(
   }
   match scope_id {
     Some(id) =>
-      parts.push("(\"data-vm-scope\", @vm_dom.attr_static(" + quote(id) + "))")
+      parts.push("(\"data-vm-scope\", @vm_dom.attr(" + quote(id) + "))")
     None => ()
   }
   parts
@@ -67,44 +67,40 @@ fn render_client_attr(attr : TemplateAttr, static_mode : Bool) -> String {
   match attr.kind {
     Static =>
       if attr.name == "style" {
-        "(\"" + attr.name + "\", @vm_dom.attr_style(" + quote(attr.value) + "))"
+        "(\"" + attr.name + "\", @vm_dom.style(" + quote(attr.value) + "))"
       } else {
-        "(\"" +
-        attr.name +
-        "\", @vm_dom.attr_static(" +
-        quote(attr.value) +
-        "))"
+        "(\"" + attr.name + "\", @vm_dom.attr(" + quote(attr.value) + "))"
       }
     Dynamic =>
       if static_mode {
         if attr.name == "style" {
           "(\"" +
           attr.name +
-          "\", @vm_dom.attr_style(" +
+          "\", @vm_dom.style(" +
           attr.value +
           ".to_string()))"
         } else {
           "(\"" +
           attr.name +
-          "\", @vm_dom.attr_static(" +
+          "\", @vm_dom.attr(" +
           attr.value +
           ".to_string()))"
         }
       } else if attr.name == "style" {
         "(\"" +
         attr.name +
-        "\", @vm_dom.attr_dynamic_style(fn() { " +
+        "\", @vm_dom.dynStyle(fn() { " +
         attr.value +
         ".to_string() }))"
       } else {
         "(\"" +
         attr.name +
-        "\", @vm_dom.attr_dynamic(fn() { " +
+        "\", @vm_dom.dynAttr(fn() { " +
         attr.value +
         ".to_string() }))"
       }
     Event => render_client_event_attr(attr)
-    Boolean => "(\"" + attr.name + "\", @vm_dom.attr_static(\"\"))"
+    Boolean => "(\"" + attr.name + "\", @vm_dom.attr(\"\"))"
   }
 }
 
@@ -148,11 +144,11 @@ fn push_if_some(parts : Array[String], value : String?) -> Unit {
 fn render_client_event_attr(attr : TemplateAttr) -> String {
   let handler = "fn(_event) { " + attr.value + " }"
   if attr.modifiers.is_empty() {
-    "(\"" + attr.name + "\", @vm_dom.attr_handler(" + handler + "))"
+    "(\"" + attr.name + "\", @vm_dom.on(" + handler + "))"
   } else {
     "(\"" +
     attr.name +
-    "\", @vm_dom.attr_handler_with_modifiers(" +
+    "\", @vm_dom.onWith(" +
     handler +
     ", " +
     render_string_array(attr.modifiers) +

@@ -20,9 +20,9 @@ test "snapshot script setup close tag literal compile" {
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  let closing = "</script>"
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.element("div")
-      #|      @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { closing.to_string() }))
-      #|      @vm_dom.to_node(__vm_el)
+      #|      let __vm_el = @vm_dom.el("div")
+      #|      @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { closing.to_string() }))
+      #|      @vm_dom.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -107,10 +107,10 @@ test "snapshot style close tag literal compile" {
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.element("div")
-      #|      @vm_dom.apply_attr_entry(__vm_el, ("class", @vm_dom.attr_static("box")))
-      #|      @vm_dom.apply_attr_entry(__vm_el, ("data-vm-scope", @vm_dom.attr_static("vm-2407032203")))
-      #|      @vm_dom.to_node(__vm_el)
+      #|      let __vm_el = @vm_dom.el("div")
+      #|      @vm_dom.setAttr(__vm_el, ("class", @vm_dom.attr("box")))
+      #|      @vm_dom.setAttr(__vm_el, ("data-vm-scope", @vm_dom.attr("vm-2407032203")))
+      #|      @vm_dom.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -195,17 +195,17 @@ test "snapshot nested template element compile" {
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.element("section")
-      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.element("template")
-      #|                @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                                let __vm_el = @vm_dom.element("span")
-      #|                                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text("Inner"))
-      #|                                @vm_dom.to_node(__vm_el)
+      #|      let __vm_el = @vm_dom.el("section")
+      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @vm_dom.el("template")
+      #|                @vm_dom.append(__vm_el.as_node(), (fn() {
+      #|                                let __vm_el = @vm_dom.el("span")
+      #|                                @vm_dom.append(__vm_el.as_node(), @vm_dom.text("Inner"))
+      #|                                @vm_dom.into(__vm_el)
       #|                              })())
-      #|                @vm_dom.to_node(__vm_el)
+      #|                @vm_dom.into(__vm_el)
       #|              })())
-      #|      @vm_dom.to_node(__vm_el)
+      #|      @vm_dom.into(__vm_el)
       #|    })()
       #|}
       #|

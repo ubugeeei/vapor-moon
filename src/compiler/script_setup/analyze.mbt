@@ -181,7 +181,8 @@ fn validate_script_extern_module(
 ) -> Unit raise CompilerError {
   for statement in ir.statements {
     match statement {
-      LetStatement(let_stmt) => validate_script_extern_expr(let_stmt.expr, filename)
+      LetStatement(let_stmt) =>
+        validate_script_extern_expr(let_stmt.expr, filename)
       ExpressionStatement(expr) => validate_script_extern_expr(expr, filename)
       ImportStatement(_) | RawStatement(_) => ()
     }
@@ -196,7 +197,11 @@ fn validate_script_extern_expr(
   match expr {
     MacroExpr(macro_) =>
       match macro_.name {
-        "defineProps" | "defineEmits" | "defineSlot" | "useId" | "useTemplateRef" =>
+        "defineProps"
+        | "defineEmits"
+        | "defineSlot"
+        | "useId"
+        | "useTemplateRef" =>
           raise CompilerError::InvalidScriptExtern(
             script_extern_setup_only_message(macro_.name, filename),
           )
@@ -207,10 +212,7 @@ fn validate_script_extern_expr(
 }
 
 ///|
-fn script_extern_setup_only_message(
-  name : String,
-  filename : String,
-) -> String {
+fn script_extern_setup_only_message(name : String, filename : String) -> String {
   "`" +
   name +
   "()` is only supported in <script> setup scope in " +

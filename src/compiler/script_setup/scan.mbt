@@ -31,4 +31,3 @@ fn parse_script_setup_module_with_contracts(
   }
   ({ statements, }, contracts)
 }
-

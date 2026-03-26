@@ -59,9 +59,9 @@ test "snapshot generic component compile" {
       #|    label : U
       #|  }
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.element("section")
-      #|      @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { props.items.length().to_string() }))
-      #|      @vm_dom.to_node(__vm_el)
+      #|      let __vm_el = @vm_dom.el("section")
+      #|      @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { props.items.length().to_string() }))
+      #|      @vm_dom.into(__vm_el)
       #|    })()
       #|}
       #|

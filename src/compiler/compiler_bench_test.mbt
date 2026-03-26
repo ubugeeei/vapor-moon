@@ -7,7 +7,7 @@
 test "bench/compile/basic" (b : @bench.T) {
   let source = basic_source()
   b.bench(fn() {
-    let result = try { compile(source) } catch { _ => panic() }
+    let result = compile(source) catch { _ => panic() }
     b.keep(result)
   })
 }
@@ -16,7 +16,7 @@ test "bench/compile/basic" (b : @bench.T) {
 test "bench/compile/reactivity" (b : @bench.T) {
   let source = reactivity_basics_source()
   b.bench(fn() {
-    let result = try { compile(source) } catch { _ => panic() }
+    let result = compile(source) catch { _ => panic() }
     b.keep(result)
   })
 }
@@ -25,7 +25,7 @@ test "bench/compile/reactivity" (b : @bench.T) {
 test "bench/compile/composable" (b : @bench.T) {
   let source = composable_counter_source()
   b.bench(fn() {
-    let result = try { compile(source) } catch { _ => panic() }
+    let result = compile(source) catch { _ => panic() }
     b.keep(result)
   })
 }
@@ -34,7 +34,7 @@ test "bench/compile/composable" (b : @bench.T) {
 test "bench/compile/directives" (b : @bench.T) {
   let source = directives_source()
   b.bench(fn() {
-    let result = try { compile(source) } catch { _ => panic() }
+    let result = compile(source) catch { _ => panic() }
     b.keep(result)
   })
 }
@@ -43,7 +43,7 @@ test "bench/compile/directives" (b : @bench.T) {
 test "bench/compile/macros" (b : @bench.T) {
   let source = macros_source()
   b.bench(fn() {
-    let result = try { compile(source) } catch { _ => panic() }
+    let result = compile(source) catch { _ => panic() }
     b.keep(result)
   })
 }
@@ -52,7 +52,7 @@ test "bench/compile/macros" (b : @bench.T) {
 test "bench/compile/generic" (b : @bench.T) {
   let source = generic_source()
   b.bench(fn() {
-    let result = try { compile(source) } catch { _ => panic() }
+    let result = compile(source) catch { _ => panic() }
     b.keep(result)
   })
 }
@@ -63,7 +63,7 @@ test "bench/compile/generic" (b : @bench.T) {
 test "bench/parse_sfc/basic" (b : @bench.T) {
   let source = basic_source()
   b.bench(fn() {
-    let result = try { parse_sfc(source) } catch { _ => panic() }
+    let result = parse_sfc(source) catch { _ => panic() }
     b.keep(result)
   })
 }
@@ -72,7 +72,7 @@ test "bench/parse_sfc/basic" (b : @bench.T) {
 test "bench/parse_sfc/composable" (b : @bench.T) {
   let source = composable_counter_source()
   b.bench(fn() {
-    let result = try { parse_sfc(source) } catch { _ => panic() }
+    let result = parse_sfc(source) catch { _ => panic() }
     b.keep(result)
   })
 }
@@ -81,30 +81,30 @@ test "bench/parse_sfc/composable" (b : @bench.T) {
 
 ///|
 test "bench/parse_template/basic" (b : @bench.T) {
-  let doc = try { parse_sfc(basic_source()) } catch { _ => panic() }
+  let doc = parse_sfc(basic_source()) catch { _ => panic() }
   let template = doc.template
   b.bench(fn() {
-    let result = try { parse_template(template) } catch { _ => panic() }
+    let result = parse_template(template) catch { _ => panic() }
     b.keep(result)
   })
 }
 
 ///|
 test "bench/parse_template/directives" (b : @bench.T) {
-  let doc = try { parse_sfc(directives_source()) } catch { _ => panic() }
+  let doc = parse_sfc(directives_source()) catch { _ => panic() }
   let template = doc.template
   b.bench(fn() {
-    let result = try { parse_template(template) } catch { _ => panic() }
+    let result = parse_template(template) catch { _ => panic() }
     b.keep(result)
   })
 }
 
 ///|
 test "bench/parse_template/reactivity" (b : @bench.T) {
-  let doc = try { parse_sfc(reactivity_basics_source()) } catch { _ => panic() }
+  let doc = parse_sfc(reactivity_basics_source()) catch { _ => panic() }
   let template = doc.template
   b.bench(fn() {
-    let result = try { parse_template(template) } catch { _ => panic() }
+    let result = parse_template(template) catch { _ => panic() }
     b.keep(result)
   })
 }

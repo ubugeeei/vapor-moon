@@ -30,25 +30,25 @@ test "snapshot reactivity basics compile" {
       #|    history.set(prev.to_string() + " -> " + next.to_string())
       #|  })
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.element("section")
-      #|      @vm_dom.apply_attr_entry(__vm_el, ("class", @vm_dom.attr_static("reactivity")))
-      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.element("button")
-      #|                @vm_dom.apply_attr_entry(__vm_el, ("click", @vm_dom.attr_handler(fn(_event) { count.update(fn(n) { n + 1 }) })))
-      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text("+"))
-      #|                @vm_dom.to_node(__vm_el)
+      #|      let __vm_el = @vm_dom.el("section")
+      #|      @vm_dom.setAttr(__vm_el, ("class", @vm_dom.attr("reactivity")))
+      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @vm_dom.el("button")
+      #|                @vm_dom.setAttr(__vm_el, ("click", @vm_dom.on(fn(_event) { count.update(fn(n) { n + 1 }) })))
+      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.text("+"))
+      #|                @vm_dom.into(__vm_el)
       #|              })())
-      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.element("p")
-      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { summary().to_string() }))
-      #|                @vm_dom.to_node(__vm_el)
+      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @vm_dom.el("p")
+      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { summary().to_string() }))
+      #|                @vm_dom.into(__vm_el)
       #|              })())
-      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.element("small")
-      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { history.get().to_string() }))
-      #|                @vm_dom.to_node(__vm_el)
+      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @vm_dom.el("small")
+      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { history.get().to_string() }))
+      #|                @vm_dom.into(__vm_el)
       #|              })())
-      #|      @vm_dom.to_node(__vm_el)
+      #|      @vm_dom.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -163,20 +163,20 @@ test "snapshot lifecycle refs compile" {
       #|    })
       #|  })
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.element("section")
-      #|      @vm_dom.apply_attr_entry(__vm_el, ("data-id", @vm_dom.attr_dynamic(fn() { instance_id.to_string() })))
-      #|      @vm_dom.apply_attr_entry(__vm_el, ("__ref", @vm_dom.attr_handler(fn(target) { @vm_dom.bind_template_ref(root_ref, target) })))
-      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.element("p")
-      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { phase.get().to_string() }))
-      #|                @vm_dom.to_node(__vm_el)
+      #|      let __vm_el = @vm_dom.el("section")
+      #|      @vm_dom.setAttr(__vm_el, ("data-id", @vm_dom.dynAttr(fn() { instance_id.to_string() })))
+      #|      @vm_dom.setAttr(__vm_el, ("__ref", @vm_dom.on(fn(target) { @vm_dom.bindRef(root_ref, target) })))
+      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @vm_dom.el("p")
+      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { phase.get().to_string() }))
+      #|                @vm_dom.into(__vm_el)
       #|              })())
-      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.element("p")
-      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { instance_id.to_string() }))
-      #|                @vm_dom.to_node(__vm_el)
+      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @vm_dom.el("p")
+      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { instance_id.to_string() }))
+      #|                @vm_dom.into(__vm_el)
       #|              })())
-      #|      @vm_dom.to_node(__vm_el)
+      #|      @vm_dom.into(__vm_el)
       #|    })()
       #|}
       #|
