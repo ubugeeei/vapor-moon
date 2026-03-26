@@ -2,7 +2,7 @@
 
 Vapor Moon is a MoonBit-first Single File Component toolchain for building `luna.mbt`-powered UIs with Vue-like authoring, direct DOM-oriented client output, and SSR/island delivery.
 
-It is currently an unpublished hobby project developed by `ubugeeei` and `mizchi`.
+It is currently an unpublished hobby project developed by [`ubugeeei`](https://github.com/ubugeeei) and [`mizchi`](https://github.com/mizchi).
 
 ## Why The Name
 
