@@ -127,6 +127,7 @@ pub(all) struct TemplateAttr {
   kind : TemplateAttrKind
   name : String
   value : String
+  modifiers : Array[String]
 } derive(Eq, Show)
 
 ///|

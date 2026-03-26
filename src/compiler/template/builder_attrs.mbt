@@ -70,6 +70,41 @@ fn parse_model_attr(
 }
 
 ///|
+fn parse_event_attr(
+  directive : String,
+  raw_name : String,
+) -> (String, Array[String]) raise CompilerError {
+  let segments = directive
+    .split(".")
+    .map(fn(part) { part.to_string() })
+    .collect()
+  if segments.length() == 0 {
+    raise CompilerError::InvalidDirective(
+      "invalid event syntax: `\{raw_name}`",
+    )
+  }
+  if segments[0].length() == 0 {
+    if segments.length() == 1 {
+      return ("", [])
+    }
+    raise CompilerError::InvalidDirective(
+      "invalid event syntax: `\{raw_name}`",
+    )
+  }
+  let modifiers : Array[String] = []
+  for index in 1..<segments.length() {
+    let modifier = segments[index]
+    if modifier.length() == 0 {
+      raise CompilerError::InvalidDirective(
+        "invalid event syntax: `\{raw_name}`",
+      )
+    }
+    modifiers.push(modifier)
+  }
+  (segments[0], modifiers)
+}
+
+///|
 fn quote_template_literal(source : String) -> String {
   let sb = StringBuilder::new()
   sb.write_char('"')

@@ -173,6 +173,7 @@ let props : Props = defineProps({
 - static attributes
 - dynamic attributes with `:prop="expr"` and `v-bind:prop="expr"`
 - event handlers with `@event="expr"` and `v-on:event="expr"`
+- Vue-style event modifiers: `.stop`, `.prevent`, `.self`, `.capture`, `.once`, `.passive`
 - `v-if`
 - `v-for="item in items"` and `v-for="(item, index) in items"`
 - component-looking tags via uppercase names
