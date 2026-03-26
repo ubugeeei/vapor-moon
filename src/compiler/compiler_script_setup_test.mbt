@@ -1165,6 +1165,23 @@ test "rejects useId with arguments" {
 }
 
 ///|
+test "collects useTemplateRef bindings and static names" {
+  let source =
+    #|let root_ref = useTemplateRef("root")
+    #|let ref_name = "dynamic"
+    #|let dynamic_ref = useTemplateRef(ref_name)
+    #|let orphan_ref = useTemplateRef("orphan")
+  let info = must_analyze_script_setup(source, "inline/use_template_refs.mbtv")
+  assert_eq(info.template_refs.length(), 3)
+  assert_eq(info.template_refs[0].binding_name, Some("root_ref"))
+  assert_eq(info.template_refs[0].ref_name, Some("root"))
+  assert_eq(info.template_refs[1].binding_name, Some("dynamic_ref"))
+  assert_eq(info.template_refs[1].ref_name, None)
+  assert_eq(info.template_refs[2].binding_name, Some("orphan_ref"))
+  assert_eq(info.template_refs[2].ref_name, Some("orphan"))
+}
+
+///|
 test "rejects useTemplateRef without exactly one argument" {
   let source =
     #|<script setup>

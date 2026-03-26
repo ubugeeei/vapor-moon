@@ -26,14 +26,23 @@ fn render_server_key_attr(element : TemplateElement) -> String? {
 
 ///|
 fn render_client_ref_attr(element : TemplateElement) -> String? {
-  match element.ref_name {
-    Some(expr) =>
+  match element.ref_binding_name {
+    Some(binding_name) =>
       Some(
         "(\"__ref\", @vm_dom.attr_handler(fn(target) { @vm_dom.bind_template_ref(" +
-        expr +
+        binding_name +
         ", target) }))",
       )
-    None => None
+    None =>
+      match element.ref_name {
+        Some(expr) =>
+          Some(
+            "(\"__ref\", @vm_dom.attr_handler(fn(target) { @vm_dom.bind_template_ref_name(" +
+            expr +
+            ", target) }))",
+          )
+        None => None
+      }
   }
 }
 

@@ -12,6 +12,7 @@ pub fn parse_sfc(
   let mut script_setup : String? = None
   let mut script_setup_transformed : String? = None
   let mut script_setup_import_entries : Array[String] = []
+  let mut template_refs : Array[ScriptSetupTemplateRef] = []
   let mut generics : Array[GenericParam] = []
   let mut props_declaration : String? = None
   let mut props_binding : String? = None
@@ -54,6 +55,7 @@ pub fn parse_sfc(
             script_setup = Some(info.source)
             script_setup_transformed = Some(info.transformed)
             script_setup_import_entries = info.import_entries
+            template_refs = info.template_refs
             props_declaration = info.props_declaration
             props_binding = info.props_binding
             props = info.props
@@ -96,6 +98,7 @@ pub fn parse_sfc(
         script_setup,
         script_setup_transformed,
         script_setup_import_entries,
+        template_refs,
         generics,
         props_declaration,
         props_binding,

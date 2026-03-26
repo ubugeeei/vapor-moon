@@ -14,9 +14,10 @@ pub(all) enum HydrationMode {
 } derive(Eq, Show)
 
 ///|
-pub struct TemplateRef {
+pub struct TemplateRef[T] {
   name : String
-} derive(Eq, Show)
+  phantom : T?
+}
 
 ///|
 pub fn client_module_path(component_name : String) -> String {
@@ -29,8 +30,8 @@ pub fn make_scope_id(component_name : String) -> String {
 }
 
 ///|
-pub fn use_template_ref(name : String) -> TemplateRef {
-  { name, }
+pub fn[T] use_template_ref(name : String) -> TemplateRef[T] {
+  { name, phantom: None }
 }
 
 ///|
@@ -39,7 +40,7 @@ pub fn use_id(component_name : String, index : Int) -> String {
 }
 
 ///|
-pub fn TemplateRef::name(self : TemplateRef) -> String {
+pub fn[T] TemplateRef::name(self : TemplateRef[T]) -> String {
   self.name
 }
 
