@@ -12,15 +12,15 @@ test "snapshot component key ref compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @r,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @d,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @dom,
       #|  "mizchi/js/browser/dom" @js_dom,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
-      #|  let panel_ref : @r.TemplateRef[@js_dom.HTMLElement] = @r.use_template_ref("panel")
+      #|  let panel_ref : @hlp.TemplateRef[@js_dom.HTMLElement] = @hlp.use_template_ref("panel")
       #|  let panel_id = 42
-      #|  @d.componentMeta("Panel", [], [], [("data-vm-key", @d.dynAttr(fn() { panel_id.to_string() })), ("__ref", @d.on(fn(target) { @d.bindRef(panel_ref, target) }))])
+      #|  @dom.componentMeta("Panel", [], [], [("data-vm-key", @dom.dynAttr(fn() { panel_id.to_string() })), ("__ref", @dom.on(fn(target) { @dom.bindRef(panel_ref, target) }))])
       #|}
       #|
       #|pub fn declared_props() -> Array[String] {
@@ -39,15 +39,15 @@ test "snapshot component key ref compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @r,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|  "mizchi/js/browser/dom" @js_dom,
       #|}
       #|
       #|pub fn render_ssr() -> @luna_core.StaticDomNode {
-      #|  let panel_ref : @r.TemplateRef[@js_dom.HTMLElement] = @r.use_template_ref("panel")
+      #|  let panel_ref : @hlp.TemplateRef[@js_dom.HTMLElement] = @hlp.use_template_ref("panel")
       #|  let panel_id = 42
-      #|  @vm_server.component_ssr_meta("Panel", @r.props_to_json([]), [], [("data-vm-key", @luna_core.attr_dynamic(fn() { panel_id.to_string() })), ("data-vm-ref", @luna_core.attr_dynamic(fn() { "panel".to_string() }))])
+      #|  @vm_server.component_ssr_meta("Panel", @hlp.props_to_json([]), [], [("data-vm-key", @luna_core.attr_dynamic(fn() { panel_id.to_string() })), ("data-vm-ref", @luna_core.attr_dynamic(fn() { "panel".to_string() }))])
       #|}
       #|
       #|pub fn render_html() -> String {

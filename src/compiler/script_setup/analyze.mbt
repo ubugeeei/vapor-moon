@@ -268,12 +268,12 @@ fn lower_script_setup_expr(
         "useId" =>
           (
             RawExpr(
-              "@r.use_id(component_name, " + use_id_index.to_string() + ")",
+              "@hlp.use_id(component_name, " + use_id_index.to_string() + ")",
             ),
             use_id_index + 1,
           )
         "useTemplateRef" =>
-          (RawExpr("@r.use_template_ref(" + macro_.args + ")"), use_id_index)
+          (RawExpr("@hlp.use_template_ref(" + macro_.args + ")"), use_id_index)
         _ => (expr, use_id_index)
       }
   }

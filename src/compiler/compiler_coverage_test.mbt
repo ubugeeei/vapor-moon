@@ -373,7 +373,7 @@ test "event handler generates short on alias" {
     #|  <button @click='handle()'>click</button>
     #|</template>
   let output = compile_snapshot(source, "EventHandler.mbtv")
-  assert_true(output.contains("@d.on("))
+  assert_true(output.contains("@dom.on("))
   assert_true(output.contains("handle()"))
 }
 
@@ -389,7 +389,7 @@ test "event modifiers generate short onWith alias" {
     #|  <button @click.capture.once.passive='save()'>options</button>
     #|</template>
   let output = compile_snapshot(source, "EventModifiers.mbtv")
-  assert_true(output.contains("@d.onWith("))
+  assert_true(output.contains("@dom.onWith("))
   assert_true(output.contains("[\"stop\", \"prevent\", \"self\"]"))
   assert_true(output.contains("[\"capture\", \"once\", \"passive\"]"))
   assert_true(output.contains("save()"))

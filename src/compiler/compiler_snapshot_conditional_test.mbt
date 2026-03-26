@@ -15,23 +15,23 @@ test "snapshot v-if v-else compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @r,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @d,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @dom,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  let visible = true
       #|  if visible {
       #|      (fn() {
-      #|            let __vm_el = @d.el("div")
-      #|            @d.append(__vm_el.as_node(), @d.text("shown"))
-      #|            @d.into(__vm_el)
+      #|            let __vm_el = @dom.el("div")
+      #|            @dom.append(__vm_el.as_node(), @dom.text("shown"))
+      #|            @dom.into(__vm_el)
       #|          })()
       #|    } else {
       #|      (fn() {
-      #|            let __vm_el = @d.el("div")
-      #|            @d.append(__vm_el.as_node(), @d.text("hidden"))
-      #|            @d.into(__vm_el)
+      #|            let __vm_el = @dom.el("div")
+      #|            @dom.append(__vm_el.as_node(), @dom.text("hidden"))
+      #|            @dom.into(__vm_el)
       #|          })()
       #|    }
       #|}
@@ -52,7 +52,7 @@ test "snapshot v-if v-else compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @r,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|}
       #|
@@ -121,29 +121,29 @@ test "snapshot v-if v-else-if v-else compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @r,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @d,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @dom,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  let count = 0
       #|  if count > 0 {
       #|      (fn() {
-      #|            let __vm_el = @d.el("div")
-      #|            @d.append(__vm_el.as_node(), @d.text("positive"))
-      #|            @d.into(__vm_el)
+      #|            let __vm_el = @dom.el("div")
+      #|            @dom.append(__vm_el.as_node(), @dom.text("positive"))
+      #|            @dom.into(__vm_el)
       #|          })()
       #|    } else if count == 0 {
       #|      (fn() {
-      #|            let __vm_el = @d.el("div")
-      #|            @d.append(__vm_el.as_node(), @d.text("zero"))
-      #|            @d.into(__vm_el)
+      #|            let __vm_el = @dom.el("div")
+      #|            @dom.append(__vm_el.as_node(), @dom.text("zero"))
+      #|            @dom.into(__vm_el)
       #|          })()
       #|    } else {
       #|      (fn() {
-      #|            let __vm_el = @d.el("div")
-      #|            @d.append(__vm_el.as_node(), @d.text("negative"))
-      #|            @d.into(__vm_el)
+      #|            let __vm_el = @dom.el("div")
+      #|            @dom.append(__vm_el.as_node(), @dom.text("negative"))
+      #|            @dom.into(__vm_el)
       #|          })()
       #|    }
       #|}
@@ -164,7 +164,7 @@ test "snapshot v-if v-else-if v-else compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @r,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|}
       #|
@@ -236,23 +236,23 @@ test "snapshot v-if v-else-if without v-else compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @r,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @d,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @dom,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  let mode = "a"
       #|  if mode == "a" {
       #|      (fn() {
-      #|            let __vm_el = @d.el("p")
-      #|            @d.append(__vm_el.as_node(), @d.text("alpha"))
-      #|            @d.into(__vm_el)
+      #|            let __vm_el = @dom.el("p")
+      #|            @dom.append(__vm_el.as_node(), @dom.text("alpha"))
+      #|            @dom.into(__vm_el)
       #|          })()
       #|    } else if mode == "b" {
       #|      (fn() {
-      #|            let __vm_el = @d.el("p")
-      #|            @d.append(__vm_el.as_node(), @d.text("beta"))
-      #|            @d.into(__vm_el)
+      #|            let __vm_el = @dom.el("p")
+      #|            @dom.append(__vm_el.as_node(), @dom.text("beta"))
+      #|            @dom.into(__vm_el)
       #|          })()
       #|    }
       #|}
@@ -273,7 +273,7 @@ test "snapshot v-if v-else-if without v-else compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @r,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|}
       #|
@@ -337,15 +337,15 @@ test "snapshot v-if v-else on components compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @r,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @d,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @dom,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  if active {
-      #|      @d.component("ActivePanel", [], [])
+      #|      @dom.component("ActivePanel", [], [])
       #|    } else {
-      #|      @d.component("InactivePanel", [], [])
+      #|      @dom.component("InactivePanel", [], [])
       #|    }
       #|}
       #|
@@ -365,15 +365,15 @@ test "snapshot v-if v-else on components compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @r,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|}
       #|
       #|pub fn render_ssr() -> @luna_core.StaticDomNode {
       #|  if active {
-      #|    @vm_server.component_ssr("ActivePanel", @r.props_to_json([]), [])
+      #|    @vm_server.component_ssr("ActivePanel", @hlp.props_to_json([]), [])
       #|  } else {
-      #|    @vm_server.component_ssr("InactivePanel", @r.props_to_json([]), [])
+      #|    @vm_server.component_ssr("InactivePanel", @hlp.props_to_json([]), [])
       #|  }
       #|}
       #|

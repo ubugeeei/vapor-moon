@@ -58,7 +58,7 @@ fn render_style_attr(
     let dynamic = base_dynamic ||
       (element.show_expr is Some(_) && not(static_mode))
     let final_expr = match element.show_expr {
-      Some(expr) => "@r.show_style(" + expr + ", " + base_expr + ")"
+      Some(expr) => "@hlp.show_style(" + expr + ", " + base_expr + ")"
       None => base_expr
     }
     Some(render_style_value(final_expr, dynamic, client))
@@ -67,7 +67,7 @@ fn render_style_attr(
       Some(expr) =>
         Some(
           render_style_value(
-            "@r.show_style(" + expr + ", \"\")",
+            "@hlp.show_style(" + expr + ", \"\")",
             not(static_mode),
             client,
           ),
@@ -97,9 +97,9 @@ fn render_merged_attr_expr(
   }
   (
     if style_mode {
-      "@r.merge_styles([" + parts.join(", ") + "])"
+      "@hlp.merge_styles([" + parts.join(", ") + "])"
     } else {
-      "@r.merge_class_names([" + parts.join(", ") + "])"
+      "@hlp.merge_class_names([" + parts.join(", ") + "])"
     },
     dynamic,
   )
@@ -123,9 +123,9 @@ fn render_attr_expr(
 fn render_class_value(expr : String, dynamic : Bool, client : Bool) -> String {
   if client {
     if dynamic {
-      "(\"class\", @d.dynAttr(fn() { " + expr + " }))"
+      "(\"class\", @dom.dynAttr(fn() { " + expr + " }))"
     } else {
-      "(\"class\", @d.attr(" + expr + "))"
+      "(\"class\", @dom.attr(" + expr + "))"
     }
   } else if dynamic {
     "(\"class\", @luna_core.attr_dynamic(fn() { " + expr + " }))"
@@ -138,9 +138,9 @@ fn render_class_value(expr : String, dynamic : Bool, client : Bool) -> String {
 fn render_style_value(expr : String, dynamic : Bool, client : Bool) -> String {
   if client {
     if dynamic {
-      "(\"style\", @d.dynStyle(fn() { " + expr + " }))"
+      "(\"style\", @dom.dynStyle(fn() { " + expr + " }))"
     } else {
-      "(\"style\", @d.style(" + expr + "))"
+      "(\"style\", @dom.style(" + expr + "))"
     }
   } else if dynamic {
     "(\"style\", @luna_core.attr_dynamic(fn() { " + expr + " }))"

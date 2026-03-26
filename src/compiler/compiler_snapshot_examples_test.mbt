@@ -9,8 +9,8 @@ test "snapshot reactivity basics compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @r,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @d,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @dom,
       #|  "mizchi/luna/js/resource" @reactivity,
       #|}
       #|
@@ -30,25 +30,25 @@ test "snapshot reactivity basics compile" {
       #|    history.set(prev.to_string() + " -> " + next.to_string())
       #|  })
       #|  (fn() {
-      #|      let __vm_el = @d.el("section")
-      #|      @d.setAttr(__vm_el, ("class", @d.attr("reactivity")))
-      #|      @d.append(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @d.el("button")
-      #|                @d.setAttr(__vm_el, ("click", @d.on(fn(_event) { count.update(fn(n) { n + 1 }) })))
-      #|                @d.append(__vm_el.as_node(), @d.text("+"))
-      #|                @d.into(__vm_el)
+      #|      let __vm_el = @dom.el("section")
+      #|      @dom.setAttr(__vm_el, ("class", @dom.attr("reactivity")))
+      #|      @dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @dom.el("button")
+      #|                @dom.setAttr(__vm_el, ("click", @dom.on(fn(_event) { count.update(fn(n) { n + 1 }) })))
+      #|                @dom.append(__vm_el.as_node(), @dom.text("+"))
+      #|                @dom.into(__vm_el)
       #|              })())
-      #|      @d.append(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @d.el("p")
-      #|                @d.append(__vm_el.as_node(), @d.setText(fn() { summary().to_string() }))
-      #|                @d.into(__vm_el)
+      #|      @dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @dom.el("p")
+      #|                @dom.append(__vm_el.as_node(), @dom.setText(fn() { summary().to_string() }))
+      #|                @dom.into(__vm_el)
       #|              })())
-      #|      @d.append(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @d.el("small")
-      #|                @d.append(__vm_el.as_node(), @d.setText(fn() { history.get().to_string() }))
-      #|                @d.into(__vm_el)
+      #|      @dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @dom.el("small")
+      #|                @dom.append(__vm_el.as_node(), @dom.setText(fn() { history.get().to_string() }))
+      #|                @dom.into(__vm_el)
       #|              })())
-      #|      @d.into(__vm_el)
+      #|      @dom.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -68,7 +68,7 @@ test "snapshot reactivity basics compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @r,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|  "mizchi/luna/js/resource" @reactivity,
       #|}
@@ -143,8 +143,8 @@ test "snapshot lifecycle refs compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @r,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @d,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @dom,
       #|  "mizchi/luna/js/resource" @reactivity,
       #|  "mizchi/js/browser/dom" @js_dom,
       #|}
@@ -153,8 +153,8 @@ test "snapshot lifecycle refs compile" {
       #|  let signal = @reactivity.signal,
       #|  let on_mount = @reactivity.on_mount,
       #|  let on_cleanup = @reactivity.on_cleanup,
-      #|  let root_ref : @r.TemplateRef[@js_dom.HTMLElement] = @r.use_template_ref("root")
-      #|  let instance_id = @r.use_id(component_name, 0)
+      #|  let root_ref : @hlp.TemplateRef[@js_dom.HTMLElement] = @hlp.use_template_ref("root")
+      #|  let instance_id = @hlp.use_id(component_name, 0)
       #|  let phase = signal("booting")
       #|  let mount_registration = on_mount(fn() {
       #|    phase.set("mounted:" + instance_id)
@@ -163,20 +163,20 @@ test "snapshot lifecycle refs compile" {
       #|    })
       #|  })
       #|  (fn() {
-      #|      let __vm_el = @d.el("section")
-      #|      @d.setAttr(__vm_el, ("data-id", @d.dynAttr(fn() { instance_id.to_string() })))
-      #|      @d.setAttr(__vm_el, ("__ref", @d.on(fn(target) { @d.bindRef(root_ref, target) })))
-      #|      @d.append(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @d.el("p")
-      #|                @d.append(__vm_el.as_node(), @d.setText(fn() { phase.get().to_string() }))
-      #|                @d.into(__vm_el)
+      #|      let __vm_el = @dom.el("section")
+      #|      @dom.setAttr(__vm_el, ("data-id", @dom.dynAttr(fn() { instance_id.to_string() })))
+      #|      @dom.setAttr(__vm_el, ("__ref", @dom.on(fn(target) { @dom.bindRef(root_ref, target) })))
+      #|      @dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @dom.el("p")
+      #|                @dom.append(__vm_el.as_node(), @dom.setText(fn() { phase.get().to_string() }))
+      #|                @dom.into(__vm_el)
       #|              })())
-      #|      @d.append(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @d.el("p")
-      #|                @d.append(__vm_el.as_node(), @d.setText(fn() { instance_id.to_string() }))
-      #|                @d.into(__vm_el)
+      #|      @dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @dom.el("p")
+      #|                @dom.append(__vm_el.as_node(), @dom.setText(fn() { instance_id.to_string() }))
+      #|                @dom.into(__vm_el)
       #|              })())
-      #|      @d.into(__vm_el)
+      #|      @dom.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -196,7 +196,7 @@ test "snapshot lifecycle refs compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @r,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|  "mizchi/luna/js/resource" @reactivity,
       #|  "mizchi/js/browser/dom" @js_dom,
@@ -206,8 +206,8 @@ test "snapshot lifecycle refs compile" {
       #|  let signal = @reactivity.signal,
       #|  let on_mount = @reactivity.on_mount,
       #|  let on_cleanup = @reactivity.on_cleanup,
-      #|  let root_ref : @r.TemplateRef[@js_dom.HTMLElement] = @r.use_template_ref("root")
-      #|  let instance_id = @r.use_id(component_name, 0)
+      #|  let root_ref : @hlp.TemplateRef[@js_dom.HTMLElement] = @hlp.use_template_ref("root")
+      #|  let instance_id = @hlp.use_id(component_name, 0)
       #|  let phase = signal("booting")
       #|  let mount_registration = on_mount(fn() {
       #|    phase.set("mounted:" + instance_id)

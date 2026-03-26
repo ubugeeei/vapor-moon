@@ -353,14 +353,14 @@ fn specialize_template_ref_calls(
         current = current.replace_all(
           old="let " +
             binding_name +
-            " = @r.use_template_ref(" +
+            " = @hlp.use_template_ref(" +
             ref_.arg_source +
             ")",
           new="let " +
             binding_name +
-            " : @r.TemplateRef[" +
+            " : @hlp.TemplateRef[" +
             ref_.type_name +
-            "] = @r.use_template_ref(" +
+            "] = @hlp.use_template_ref(" +
             ref_.arg_source +
             ")",
         )
