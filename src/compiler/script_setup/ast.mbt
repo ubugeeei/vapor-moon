@@ -41,22 +41,6 @@ priv struct ScriptSetupMacro {
 }
 
 ///|
-fn parse_script_setup_chunk_ast(
-  source : String,
-  filename : String,
-) -> Array[ScriptSetupStatement] raise CompilerError {
-  let (impls, reports) = @mbt_parser.parse_string(source, name=filename)
-  if not(reports.is_empty()) {
-    raise CompilerError::InvalidScriptSetup(reports[0].to_string())
-  }
-  let statements : Array[ScriptSetupStatement] = []
-  for impl_ in impls {
-    statements.push(script_setup_statement_from_ast(source, impl_, filename))
-  }
-  statements
-}
-
-///|
 fn script_setup_statement_from_ast(
   source : String,
   impl_ : @mbt_syntax.Impl,

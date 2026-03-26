@@ -6,8 +6,9 @@ pub fn analyze_script_setup(
   source : String,
   filename : String,
 ) -> ScriptSetupInfo raise CompilerError {
-  let ir = parse_script_setup_module(source, filename)
-  let contract_types = collect_script_setup_contract_types(source, filename)
+  let (ir, contract_types) = parse_script_setup_module_with_contracts(
+    source, filename,
+  )
   let mut props_declaration : String? = None
   let mut props_binding : String? = None
   let mut emits_binding : String? = None

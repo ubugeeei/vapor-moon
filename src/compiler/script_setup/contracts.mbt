@@ -4,42 +4,6 @@ priv struct ScriptSetupContractType {
   fields : Array[MacroField]?
 }
 
-///|
-fn collect_script_setup_contract_types(
-  source : String,
-  filename : String,
-) -> Array[ScriptSetupContractType] raise CompilerError {
-  let contracts : Array[ScriptSetupContractType] = []
-  let parseable_source = contract_parse_source(source)
-  let (impls, reports) = @mbt_parser.parse_string(
-    parseable_source,
-    name=filename,
-  )
-  if not(reports.is_empty()) {
-    raise CompilerError::InvalidScriptSetup(reports[0].to_string())
-  }
-  for impl_ in impls {
-    match impl_ {
-      TopTypeDef(type_decl) =>
-        contracts.push(parse_contract_type_decl(parseable_source, type_decl))
-      _ => ()
-    }
-  }
-  contracts
-}
-
-///|
-fn contract_parse_source(source : String) -> String {
-  let chunks : Array[String] = []
-  for chunk in split_top_level_statements(source) {
-    let trimmed = chunk.trim().to_string()
-    if trimmed.length() == 0 || is_script_setup_import_statement(trimmed) {
-      continue
-    }
-    chunks.push(chunk)
-  }
-  chunks.join("\n")
-}
 
 ///|
 fn parse_contract_type_decl(

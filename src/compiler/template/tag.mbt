@@ -172,6 +172,6 @@ fn is_component_name(tag : String) -> Bool {
   if tag.length() == 0 {
     return false
   }
-  let first = tag.to_array()[0]
-  first >= 'A' && first <= 'Z'
+  let first = tag[0].to_int()
+  first >= 'A'.to_int() && first <= 'Z'.to_int()
 }
