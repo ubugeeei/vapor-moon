@@ -24,17 +24,29 @@ fn macro_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
 
 ///|
 fn directive_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
-  let entries = ["v-if", "v-for", "v-show", "v-html", "v-model", "v-once"]
+  let entries = [
+    ("v-if", "conditional rendering"),
+    ("v-else-if", "conditional branch (requires preceding v-if)"),
+    ("v-else", "fallback branch (requires preceding v-if or v-else-if)"),
+    ("v-for", "list rendering"),
+    ("v-show", "toggle visibility via CSS display"),
+    ("v-html", "render raw HTML content"),
+    ("v-model", "two-way binding on form elements"),
+    ("v-once", "render once (skip reactivity)"),
+    ("v-match", "pattern matching on an expression"),
+    ("v-case", "match branch pattern (inside v-match)"),
+    ("v-default", "default match branch (inside v-match)"),
+  ]
   let items : Array[ToolingCompletionItem] = []
   for entry in entries {
-    if not(entry.has_prefix(prefix)) {
+    if not(entry.0.has_prefix(prefix)) {
       continue
     }
     items.push({
-      label: entry,
+      label: entry.0,
       kind: "directive",
-      detail: "template directive",
-      insert_text: entry,
+      detail: entry.1,
+      insert_text: entry.0,
     })
   }
   items
