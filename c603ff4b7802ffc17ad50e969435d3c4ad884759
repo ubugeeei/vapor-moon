@@ -1,0 +1,23 @@
+version 1
+key hub/work-item/15/meta
+kind work-item
+clock mizchi=1
+timestamp 1774521069
+node mizchi
+deleted 0
+
+work-item 15
+title feat: defineExpose() macro
+author mizchi
+created 1774520852
+updated 1774520852
+state open
+
+\`defineExpose()\` is not implemented. It allows a component to explicitly expose public properties/methods to parent components via template refs.
+
+```html
+<script setup>
+let reset = fn() { count.set(0) }
+defineExpose({ reset })
+</script>
+```
