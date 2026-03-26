@@ -189,6 +189,7 @@ pub(all) struct TemplateElement {
   match_expr : String?
   case_pattern : String?
   is_case_default : Bool
+  slot_name : String?
 } derive(Eq, Show)
 
 ///|

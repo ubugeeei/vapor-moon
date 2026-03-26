@@ -57,12 +57,11 @@ fn render_client_component(
 ) -> String {
   let props = render_client_component_props(element, static_mode)
   let meta_attrs = render_client_component_meta_attrs(element)
-  let children = render_client_children(
-    element.children,
-    indent + 2,
-    scope_id,
-    static_mode,
-  )
+  let children = if has_named_slots(element.children) {
+    render_client_slots_record(element.children, indent + 2, scope_id, static_mode)
+  } else {
+    render_client_children(element.children, indent + 2, scope_id, static_mode)
+  }
   match element.island_mode {
     Load | Idle | Visible | Media(_) | Only | ServerDefer =>
       if meta_attrs == "[]" {
@@ -120,12 +119,11 @@ fn render_server_component(
 ) -> String {
   let props = render_server_component_props(element, static_mode)
   let meta_attrs = render_server_component_meta_attrs(element)
-  let children = render_server_children(
-    element.children,
-    indent + 2,
-    scope_id,
-    static_mode,
-  )
+  let children = if has_named_slots(element.children) {
+    render_server_slots_record(element.children, indent + 2, scope_id, static_mode)
+  } else {
+    render_server_children(element.children, indent + 2, scope_id, static_mode)
+  }
   match element.island_mode {
     Load | Idle | Visible | Media(_) | Only | ServerDefer =>
       if meta_attrs == "[]" {
@@ -261,6 +259,127 @@ fn collect_node_islands(node : TemplateNode, result : Array[String]) -> Unit {
       }
     _ => ()
   }
+}
+
+///|
+fn has_named_slots(children : Array[TemplateNode]) -> Bool {
+  for child in children {
+    match child {
+      Element(element) if element.slot_name is Some(_) => return true
+      _ => ()
+    }
+  }
+  false
+}
+
+///|
+priv struct SlotGroup {
+  name : String
+  nodes : Array[TemplateNode]
+}
+
+///|
+fn group_children_by_slot(children : Array[TemplateNode]) -> Array[SlotGroup] {
+  let groups : Array[SlotGroup] = []
+  let default_nodes : Array[TemplateNode] = []
+  for child in children {
+    match child {
+      Element(element) =>
+        match element.slot_name {
+          Some(name) => {
+            let mut found = false
+            for group in groups {
+              if group.name == name {
+                for inner in element.children {
+                  group.nodes.push(inner)
+                }
+                found = true
+                break
+              }
+            }
+            if not(found) {
+              let nodes : Array[TemplateNode] = []
+              for inner in element.children {
+                nodes.push(inner)
+              }
+              groups.push({ name, nodes })
+            }
+          }
+          None => default_nodes.push(child)
+        }
+      _ => default_nodes.push(child)
+    }
+  }
+  if not(default_nodes.is_empty()) {
+    let mut has_default = false
+    for group in groups {
+      if group.name == "default" {
+        for node in default_nodes {
+          group.nodes.push(node)
+        }
+        has_default = true
+        break
+      }
+    }
+    if not(has_default) {
+      groups.push({ name: "default", nodes: default_nodes })
+    }
+  }
+  groups
+}
+
+///|
+fn render_client_slots_record(
+  children : Array[TemplateNode],
+  indent : Int,
+  scope_id : String?,
+  static_mode : Bool,
+) -> String {
+  let groups = group_children_by_slot(children)
+  let sb = StringBuilder::new()
+  sb.write_string("{\n")
+  for i, group in groups {
+    sb.write_string(spaces(indent + 2))
+    sb.write_string(group.name)
+    sb.write_string(": Some(fn() { ")
+    sb.write_string(
+      render_client_children(group.nodes, indent + 4, scope_id, static_mode),
+    )
+    sb.write_string(" })")
+    if i < groups.length() - 1 {
+      sb.write_string(",")
+    }
+    sb.write_string("\n")
+  }
+  sb.write_string(spaces(indent) + "}")
+  sb.to_string()
+}
+
+///|
+fn render_server_slots_record(
+  children : Array[TemplateNode],
+  indent : Int,
+  scope_id : String?,
+  static_mode : Bool,
+) -> String {
+  let groups = group_children_by_slot(children)
+  let sb = StringBuilder::new()
+  sb.write_string("{\n")
+  for i, group in groups {
+    sb.write_string(spaces(indent + 2))
+    sb.write_string(group.name)
+    sb.write_string(": Some(fn() { ")
+    sb.write_string(
+      render_server_children(group.nodes, indent + 4, scope_id, static_mode),
+    )
+    sb.write_string(" })")
+    if i < groups.length() - 1 {
+      sb.write_string(",")
+    }
+    sb.write_string("\n")
+  }
+  sb.write_string(spaces(indent) + "}")
+  sb.to_string()
 }
 
 ///|

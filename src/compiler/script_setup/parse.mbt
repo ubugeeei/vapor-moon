@@ -138,7 +138,7 @@ fn default_contract_type_name(macro_name : String) -> String {
   match macro_name {
     "defineProps" => "Props"
     "defineEmits" => "Emits"
-    "defineSlot" => "Slots"
+    "defineSlots" => "Slots"
     _ => "Contract"
   }
 }
@@ -148,7 +148,7 @@ fn default_contract_binding_name(macro_name : String) -> String {
   match macro_name {
     "defineProps" => "props"
     "defineEmits" => "emit"
-    "defineSlot" => "slots"
+    "defineSlots" => "slots"
     _ => "contract"
   }
 }

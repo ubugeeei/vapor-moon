@@ -555,13 +555,11 @@ test "rejects unsupported island directives" {
 }
 
 ///|
-test "rejects unsupported slot outlet syntax" {
+test "slot outlet syntax is accepted on components" {
   let source =
-    #|<template><Panel #default></Panel></template>
-  assert_eq(
-    compile_error(source, "invalid/slot_outlet.mbtv"),
-    "InvalidDirective(\"slot outlet syntax is not supported yet on <Panel>\")",
-  )
+    #|<template><Panel #default><p>content</p></Panel></template>
+  let output = compile_snapshot(source, "slot_outlet.mbtv")
+  assert_true(output.contains("Panel"))
 }
 
 ///|

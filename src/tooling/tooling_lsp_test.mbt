@@ -62,7 +62,7 @@ test "snapshot lsp diagnostics" {
     #|
     #|let props : Props = defineProps()
     #|let emit : Emits = defineEmits()
-    #|let slots : Slots = defineSlot()
+    #|let slots : Slots = defineSlots()
     #|</script>
     #|
     #|<template>
@@ -74,7 +74,8 @@ test "snapshot lsp diagnostics" {
   inspect(
     diagnostics_snapshot(source, "examples/lsp_invalid.mbtv"),
     content=(
-      #|[{severity: "error", message: "unknown props member `missing`", location: {filename: "examples/lsp_invalid.mbtv", span: {start: 286, end: 293}, range: {start: {line: 20, character: 13}, end_: {line: 20, character: 20}}}}, {severity: "error", message: "unknown emit member `cancel`", location: {filename: "examples/lsp_invalid.mbtv", span: {start: 262, end: 268}, range: {start: {line: 19, character: 23}, end_: {line: 19, character: 29}}}}, {severity: "error", message: "unknown slots member `footer`", location: {filename: "examples/lsp_invalid.mbtv", span: {start: 310, end: 316}, range: {start: {line: 21, character: 13}, end_: {line: 21, character: 19}}}}]
+      #|[{severity: "error", message: "unknown props member `missing`", location: {filename: "examples/lsp_invalid.mbtv", span: {start: 287, end: 294}, range: {start: {line: 20, character: 13}, end_: {line: 20, character: 20}}}}, {severity: "error", message: "unknown emit member `cancel`", location: {filename: "examples/lsp_invalid.mbtv", span: {start: 263, end: 269}, range: {start: {line: 19, character: 23}, end_: {line: 19, character: 29}}}}, {severity: "error", message: "unknown slots member `footer`", location: {filename: "examples/lsp_invalid.mbtv", span: {start: 311, end: 317}, range: {start: {line: 21, character: 13}, end_: {line: 21, character: 19}}}}]
+
     ),
   )
 }

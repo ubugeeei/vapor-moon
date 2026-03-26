@@ -79,7 +79,7 @@ fn slots_source() -> String {
     #|  footer : String
     #|}
     #|
-    #|let slots : Slots = defineSlot()
+    #|let slots : Slots = defineSlots()
     #|</script>
     #|
     #|<template>
@@ -108,7 +108,7 @@ fn generic_source() -> String {
     #|
     #|let props : Props[T, U] = defineProps()
     #|let emit : Emits[T] = defineEmits()
-    #|let slots : Slots[T, U] = defineSlot()
+    #|let slots : Slots[T, U] = defineSlots()
     #|</script>
     #|
     #|<template>
