@@ -1,0 +1,50 @@
+version 1
+key hub/work-item/2/meta
+kind work-item
+clock mizchi=1
+timestamp 1774521270
+node mizchi
+deleted 0
+
+work-item 2
+title perf: eliminate to_array() in identifier checks and avoid redundant trim allocations
+author mizchi
+created 1774515528
+updated 1774516017
+state merged
+source perf/micro-optimizations
+source-ref refs/heads/perf/micro-optimizations
+source-commit a9e8e2bcbd284c4ef172e5fc3c67548f348f7c34
+target main
+target-commit 69e3d8e04ca167145c60cea39e729ebbc748bbb7
+
+## Summary
+
+- Replace `to_array()` with `String::op_get` indexing in `is_identifier_literal` across 3 files (script_setup/utils, sfc/generics, template/parser), removing per-call array allocations
+- Replace `pascal_case` `to_array()` with `String` indexing + `unsafe_substring`
+- Use `.trim().is_empty()` instead of `.trim().length() == 0` to avoid intermediate `String` allocation when only checking emptiness (10+ sites across codegen, template, common)
+- Guard `trim().to_string()` behind `is_empty()` check to skip allocation on empty chunks in hot scan loops
+
+### Benchmark comparison (vs current main)
+
+| Benchmark | Before | After | Change |
+|---|---|---|---|
+| compile/basic | 423 µs | 109 µs | **3.9x** |
+| compile/reactivity | 950 µs | 442 µs | **2.1x** |
+| compile/composable | 817 µs | 579 µs | **1.4x** |
+| compile/directives | 146 µs | 122 µs | **1.2x** |
+| compile/macros | 257 µs | 206 µs | **1.2x** |
+| compile/generic | 342 µs | 301 µs | **1.1x** |
+| parse_sfc/basic | 58 µs | 50 µs | **1.2x** |
+| parse_sfc/composable | 395 µs | 350 µs | **1.1x** |
+| parse_template/basic | 5.27 µs | 4.65 µs | **1.1x** |
+| parse_template/directives | 17.09 µs | 13.25 µs | **1.3x** |
+| parse_template/reactivity | 19.35 µs | 16.83 µs | **1.2x** |
+
+## Test plan
+
+- [x] All 175 existing tests pass
+- [x] Zero project warnings
+- [x] Benchmarks run via `moon bench -p ubugeeei/vapor_moon/src/compiler`
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
