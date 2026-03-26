@@ -1,8 +1,8 @@
 version 1
 key hub/work-item/14/meta
 kind work-item
-clock mizchi=1
-timestamp 1774521069
+clock mizchi=2
+timestamp 1774521242
 node mizchi
 deleted 0
 
@@ -10,21 +10,17 @@ work-item 14
 title feat: provide/inject for dependency injection
 author mizchi
 created 1774520836
-updated 1774520836
+updated 1774521242
 state open
+label high
 
-Vue 3's \`provide\`/\`inject\` pattern for passing data through the component tree without prop drilling is not implemented.
+## Priority: High
 
-In MoonBit, this could be modeled as a typed context mechanism:
+No mechanism for dependency injection through the component tree. Essential for theming, i18n, and shared state without prop drilling.
 
-```html
-<script setup>
-let theme = provide("theme", signal("dark"))
-</script>
-```
+## Design question
 
-```html
-<script setup>
-let theme = inject("theme")
-</script>
-```
+MoonBit is statically typed, so Vue's string-keyed `provide`/`inject` needs adaptation. Options:
+1. Typed context keys (like React's `createContext`)
+2. Compile-time macro (`defineProvide` / `defineInject`)
+3. Module-level shared state (simpler but less flexible)
