@@ -66,7 +66,7 @@ pub fn parse_sfc(
           }
         }
       Style => {
-        let scoped = has_attr(block.attrs, "scoped")
+        let scoped = style_block_is_scoped(block.attrs)
         styles.push({
           attrs: block.attrs,
           content: block.content,

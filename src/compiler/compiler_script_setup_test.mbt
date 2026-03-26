@@ -515,13 +515,58 @@ test "rejects valued setup attributes" {
 test "rejects valued scoped attributes" {
   let source =
     #|<template><div /></template>
-    #|<style scoped="true">
+    #|<style scoped="maybe">
     #|.root { color: red; }
     #|</style>
   assert_eq(
     compile_error(source, "invalid/scoped_with_value.mbtv"),
-    "InvalidSfc(\"`scoped` does not take a value on <style> in invalid/scoped_with_value.mbtv\")",
+    "InvalidSfc(\"`scoped` only accepts `false` on <style> in invalid/scoped_with_value.mbtv\")",
   )
+}
+
+///|
+test "style blocks are scoped by default" {
+  let source =
+    #|<template><div class="root" /></template>
+    #|<style>
+    #|.root { color: red; }
+    #|</style>
+  let output = compile(source, filename="examples/default_scoped_style.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("data-vm-scope"))
+  assert_true(output.css_output.contains("data-vm-scope"))
+  match output.scope_id {
+    Some(_) => ()
+    None => panic()
+  }
+}
+
+///|
+test "scoped false disables style scoping" {
+  let source =
+    #|<template><div class="root" /></template>
+    #|<style scoped="false">
+    #|.root { color: red; }
+    #|</style>
+  let output = compile(
+    source,
+    filename="examples/unscoped_style_opt_out.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_false(output.client_code.contains("data-vm-scope"))
+  assert_false(output.css_output.contains("data-vm-scope"))
+  match output.scope_id {
+    Some(_) => panic()
+    None => ()
+  }
 }
 
 ///|

@@ -200,6 +200,7 @@ test "multiple style blocks both included in output" {
   let output = compile_snapshot(source, "MultiStyle.mbtv")
   assert_true(output.contains("color: red"))
   assert_true(output.contains("font-size: 16px"))
+  assert_true(output.contains("data-vm-scope"))
 }
 
 // ── Conditional on components ─────────────────────────────────

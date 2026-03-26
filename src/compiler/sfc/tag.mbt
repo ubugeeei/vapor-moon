@@ -92,11 +92,11 @@ fn validate_block_attrs(
         }
       "scoped" =>
         match attr.value {
-          Some(_) =>
+          Some(value) if not(is_scoped_style_disabled_value(value)) =>
             raise CompilerError::InvalidSfc(
-              "`scoped` does not take a value on <style> in \{filename}",
+              "`scoped` only accepts `false` on <style> in \{filename}",
             )
-          None => ()
+          _ => ()
         }
       _ => ()
     }
@@ -149,6 +149,23 @@ fn find_attr_value(attrs : Array[BlockAttr], name : String) -> String? {
     }
   }
   None
+}
+
+///|
+fn style_block_is_scoped(attrs : Array[BlockAttr]) -> Bool {
+  match find_attr_value(attrs, "scoped") {
+    Some(value) => not(is_scoped_style_disabled_value(value))
+    None => true
+  }
+}
+
+///|
+fn is_scoped_style_disabled_value(value : String) -> Bool {
+  let normalized = StringBuilder::new()
+  for ch in value.trim() {
+    normalized.write_char(to_lower_char(ch))
+  }
+  normalized.to_string() == "false"
 }
 
 ///|

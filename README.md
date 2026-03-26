@@ -82,7 +82,7 @@ let count = signal(0)
   </section>
 </template>
 
-<style scoped>
+<style>
 .counter {
   display: grid;
   gap: 12px;
@@ -91,6 +91,8 @@ let count = signal(0)
 ```
 
 `<script setup>` is the only supported script block. Vapor Moon intentionally rejects plain `<script>`.
+
+`<style>` blocks are scoped by default. Use `<style scoped="false">` when you explicitly want global CSS.
 
 The recommended reactivity surface is an explicit import with a meaningful alias like `@reactivity`. Vapor Moon examples avoid leaking the older luna-internal alias into authoring code.
 
