@@ -199,7 +199,7 @@ pub fn CompileOutput::snapshot(self : CompileOutput) -> String {
   sb.write_string("\n=== server ===\n")
   sb.write_string(self.server_code.trim().to_string())
   sb.write_string("\n=== css ===\n")
-  if self.css_output.trim().length() == 0 {
+  if self.css_output.trim().is_empty() {
     sb.write_string("<empty>")
   } else {
     sb.write_string(self.css_output.trim().to_string())

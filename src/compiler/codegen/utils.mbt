@@ -2,7 +2,7 @@
 pub fn emit_css(styles : Array[StyleBlock], scope_id : String?) -> String {
   let chunks : Array[String] = []
   for style in styles {
-    if style.content.trim().length() == 0 {
+    if style.content.trim().is_empty() {
       continue
     }
     let css = match scope_id {
@@ -35,18 +35,15 @@ pub fn pascal_case(name : String) -> String {
     if part.length() == 0 {
       continue
     }
-    let chars = part.to_array()
-    let first = chars[0]
-    let upper = if first >= 'a' && first <= 'z' {
-      (first.to_int() - 'a'.to_int() + 'A'.to_int()).unsafe_to_char()
+    let first = part[0].to_int()
+    let upper = if first >= 0x61 && first <= 0x7A {
+      (first - 0x61 + 0x41).unsafe_to_char()
     } else {
-      first
+      first.unsafe_to_char()
     }
     sb.write_char(upper)
-    if chars.length() > 1 {
-      for index in 1..<chars.length() {
-        sb.write_char(chars[index])
-      }
+    if part.length() > 1 {
+      sb.write_string(String::unsafe_substring(part, start=1, end=part.length()))
     }
   }
   let result = sb.to_string()
@@ -110,10 +107,10 @@ fn scope_css_local(css : String, scope_id : String) -> String {
   let chunks = css.split("}").map(fn(part) { part.to_string() }).collect()
   let scoped_chunks : Array[String] = []
   for chunk in chunks {
-    let trimmed = chunk.trim().to_string()
-    if trimmed.length() == 0 {
+    if chunk.trim().is_empty() {
       continue
     }
+    let trimmed = chunk.trim().to_string()
     match trimmed.find("{") {
       Some(index) => {
         let selector = String::unsafe_substring(trimmed, start=0, end=index)
