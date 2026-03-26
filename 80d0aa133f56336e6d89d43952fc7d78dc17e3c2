@@ -1,8 +1,8 @@
 version 1
 key hub/work-item/11/meta
 kind work-item
-clock mizchi=1
-timestamp 1774521069
+clock mizchi=2
+timestamp 1774521218
 node mizchi
 deleted 0
 
@@ -10,13 +10,22 @@ work-item 11
 title feat: event listeners on components (@event on <Component>)
 author mizchi
 created 1774520833
-updated 1774520833
+updated 1774521218
 state open
+label critical
 
-Event listeners (\`@event\`) are rejected on component tags. Only native HTML elements support them.
+## Priority: Critical
 
-Components should forward \`@event\` as emit bindings or native event listeners on the component root.
+`@event` handlers are rejected on component tags. Only native HTML elements accept them. This blocks parent-child event communication for components without `defineEmits`.
+
+## Scope
+
+- Allow `@event` on component elements
+- Forward as emit call or native event on component root
+- Validate against component's declared emits when available
+
+## Example
 
 ```html
-<MyButton @click='handleClick' />
+<MyButton @click='handleClick' @custom-event='onCustom' />
 ```
