@@ -2,6 +2,8 @@
 
 Vapor Moon is a MoonBit-first Single File Component toolchain for building `luna.mbt`-powered UIs with Vue-like authoring, direct DOM-oriented client output, and SSR/island delivery.
 
+It is currently an unpublished hobby project developed by `ubugeeei` and `mizchi`.
+
 ## Why The Name
 
 - `Vapor Moon` is a pun on `Paper Moon`.
@@ -264,25 +266,6 @@ Small examples live in [`examples/`](./examples) and are intended to cover the c
 - [`examples/island_visible.mbtv`](./examples/island_visible.mbtv): `client:visible`
 - [`examples/media_and_defer.mbtv`](./examples/media_and_defer.mbtv): `client:media(...)` and `server:defer`
 
-## Repository Layout
-
-The project is organized around the compiler pipeline and the editor/tooling surface:
-
-- `src/compiler/`: public compiler facade, snapshot tests, and the overall compile pipeline
-- `src/compiler/sfc/`: top-level SFC block parsing
-- `src/compiler/template/`: template tokenization, AST building, and directive validation
-- `src/compiler/script_setup/`: setup-scope macro analysis and lowering
-- `src/compiler/codegen/`: client, server, CSS, and typed contract emission
-- `src/compiler/incremental/`: ripple-backed incremental compilation
-- `src/runtime/`: shared runtime helpers, DOM helpers, hydration metadata, `useId`, and `useTemplateRef`
-- `src/tooling/`: diagnostics, hover, definition, completion, and other editor-facing queries
-- `src/lsp/`: stdio JSON-RPC server implementation
-- `src/cmd/vapor_moon/`: CLI entrypoint for compile and tooling commands
-- `src/cmd/vapor_moon_lsp/`: editor-facing language server entrypoint
-- `editors/`: VS Code, Zed, and Neovim integrations
-- `examples/`: small reference components for the currently supported feature set
-- `bin/vapor-moon-lsp`: repo-local launcher for the LSP server
-
 ## CLI And Tooling
 
 Useful commands:
@@ -360,10 +343,3 @@ After cloning, enable the repo-local hook path once:
 ```bash
 git config core.hooksPath .githooks
 ```
-
-## Near-Term Roadmap
-
-- stabilize cross-component linking and generated import strategy
-- deepen cross-file component indexing for jump and completion across imports
-- compile SSR output to a stricter island manifest
-- deepen type-first component invocation and generic component ergonomics
