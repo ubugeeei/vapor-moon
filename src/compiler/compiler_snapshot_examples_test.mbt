@@ -153,7 +153,7 @@ test "snapshot lifecycle refs compile" {
       #|  let signal = @reactivity.signal,
       #|  let on_mount = @reactivity.on_mount,
       #|  let on_cleanup = @reactivity.on_cleanup,
-      #|  let root_ref = @vm.use_template_ref[@js_dom.HTMLElement]("root")
+      #|  let root_ref : @vm.TemplateRef[@js_dom.HTMLElement] = @vm.use_template_ref("root")
       #|  let instance_id = @vm.use_id(component_name, 0)
       #|  let phase = signal("booting")
       #|  let mount_registration = on_mount(fn() {
@@ -206,7 +206,7 @@ test "snapshot lifecycle refs compile" {
       #|  let signal = @reactivity.signal,
       #|  let on_mount = @reactivity.on_mount,
       #|  let on_cleanup = @reactivity.on_cleanup,
-      #|  let root_ref = @vm.use_template_ref[@js_dom.HTMLElement]("root")
+      #|  let root_ref : @vm.TemplateRef[@js_dom.HTMLElement] = @vm.use_template_ref("root")
       #|  let instance_id = @vm.use_id(component_name, 0)
       #|  let phase = signal("booting")
       #|  let mount_registration = on_mount(fn() {

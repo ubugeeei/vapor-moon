@@ -195,8 +195,8 @@ test "template refs resolve per TemplateRef instance" {
   let doc = fake_document()
   let first_target = fake_element(doc, "first", None)
   let second_target = fake_element(doc, "second", None)
-  let first_ref = @vm.use_template_ref[@js_dom.Element]("shared")
-  let second_ref = @vm.use_template_ref[@js_dom.Element]("shared")
+  let first_ref : @vm.TemplateRef[@js_dom.Element] = @vm.use_template_ref("shared")
+  let second_ref : @vm.TemplateRef[@js_dom.Element] = @vm.use_template_ref("shared")
 
   bind_template_ref(first_ref, first_target.as_any())
   bind_template_ref(second_ref, second_target.as_any())
@@ -218,7 +218,7 @@ test "template refs resolve per TemplateRef instance" {
 test "template refs still fall back to name lookup" {
   let doc = fake_document()
   let target = fake_element(doc, "legacy", None)
-  let ref_ = @vm.use_template_ref[@js_dom.Element]("legacy")
+  let ref_ : @vm.TemplateRef[@js_dom.Element] = @vm.use_template_ref("legacy")
 
   bind_template_ref_name("legacy", target.as_any())
 

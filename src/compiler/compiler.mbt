@@ -348,10 +348,21 @@ fn specialize_template_ref_calls(
 ) -> String {
   let mut current = script_setup
   for ref_ in resolved_refs {
-    current = current.replace_all(
-      old="@vm.use_template_ref(" + ref_.arg_source + ")",
-      new="@vm.use_template_ref[" + ref_.type_name + "](" + ref_.arg_source + ")",
-    )
+    match ref_.binding_name {
+      Some(binding_name) =>
+        current = current.replace_all(
+          old="let " + binding_name + " = @vm.use_template_ref(" + ref_.arg_source + ")",
+          new=
+            "let " +
+            binding_name +
+            " : @vm.TemplateRef[" +
+            ref_.type_name +
+            "] = @vm.use_template_ref(" +
+            ref_.arg_source +
+            ")",
+        )
+      None => ()
+    }
   }
   current
 }
