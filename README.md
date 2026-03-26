@@ -2,6 +2,12 @@
 
 Vapor Moon is a MoonBit-first Single File Component toolchain for building `luna.mbt`-powered UIs with Vue-like authoring, direct DOM-oriented client output, and SSR/island delivery.
 
+## Why The Name
+
+- `Moon` reflects that the authoring model, generated code, and tooling are MoonBit-first.
+- `Vapor` reflects the direction of the compiler: emit direct DOM/SSR-oriented code instead of leaning on a Virtual DOM layer.
+- `.mbtv` stays short, unique, and obviously tied to MoonBit plus Vapor Moon without borrowing Vue's `.vue`.
+
 ## Concept
 
 Vapor Moon is built around four ideas:
@@ -10,12 +16,6 @@ Vapor Moon is built around four ideas:
 - keep `<script>` blocks and template expressions in plain MoonBit
 - compile to raw DOM / `luna` SSR nodes instead of centering the runtime around a Virtual DOM
 - expose island and server-component-style delivery as template syntax, not as an afterthought
-
-## Why The Name
-
-- `Moon` reflects that the authoring model, generated code, and tooling are MoonBit-first.
-- `Vapor` reflects the direction of the compiler: emit direct DOM/SSR-oriented code instead of leaning on a Virtual DOM layer.
-- `.mbtv` stays short, unique, and obviously tied to MoonBit plus Vapor Moon without borrowing Vue's `.vue`.
 
 ## Status
 
