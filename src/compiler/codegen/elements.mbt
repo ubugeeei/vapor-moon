@@ -3,27 +3,30 @@ fn render_client_element(
   element : TemplateElement,
   indent : Int,
   scope_id : String?,
+  node_counter : Array[Int],
   static_mode : Bool,
 ) -> String {
+  let node_name = next_client_node_name(node_counter)
   let statements : Array[String] = [
-    "let __vm_el = @dom.el(" + quote(element.tag) + ")",
+    "let " + node_name + " = @dom.el(" + quote(element.tag) + ")",
   ]
   for attr in collect_client_attr_entries(element, scope_id, static_mode) {
-    statements.push("@dom.setAttr(__vm_el, " + attr + ")")
+    statements.push("@dom.setAttr(" + node_name + ", " + attr + ")")
   }
   if element.html_expr is None && not(element.children.is_empty()) {
     for
       statement in render_client_append_statements(
-        "__vm_el.as_node()",
+        node_name + ".as_node()",
         element.children,
         indent + 4,
         scope_id,
+        node_counter,
         static_mode,
       ) {
       statements.push(statement)
     }
   }
-  statements.push("@dom.into(__vm_el)")
+  statements.push("@dom.into(" + node_name + ")")
   render_client_iife(statements, indent)
 }
 
@@ -53,6 +56,7 @@ fn render_client_component(
   element : TemplateElement,
   indent : Int,
   scope_id : String?,
+  node_counter : Array[Int],
   static_mode : Bool,
 ) -> String {
   let props = render_client_component_props(element, static_mode)
@@ -62,10 +66,17 @@ fn render_client_component(
       element.children,
       indent + 2,
       scope_id,
+      node_counter,
       static_mode,
     )
   } else {
-    render_client_children(element.children, indent + 2, scope_id, static_mode)
+    render_client_children(
+      element.children,
+      indent + 2,
+      scope_id,
+      node_counter,
+      static_mode,
+    )
   }
   match element.island_mode {
     Load | Idle | Visible | Media(_) | Only | ServerDefer =>
@@ -187,6 +198,7 @@ fn render_client_children(
   nodes : Array[TemplateNode],
   indent : Int,
   scope_id : String?,
+  node_counter : Array[Int],
   static_mode : Bool,
 ) -> String {
   if nodes.is_empty() {
@@ -196,7 +208,13 @@ fn render_client_children(
   for node in nodes {
     lines.push(
       indent_block(
-        render_client_node(node, indent + 2, scope_id, static_mode),
+        render_client_node(
+          node,
+          indent + 2,
+          scope_id,
+          node_counter,
+          static_mode,
+        ),
         indent + 2,
       ),
     )
@@ -343,6 +361,7 @@ fn render_client_slots_record(
   children : Array[TemplateNode],
   indent : Int,
   scope_id : String?,
+  node_counter : Array[Int],
   static_mode : Bool,
 ) -> String {
   let groups = group_children_by_slot(children)
@@ -353,7 +372,13 @@ fn render_client_slots_record(
     sb.write_string(group.name)
     sb.write_string(": Some(fn() { ")
     sb.write_string(
-      render_client_children(group.nodes, indent + 4, scope_id, static_mode),
+      render_client_children(
+        group.nodes,
+        indent + 4,
+        scope_id,
+        node_counter,
+        static_mode,
+      ),
     )
     sb.write_string(" })")
     if i < groups.length() - 1 {
@@ -400,4 +425,11 @@ fn local_string_array_contains(values : Array[String], target : String) -> Bool 
     }
   }
   false
+}
+
+///|
+fn next_client_node_name(counter : Array[Int]) -> String {
+  let current = counter[0]
+  counter[0] = current + 1
+  "n" + current.to_string()
 }

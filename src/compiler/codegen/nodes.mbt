@@ -3,11 +3,17 @@ fn render_client_nodes(
   nodes : Array[TemplateNode],
   indent : Int,
   scope_id : String?,
+  node_counter : Array[Int],
 ) -> String {
   if nodes.length() == 1 {
-    indent_block(render_client_node(nodes[0], indent, scope_id, false), indent)
+    indent_block(
+      render_client_node(nodes[0], indent, scope_id, node_counter, false),
+      indent,
+    )
   } else {
-    let children = render_client_children(nodes, indent, scope_id, false)
+    let children = render_client_children(
+      nodes, indent, scope_id, node_counter, false,
+    )
     indent_block("@dom.frag(" + children + ")", indent)
   }
 }
@@ -31,6 +37,7 @@ fn render_client_node(
   node : TemplateNode,
   indent : Int,
   scope_id : String?,
+  node_counter : Array[Int],
   static_mode : Bool,
 ) -> String {
   match node {
@@ -44,15 +51,22 @@ fn render_client_node(
     Element(element) => {
       let next_static = static_mode || element.once
       let rendered = if element.is_component {
-        render_client_component(element, indent, scope_id, next_static)
+        render_client_component(
+          element, indent, scope_id, node_counter, next_static,
+        )
       } else {
-        render_client_element(element, indent, scope_id, next_static)
+        render_client_element(
+          element, indent, scope_id, node_counter, next_static,
+        )
       }
       wrap_client_directives(element, rendered)
     }
     Conditional(branches) =>
-      render_client_conditional(branches, indent, scope_id, static_mode)
-    Match(node) => render_client_match(node, indent, scope_id, static_mode)
+      render_client_conditional(
+        branches, indent, scope_id, node_counter, static_mode,
+      )
+    Match(node) =>
+      render_client_match(node, indent, scope_id, node_counter, static_mode)
   }
 }
 
@@ -61,6 +75,7 @@ fn render_client_match(
   node : MatchNode,
   indent : Int,
   scope_id : String?,
+  node_counter : Array[Int],
   static_mode : Bool,
 ) -> String {
   let sb = StringBuilder::new()
@@ -70,6 +85,7 @@ fn render_client_match(
       Element(branch.element),
       indent + 4,
       scope_id,
+      node_counter,
       static_mode,
     )
     sb.write_string(spaces(indent + 2) + branch.pattern + " =>\n")
@@ -85,6 +101,7 @@ fn render_client_conditional(
   branches : Array[ConditionalBranch],
   indent : Int,
   scope_id : String?,
+  node_counter : Array[Int],
   static_mode : Bool,
 ) -> String {
   let sb = StringBuilder::new()
@@ -93,6 +110,7 @@ fn render_client_conditional(
       Element(branch.element),
       indent + 2,
       scope_id,
+      node_counter,
       static_mode,
     )
     match branch.condition {
@@ -116,6 +134,7 @@ fn render_client_append_statements(
   nodes : Array[TemplateNode],
   indent : Int,
   scope_id : String?,
+  node_counter : Array[Int],
   static_mode : Bool,
 ) -> Array[String] {
   let statements : Array[String] = []
@@ -124,7 +143,7 @@ fn render_client_append_statements(
       "@dom.append(" +
       target_expr +
       ", " +
-      render_client_node(node, indent + 2, scope_id, static_mode) +
+      render_client_node(node, indent + 2, scope_id, node_counter, static_mode) +
       ")",
     )
   }

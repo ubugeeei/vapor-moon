@@ -1,6 +1,9 @@
 ///|
 fn assert_snapshot(actual : String, expected : String) -> Unit raise {
-  assert_eq(actual.trim().to_string(), expected.trim().to_string())
+  assert_eq(
+    normalize_client_temp_names(actual.trim().to_string()),
+    normalize_client_temp_names(expected.trim().to_string()),
+  )
 }
 
 ///|
@@ -12,6 +15,62 @@ fn compile_snapshot(source : String, filename : String) -> String {
     }
   }
   output.snapshot()
+}
+
+///|
+fn normalize_client_temp_names(source : String) -> String {
+  let mut current = source
+  for name in collect_client_temp_names(source) {
+    current = current.replace_all(
+      old="let " + name + " = @dom.el(",
+      new="let __vm_el = @dom.el(",
+    )
+    current = current.replace_all(
+      old="@dom.setAttr(" + name + ", ",
+      new="@dom.setAttr(__vm_el, ",
+    )
+    current = current.replace_all(
+      old="@dom.append(" + name + ".as_node(), ",
+      new="@dom.append(__vm_el.as_node(), ",
+    )
+    current = current.replace_all(
+      old="@dom.into(" + name + ")",
+      new="@dom.into(__vm_el)",
+    )
+  }
+  current
+}
+
+///|
+fn collect_client_temp_names(source : String) -> Array[String] {
+  let names : Array[String] = []
+  let lines = source.split("\n").map(fn(line) { line.to_string() }).collect()
+  for line in lines {
+    let trimmed = line.trim().to_string()
+    if not(trimmed.has_prefix("let ")) {
+      continue
+    }
+    match trimmed.find(" = @dom.el(") {
+      Some(index) => {
+        let name = String::unsafe_substring(trimmed, start=4, end=index)
+        if not(temp_name_list_contains(names, name)) {
+          names.push(name)
+        }
+      }
+      None => ()
+    }
+  }
+  names
+}
+
+///|
+fn temp_name_list_contains(values : Array[String], target : String) -> Bool {
+  for value in values {
+    if value == target {
+      return true
+    }
+  }
+  false
 }
 
 ///|
