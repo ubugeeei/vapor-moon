@@ -69,7 +69,7 @@ fn bench_source_composable() -> String {
 test "bench/direct/basic" (b : @bench.T) {
   let source = bench_source_basic()
   b.bench(fn() {
-    let result = try { @compiler.compile(source, filename="Bench.mbtv") } catch {
+    let result = @compiler.compile(source, filename="Bench.mbtv") catch {
       _ => panic()
     }
     b.keep(result)
@@ -80,9 +80,7 @@ test "bench/direct/basic" (b : @bench.T) {
 test "bench/direct/composable" (b : @bench.T) {
   let source = bench_source_composable()
   b.bench(fn() {
-    let result = try {
-      @compiler.compile(source, filename="Bench.mbtv")
-    } catch {
+    let result = @compiler.compile(source, filename="Bench.mbtv") catch {
       _ => panic()
     }
     b.keep(result)
@@ -100,7 +98,7 @@ test "bench/incremental/basic" (b : @bench.T) {
   let _ = ic.compile("Bench.mbtv") catch { _ => panic() }
   // bench: repeated compile with same source (should hit cache)
   b.bench(fn() {
-    let result = try { ic.compile("Bench.mbtv") } catch { _ => panic() }
+    let result = ic.compile("Bench.mbtv") catch { _ => panic() }
     b.keep(result)
   })
 }
@@ -112,7 +110,7 @@ test "bench/incremental/composable" (b : @bench.T) {
   ic.set_source("Bench.mbtv", source) |> ignore
   let _ = ic.compile("Bench.mbtv") catch { _ => panic() }
   b.bench(fn() {
-    let result = try { ic.compile("Bench.mbtv") } catch { _ => panic() }
+    let result = ic.compile("Bench.mbtv") catch { _ => panic() }
     b.keep(result)
   })
 }

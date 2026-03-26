@@ -43,7 +43,9 @@ pub fn pascal_case(name : String) -> String {
     }
     sb.write_char(upper)
     if part.length() > 1 {
-      sb.write_string(String::unsafe_substring(part, start=1, end=part.length()))
+      sb.write_string(
+        String::unsafe_substring(part, start=1, end=part.length()),
+      )
     }
   }
   let result = sb.to_string()

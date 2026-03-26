@@ -19,8 +19,7 @@ fn collect_client_attr_entries(
     parts.push(attr)
   }
   match scope_id {
-    Some(id) =>
-      parts.push("(\"data-vm-scope\", @vm_dom.attr_static(" + quote(id) + "))")
+    Some(id) => parts.push("(\"data-vm-scope\", @dom.attr(" + quote(id) + "))")
     None => ()
   }
   parts
@@ -67,44 +66,32 @@ fn render_client_attr(attr : TemplateAttr, static_mode : Bool) -> String {
   match attr.kind {
     Static =>
       if attr.name == "style" {
-        "(\"" + attr.name + "\", @vm_dom.attr_style(" + quote(attr.value) + "))"
+        "(\"" + attr.name + "\", @dom.style(" + quote(attr.value) + "))"
       } else {
-        "(\"" +
-        attr.name +
-        "\", @vm_dom.attr_static(" +
-        quote(attr.value) +
-        "))"
+        "(\"" + attr.name + "\", @dom.attr(" + quote(attr.value) + "))"
       }
     Dynamic =>
       if static_mode {
         if attr.name == "style" {
-          "(\"" +
-          attr.name +
-          "\", @vm_dom.attr_style(" +
-          attr.value +
-          ".to_string()))"
+          "(\"" + attr.name + "\", @dom.style(" + attr.value + ".to_string()))"
         } else {
-          "(\"" +
-          attr.name +
-          "\", @vm_dom.attr_static(" +
-          attr.value +
-          ".to_string()))"
+          "(\"" + attr.name + "\", @dom.attr(" + attr.value + ".to_string()))"
         }
       } else if attr.name == "style" {
         "(\"" +
         attr.name +
-        "\", @vm_dom.attr_dynamic_style(fn() { " +
+        "\", @dom.dynStyle(fn() { " +
         attr.value +
         ".to_string() }))"
       } else {
         "(\"" +
         attr.name +
-        "\", @vm_dom.attr_dynamic(fn() { " +
+        "\", @dom.dynAttr(fn() { " +
         attr.value +
         ".to_string() }))"
       }
     Event => render_client_event_attr(attr)
-    Boolean => "(\"" + attr.name + "\", @vm_dom.attr_static(\"\"))"
+    Boolean => "(\"" + attr.name + "\", @dom.attr(\"\"))"
   }
 }
 
@@ -148,11 +135,11 @@ fn push_if_some(parts : Array[String], value : String?) -> Unit {
 fn render_client_event_attr(attr : TemplateAttr) -> String {
   let handler = "fn(_event) { " + attr.value + " }"
   if attr.modifiers.is_empty() {
-    "(\"" + attr.name + "\", @vm_dom.attr_handler(" + handler + "))"
+    "(\"" + attr.name + "\", @dom.on(" + handler + "))"
   } else {
     "(\"" +
     attr.name +
-    "\", @vm_dom.attr_handler_with_modifiers(" +
+    "\", @dom.onWith(" +
     handler +
     ", " +
     render_string_array(attr.modifiers) +

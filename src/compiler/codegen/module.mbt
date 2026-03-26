@@ -7,8 +7,8 @@ pub fn emit_client_module(
 ) -> String {
   let sb = StringBuilder::new()
   let base_imports = [
-    "\"mizchi/luna/dom\" @luna_dom,", "\"ubugeeei/vapor_moon/src/runtime\" @vm,",
-    "\"ubugeeei/vapor_moon/src/runtime/dom\" @vm_dom,",
+    "\"mizchi/luna/dom\" @luna_dom,", "\"ubugeeei/vapor_moon/src/runtime\" @hlp,",
+    "\"ubugeeei/vapor_moon/src/runtime/dom\" @dom,",
   ]
   sb.write_string(
     emit_import_block(
@@ -51,7 +51,7 @@ pub fn emit_server_module(
 ) -> String {
   let sb = StringBuilder::new()
   let base_imports = [
-    "\"mizchi/luna/core\" @luna_core,", "\"ubugeeei/vapor_moon/src/runtime\" @vm,",
+    "\"mizchi/luna/core\" @luna_core,", "\"ubugeeei/vapor_moon/src/runtime\" @hlp,",
     "\"ubugeeei/vapor_moon/src/runtime/server\" @vm_server,",
   ]
   sb.write_string(
@@ -117,8 +117,7 @@ fn emit_import_block(
 
 ///|
 fn emit_extern_script(sb : StringBuilder, doc : SfcDocument) -> Unit {
-  if doc.script_transformed is Some(script) &&
-    not(script.trim().is_empty()) {
+  if doc.script_transformed is Some(script) && not(script.trim().is_empty()) {
     sb.write_string(script.trim().to_string())
     sb.write_string("\n\n")
   }

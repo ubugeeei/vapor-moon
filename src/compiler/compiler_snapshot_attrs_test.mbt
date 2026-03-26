@@ -16,8 +16,8 @@ test "snapshot merged class and style attrs compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @dom,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
@@ -25,11 +25,11 @@ test "snapshot merged class and style attrs compile" {
       #|  let tone = "color: blue"
       #|  let visible = true
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.element("div")
-      #|      @vm_dom.apply_attr_entry(__vm_el, ("class", @vm_dom.attr_dynamic(fn() { @vm.merge_class_names(["panel", accent.to_string()]) })))
-      #|      @vm_dom.apply_attr_entry(__vm_el, ("style", @vm_dom.attr_dynamic_style(fn() { @vm.show_style(visible, @vm.merge_styles(["display: flex", tone.to_string()])) })))
-      #|      @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text("Hello"))
-      #|      @vm_dom.to_node(__vm_el)
+      #|      let __vm_el = @dom.el("div")
+      #|      @dom.setAttr(__vm_el, ("class", @dom.dynAttr(fn() { @hlp.merge_class_names(["panel", accent.to_string()]) })))
+      #|      @dom.setAttr(__vm_el, ("style", @dom.dynStyle(fn() { @hlp.show_style(visible, @hlp.merge_styles(["display: flex", tone.to_string()])) })))
+      #|      @dom.append(__vm_el.as_node(), @dom.text("Hello"))
+      #|      @dom.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -49,7 +49,7 @@ test "snapshot merged class and style attrs compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|}
       #|
@@ -57,7 +57,7 @@ test "snapshot merged class and style attrs compile" {
       #|  let accent = "accent"
       #|  let tone = "color: blue"
       #|  let visible = true
-      #|  @luna_core.h("div", [("class", @luna_core.attr_dynamic(fn() { @vm.merge_class_names(["panel", accent.to_string()]) })), ("style", @luna_core.attr_dynamic(fn() { @vm.show_style(visible, @vm.merge_styles(["display: flex", tone.to_string()])) }))], [
+      #|  @luna_core.h("div", [("class", @luna_core.attr_dynamic(fn() { @hlp.merge_class_names(["panel", accent.to_string()]) })), ("style", @luna_core.attr_dynamic(fn() { @hlp.show_style(visible, @hlp.merge_styles(["display: flex", tone.to_string()])) }))], [
       #|      @luna_core.text("Hello")
       #|    ])
       #|}
@@ -121,8 +121,8 @@ test "snapshot v-model modifiers compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @dom,
       #|  "mizchi/luna/js/resource" @reactivity,
       #|}
       #|
@@ -131,21 +131,21 @@ test "snapshot v-model modifiers compile" {
       #|  let name = signal(" hello ")
       #|  let agreed = signal(false)
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.element("form")
-      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.element("input")
-      #|                @vm_dom.apply_attr_entry(__vm_el, ("value", @vm_dom.attr_dynamic(fn() { name.get().to_string() })))
-      #|                @vm_dom.apply_attr_entry(__vm_el, ("change", @vm_dom.attr_handler(fn(_event) { name.set((_event._get("target")._get("value").cast()).trim().to_string()) })))
-      #|                @vm_dom.to_node(__vm_el)
+      #|      let __vm_el = @dom.el("form")
+      #|      @dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @dom.el("input")
+      #|                @dom.setAttr(__vm_el, ("value", @dom.dynAttr(fn() { name.get().to_string() })))
+      #|                @dom.setAttr(__vm_el, ("change", @dom.on(fn(_event) { name.set((_event._get("target")._get("value").cast()).trim().to_string()) })))
+      #|                @dom.into(__vm_el)
       #|              })())
-      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.element("input")
-      #|                @vm_dom.apply_attr_entry(__vm_el, ("type", @vm_dom.attr_static("checkbox")))
-      #|                @vm_dom.apply_attr_entry(__vm_el, ("checked", @vm_dom.attr_dynamic(fn() { if agreed.get() { "true" } else { "false" } })))
-      #|                @vm_dom.apply_attr_entry(__vm_el, ("change", @vm_dom.attr_handler(fn(_event) { agreed.set(_event._get("target")._get("checked").cast()) })))
-      #|                @vm_dom.to_node(__vm_el)
+      #|      @dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @dom.el("input")
+      #|                @dom.setAttr(__vm_el, ("type", @dom.attr("checkbox")))
+      #|                @dom.setAttr(__vm_el, ("checked", @dom.dynAttr(fn() { if agreed.get() { "true" } else { "false" } })))
+      #|                @dom.setAttr(__vm_el, ("change", @dom.on(fn(_event) { agreed.set(_event._get("target")._get("checked").cast()) })))
+      #|                @dom.into(__vm_el)
       #|              })())
-      #|      @vm_dom.to_node(__vm_el)
+      #|      @dom.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -165,7 +165,7 @@ test "snapshot v-model modifiers compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|  "mizchi/luna/js/resource" @reactivity,
       #|}

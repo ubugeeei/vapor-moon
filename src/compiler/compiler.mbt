@@ -20,7 +20,10 @@ pub fn compile_from_parts(
   filename : String,
 ) -> CompileOutput raise CompilerError {
   reject_legacy_emit_calls(doc, template, filename)
-  let resolved_template_refs = resolve_template_refs(doc.template_refs, template)
+  let resolved_template_refs = resolve_template_refs(
+    doc.template_refs,
+    template,
+  )
   let resolved_doc = resolve_template_ref_doc(doc, resolved_template_refs)
   let bound_template = bind_template_ref_nodes(template, resolved_template_refs)
   let component_name = @codegen.pascal_case(@codegen.base_name(filename))
@@ -31,16 +34,10 @@ pub fn compile_from_parts(
     component_name,
     extension: resolved_doc.extension,
     client_code: @codegen.emit_client_module(
-      resolved_doc,
-      bound_template,
-      component_name,
-      scope_id,
+      resolved_doc, bound_template, component_name, scope_id,
     ),
     server_code: @codegen.emit_server_module(
-      resolved_doc,
-      bound_template,
-      component_name,
-      scope_id,
+      resolved_doc, bound_template, component_name, scope_id,
     ),
     css_output,
     scope_id,
@@ -187,8 +184,9 @@ fn resolve_template_refs(
   for template_ref in template_refs {
     let type_name = match template_ref.ref_name {
       Some(name) =>
-        find_static_template_ref_type(static_ref_types, name)
-        .unwrap_or("@js_dom.Element")
+        find_static_template_ref_type(static_ref_types, name).unwrap_or(
+          "@js_dom.Element",
+        )
       None => "@js_dom.Element"
     }
     resolved.push({
@@ -276,8 +274,7 @@ fn infer_native_template_ref_type(tag : String) -> String {
     "canvas" => "@js_dom.HTMLCanvasElement"
     "div" => "@js_dom.HTMLDivElement"
     "form" => "@js_dom.HTMLFormElement"
-    "h1" | "h2" | "h3" | "h4" | "h5" | "h6" =>
-      "@js_dom.HTMLHeadingElement"
+    "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => "@js_dom.HTMLHeadingElement"
     "head" => "@js_dom.HTMLHeadElement"
     "html" => "@js_dom.HTMLHtmlElement"
     "iframe" => "@js_dom.HTMLIFrameElement"
@@ -329,16 +326,19 @@ fn resolve_template_ref_doc(
     return doc
   }
   let transformed = match doc.script_setup_transformed {
-    Some(script_setup) => Some(
-      specialize_template_ref_calls(script_setup, resolved_refs),
-    )
+    Some(script_setup) =>
+      Some(specialize_template_ref_calls(script_setup, resolved_refs))
     None => None
   }
   let imports = append_unique_import(
     doc.script_setup_import_entries,
     "\"mizchi/js/browser/dom\" @js_dom,",
   )
-  { ..doc, script_setup_transformed: transformed, script_setup_import_entries: imports }
+  {
+    ..doc,
+    script_setup_transformed: transformed,
+    script_setup_import_entries: imports,
+  }
 }
 
 ///|
@@ -351,13 +351,16 @@ fn specialize_template_ref_calls(
     match ref_.binding_name {
       Some(binding_name) =>
         current = current.replace_all(
-          old="let " + binding_name + " = @vm.use_template_ref(" + ref_.arg_source + ")",
-          new=
-            "let " +
+          old="let " +
             binding_name +
-            " : @vm.TemplateRef[" +
+            " = @hlp.use_template_ref(" +
+            ref_.arg_source +
+            ")",
+          new="let " +
+            binding_name +
+            " : @hlp.TemplateRef[" +
             ref_.type_name +
-            "] = @vm.use_template_ref(" +
+            "] = @hlp.use_template_ref(" +
             ref_.arg_source +
             ")",
         )
@@ -368,7 +371,10 @@ fn specialize_template_ref_calls(
 }
 
 ///|
-fn append_unique_import(entries : Array[String], entry : String) -> Array[String] {
+fn append_unique_import(
+  entries : Array[String],
+  entry : String,
+) -> Array[String] {
   let merged = entries.copy()
   for current in merged {
     if current == entry {
@@ -442,8 +448,7 @@ fn find_template_ref_binding_name(
   name : String,
 ) -> String? {
   for ref_ in resolved_refs {
-    if ref_.binding_name is Some(binding_name) &&
-      ref_.ref_name == Some(name) {
+    if ref_.binding_name is Some(binding_name) && ref_.ref_name == Some(name) {
       return Some(binding_name)
     }
   }

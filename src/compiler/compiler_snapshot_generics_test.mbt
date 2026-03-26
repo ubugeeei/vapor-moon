@@ -15,8 +15,8 @@ test "snapshot generic component compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @dom,
       #|}
       #|
       #|pub struct GenericListProps[T, U : Show] {
@@ -59,9 +59,9 @@ test "snapshot generic component compile" {
       #|    label : U
       #|  }
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.element("section")
-      #|      @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { props.items.length().to_string() }))
-      #|      @vm_dom.to_node(__vm_el)
+      #|      let __vm_el = @dom.el("section")
+      #|      @dom.append(__vm_el.as_node(), @dom.setText(fn() { props.items.length().to_string() }))
+      #|      @dom.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -81,7 +81,7 @@ test "snapshot generic component compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|}
       #|

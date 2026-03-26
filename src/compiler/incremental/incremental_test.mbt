@@ -48,7 +48,9 @@ test "incremental compile matches direct compile" {
   let filename = "Test.mbtv"
   ic.set_source(filename, source) |> ignore
   let inc_output = ic.compile(filename) catch { _ => panic() }
-  let direct_output = @compiler.compile(source, filename~) catch { _ => panic() }
+  let direct_output = @compiler.compile(source, filename~) catch {
+    _ => panic()
+  }
   assert_eq(inc_output, direct_output)
 }
 
@@ -116,11 +118,7 @@ test "multiple files are independently cached" {
 test "error results are returned correctly" {
   let ic = IncrementalCompiler::new()
   ic.set_source("Bad.mbtv", "<div>no template block</div>") |> ignore
-  let result = try {
-    Ok(ic.compile("Bad.mbtv"))
-  } catch {
-    err => Err(err)
-  }
+  let result = Ok(ic.compile("Bad.mbtv")) catch { err => Err(err) }
   assert_true(result is Err(_))
 }
 
@@ -152,10 +150,6 @@ test "get_css returns css output" {
 ///|
 test "file not found raises error" {
   let ic = IncrementalCompiler::new()
-  let result = try {
-    Ok(ic.compile("NotFound.mbtv"))
-  } catch {
-    err => Err(err)
-  }
+  let result = Ok(ic.compile("NotFound.mbtv")) catch { err => Err(err) }
   assert_true(result is Err(_))
 }

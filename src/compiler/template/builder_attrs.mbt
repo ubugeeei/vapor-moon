@@ -79,17 +79,13 @@ fn parse_event_attr(
     .map(fn(part) { part.to_string() })
     .collect()
   if segments.length() == 0 {
-    raise CompilerError::InvalidDirective(
-      "invalid event syntax: `\{raw_name}`",
-    )
+    raise CompilerError::InvalidDirective("invalid event syntax: `\{raw_name}`")
   }
   if segments[0].length() == 0 {
     if segments.length() == 1 {
       return ("", [])
     }
-    raise CompilerError::InvalidDirective(
-      "invalid event syntax: `\{raw_name}`",
-    )
+    raise CompilerError::InvalidDirective("invalid event syntax: `\{raw_name}`")
   }
   let modifiers : Array[String] = []
   for index in 1..<segments.length() {

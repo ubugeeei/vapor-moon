@@ -37,7 +37,7 @@ test.describe("island directives", () => {
 
     expect(output.meta.component).toBe("IslandVisible");
     expect(output.meta.islands).toContain("CounterPanel");
-    expect(output.client_code).toContain("island_dom");
+    expect(output.client_code).toContain("@dom.island(");
     expect(output.server_code).toContain("island_ssr");
   });
 
@@ -48,7 +48,7 @@ test.describe("island directives", () => {
     expect(output.meta.islands).toContain("HeroBanner");
     expect(output.meta.islands).toContain("ArticleChunk");
     // client:media generates media query island
-    expect(output.client_code).toContain("island_dom");
+    expect(output.client_code).toContain("@dom.island(");
     expect(output.client_code).toContain("max-width: 768px");
     // server:defer generates defer island
     expect(output.server_code).toContain("island_ssr");
@@ -61,11 +61,11 @@ test.describe("lifecycle and template refs", () => {
 
     expect(output.meta.component).toBe("LifecycleRefs");
     // useTemplateRef is lowered to runtime call
-    expect(output.client_code).toContain("@vm.use_template_ref");
-    expect(output.server_code).toContain("@vm.use_template_ref");
+    expect(output.client_code).toContain("@hlp.use_template_ref");
+    expect(output.server_code).toContain("@hlp.use_template_ref");
     // useId is lowered to runtime call
-    expect(output.client_code).toContain("@vm.use_id");
-    expect(output.server_code).toContain("@vm.use_id");
+    expect(output.client_code).toContain("@hlp.use_id");
+    expect(output.server_code).toContain("@hlp.use_id");
     // ref attribute generates ref binding
     expect(output.client_code).toContain("ref");
   });
@@ -176,9 +176,9 @@ let visible = true
       "VShow.mbtv"
     );
 
-    expect(output.client_code).toContain("@vm_dom.attr_dynamic_style");
-    expect(output.client_code).toContain("@vm.show_style");
-    expect(output.server_code).toContain("@vm.show_style");
+    expect(output.client_code).toContain("@dom.dynStyle");
+    expect(output.client_code).toContain("@hlp.show_style");
+    expect(output.server_code).toContain("@hlp.show_style");
   });
 });
 
@@ -213,7 +213,7 @@ let msg = "hello"
     );
 
     // v-once should use static text instead of reactive text_expr
-    expect(output.client_code).toContain("@vm_dom.text(msg");
+    expect(output.client_code).toContain("@dom.text(msg.to_string())");
     expect(output.client_code).not.toContain("text_expr");
   });
 });
@@ -245,7 +245,7 @@ let items = [1, 2, 3]
       "Key.mbtv"
     );
 
-    expect(output.client_code).toContain("for_each");
+    expect(output.client_code).toContain("@dom.each(");
   });
 });
 
@@ -389,7 +389,7 @@ test.describe("v-slot / #name slot outlets", () => {
 
     // Should use flat array, not record
     expect(output.client_code).not.toContain("Some(fn()");
-    expect(output.client_code).toContain("component_dom");
+    expect(output.client_code).toContain("@dom.component(");
   });
 
   test("v-slot:name full syntax works", () => {

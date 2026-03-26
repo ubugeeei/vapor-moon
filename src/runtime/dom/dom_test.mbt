@@ -195,8 +195,12 @@ test "template refs resolve per TemplateRef instance" {
   let doc = fake_document()
   let first_target = fake_element(doc, "first", None)
   let second_target = fake_element(doc, "second", None)
-  let first_ref : @vm.TemplateRef[@js_dom.Element] = @vm.use_template_ref("shared")
-  let second_ref : @vm.TemplateRef[@js_dom.Element] = @vm.use_template_ref("shared")
+  let first_ref : @vm.TemplateRef[@js_dom.Element] = @vm.use_template_ref(
+    "shared",
+  )
+  let second_ref : @vm.TemplateRef[@js_dom.Element] = @vm.use_template_ref(
+    "shared",
+  )
 
   bind_template_ref(first_ref, first_target.as_any())
   bind_template_ref(second_ref, second_target.as_any())
@@ -292,10 +296,9 @@ test "listener option modifiers bind direct listeners" {
   apply_attr(
     elem,
     "click",
-    attr_handler_with_modifiers(
-      fn(_event) { calls.push(1) },
-      ["capture", "once", "passive"],
-    ),
+    attr_handler_with_modifiers(fn(_event) { calls.push(1) }, [
+      "capture", "once", "passive",
+    ]),
   )
 
   assert_eq(document_listener_count(doc, "click"), 0)

@@ -9,8 +9,8 @@ test "snapshot composable counter compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @dom,
       #|  "mizchi/luna/js/resource" @reactivity,
       #|}
       #|
@@ -36,30 +36,30 @@ test "snapshot composable counter compile" {
       #|  }
       #|  let counter = useCounter(2)
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.element("section")
-      #|      @vm_dom.apply_attr_entry(__vm_el, ("class", @vm_dom.attr_static("composable")))
-      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.element("button")
-      #|                @vm_dom.apply_attr_entry(__vm_el, ("click", @vm_dom.attr_handler(fn(_event) { counter.count.update(fn(n) { n + 1 }) })))
-      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text("inc"))
-      #|                @vm_dom.to_node(__vm_el)
+      #|      let __vm_el = @dom.el("section")
+      #|      @dom.setAttr(__vm_el, ("class", @dom.attr("composable")))
+      #|      @dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @dom.el("button")
+      #|                @dom.setAttr(__vm_el, ("click", @dom.on(fn(_event) { counter.count.update(fn(n) { n + 1 }) })))
+      #|                @dom.append(__vm_el.as_node(), @dom.text("inc"))
+      #|                @dom.into(__vm_el)
       #|              })())
-      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.element("p")
-      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { counter.count.get().to_string() }))
-      #|                @vm_dom.to_node(__vm_el)
+      #|      @dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @dom.el("p")
+      #|                @dom.append(__vm_el.as_node(), @dom.setText(fn() { counter.count.get().to_string() }))
+      #|                @dom.into(__vm_el)
       #|              })())
-      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.element("p")
-      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { counter.doubled().to_string() }))
-      #|                @vm_dom.to_node(__vm_el)
+      #|      @dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @dom.el("p")
+      #|                @dom.append(__vm_el.as_node(), @dom.setText(fn() { counter.doubled().to_string() }))
+      #|                @dom.into(__vm_el)
       #|              })())
-      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.element("small")
-      #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { counter.last_change.get().to_string() }))
-      #|                @vm_dom.to_node(__vm_el)
+      #|      @dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @dom.el("small")
+      #|                @dom.append(__vm_el.as_node(), @dom.setText(fn() { counter.last_change.get().to_string() }))
+      #|                @dom.into(__vm_el)
       #|              })())
-      #|      @vm_dom.to_node(__vm_el)
+      #|      @dom.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -79,7 +79,7 @@ test "snapshot composable counter compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|  "mizchi/luna/js/resource" @reactivity,
       #|}

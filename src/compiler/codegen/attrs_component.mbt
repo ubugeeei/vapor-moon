@@ -62,7 +62,7 @@ fn render_server_component_props(
       )
     None => ()
   }
-  "@vm.props_to_json(" +
+  "@hlp.props_to_json(" +
   (if parts.is_empty() { "[]" } else { "[" + parts.join(", ") + "]" }) +
   ")"
 }
@@ -70,12 +70,12 @@ fn render_server_component_props(
 ///|
 fn render_mode_expr(mode : IslandMode) -> String {
   match mode {
-    None => "@vm.HydrationMode::Manual"
-    Load => "@vm.HydrationMode::Load"
-    Idle => "@vm.HydrationMode::Idle"
-    Visible => "@vm.HydrationMode::Visible"
-    Media(query) => "@vm.HydrationMode::Media(" + quote(query) + ")"
-    Only => "@vm.HydrationMode::Only"
-    ServerDefer => "@vm.HydrationMode::ServerDefer"
+    None => "@hlp.HydrationMode::Manual"
+    Load => "@hlp.HydrationMode::Load"
+    Idle => "@hlp.HydrationMode::Idle"
+    Visible => "@hlp.HydrationMode::Visible"
+    Media(query) => "@hlp.HydrationMode::Media(" + quote(query) + ")"
+    Only => "@hlp.HydrationMode::Only"
+    ServerDefer => "@hlp.HydrationMode::ServerDefer"
   }
 }

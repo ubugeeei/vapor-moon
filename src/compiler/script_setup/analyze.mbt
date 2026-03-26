@@ -181,7 +181,8 @@ fn validate_script_extern_module(
 ) -> Unit raise CompilerError {
   for statement in ir.statements {
     match statement {
-      LetStatement(let_stmt) => validate_script_extern_expr(let_stmt.expr, filename)
+      LetStatement(let_stmt) =>
+        validate_script_extern_expr(let_stmt.expr, filename)
       ExpressionStatement(expr) => validate_script_extern_expr(expr, filename)
       ImportStatement(_) | RawStatement(_) => ()
     }
@@ -196,7 +197,11 @@ fn validate_script_extern_expr(
   match expr {
     MacroExpr(macro_) =>
       match macro_.name {
-        "defineProps" | "defineEmits" | "defineSlot" | "useId" | "useTemplateRef" =>
+        "defineProps"
+        | "defineEmits"
+        | "defineSlot"
+        | "useId"
+        | "useTemplateRef" =>
           raise CompilerError::InvalidScriptExtern(
             script_extern_setup_only_message(macro_.name, filename),
           )
@@ -207,10 +212,7 @@ fn validate_script_extern_expr(
 }
 
 ///|
-fn script_extern_setup_only_message(
-  name : String,
-  filename : String,
-) -> String {
+fn script_extern_setup_only_message(name : String, filename : String) -> String {
   "`" +
   name +
   "()` is only supported in <script> setup scope in " +
@@ -266,12 +268,12 @@ fn lower_script_setup_expr(
         "useId" =>
           (
             RawExpr(
-              "@vm.use_id(component_name, " + use_id_index.to_string() + ")",
+              "@hlp.use_id(component_name, " + use_id_index.to_string() + ")",
             ),
             use_id_index + 1,
           )
         "useTemplateRef" =>
-          (RawExpr("@vm.use_template_ref(" + macro_.args + ")"), use_id_index)
+          (RawExpr("@hlp.use_template_ref(" + macro_.args + ")"), use_id_index)
         _ => (expr, use_id_index)
       }
   }

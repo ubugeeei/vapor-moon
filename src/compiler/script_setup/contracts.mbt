@@ -4,7 +4,6 @@ priv struct ScriptSetupContractType {
   fields : Array[MacroField]?
 }
 
-
 ///|
 fn parse_contract_type_decl(
   source : String,

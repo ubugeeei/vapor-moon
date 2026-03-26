@@ -4,9 +4,9 @@ import {
   "mizchi/ripple" @ripple,
 }
 
-import "test" {
+import {
   "moonbitlang/core/bench" @bench,
-}
+} for "test"
 
 options(
   "supported-targets": "native",

@@ -6,7 +6,7 @@ test.describe("compiler output structure", () => {
     const output = compileFile("examples/basic.mbtv");
 
     expect(output.client_code).toContain("pub fn render_dom()");
-    expect(output.client_code).toContain("@vm_dom.element");
+    expect(output.client_code).toContain("@dom.el");
     expect(output.server_code).toContain("pub fn render_ssr()");
     expect(output.server_code).toContain("pub fn render_html()");
     expect(output.server_code).toContain("@luna_core.h(");
@@ -27,8 +27,8 @@ test.describe("compiler output structure", () => {
   test("directives.mbtv compiles with v-if and v-for", () => {
     const output = compileFile("examples/directives.mbtv");
 
-    expect(output.client_code).toContain("@vm_dom.show(");
-    expect(output.client_code).toContain("@vm_dom.for_each(");
+    expect(output.client_code).toContain("@dom.show(");
+    expect(output.client_code).toContain("@dom.each(");
     expect(output.server_code).toContain("@luna_core.show(");
     expect(output.server_code).toContain("@luna_core.for_each(");
   });

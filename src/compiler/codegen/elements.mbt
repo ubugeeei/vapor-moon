@@ -6,10 +6,10 @@ fn render_client_element(
   static_mode : Bool,
 ) -> String {
   let statements : Array[String] = [
-    "let __vm_el = @vm_dom.element(" + quote(element.tag) + ")",
+    "let __vm_el = @dom.el(" + quote(element.tag) + ")",
   ]
   for attr in collect_client_attr_entries(element, scope_id, static_mode) {
-    statements.push("@vm_dom.apply_attr_entry(__vm_el, " + attr + ")")
+    statements.push("@dom.setAttr(__vm_el, " + attr + ")")
   }
   if element.html_expr is None && not(element.children.is_empty()) {
     for
@@ -23,7 +23,7 @@ fn render_client_element(
       statements.push(statement)
     }
   }
-  statements.push("@vm_dom.to_node(__vm_el)")
+  statements.push("@dom.into(__vm_el)")
   render_client_iife(statements, indent)
 }
 
@@ -58,14 +58,19 @@ fn render_client_component(
   let props = render_client_component_props(element, static_mode)
   let meta_attrs = render_client_component_meta_attrs(element)
   let children = if has_named_slots(element.children) {
-    render_client_slots_record(element.children, indent + 2, scope_id, static_mode)
+    render_client_slots_record(
+      element.children,
+      indent + 2,
+      scope_id,
+      static_mode,
+    )
   } else {
     render_client_children(element.children, indent + 2, scope_id, static_mode)
   }
   match element.island_mode {
     Load | Idle | Visible | Media(_) | Only | ServerDefer =>
       if meta_attrs == "[]" {
-        "@vm_dom.island_dom(" +
+        "@dom.island(" +
         quote(element.tag) +
         ", " +
         render_mode_expr(element.island_mode) +
@@ -75,7 +80,7 @@ fn render_client_component(
         children +
         ")"
       } else {
-        "@vm_dom.island_dom_meta(" +
+        "@dom.islandMeta(" +
         quote(element.tag) +
         ", " +
         render_mode_expr(element.island_mode) +
@@ -89,7 +94,7 @@ fn render_client_component(
       }
     None =>
       if meta_attrs == "[]" {
-        "@vm_dom.component_dom(" +
+        "@dom.component(" +
         quote(element.tag) +
         ", " +
         props +
@@ -97,7 +102,7 @@ fn render_client_component(
         children +
         ")"
       } else {
-        "@vm_dom.component_dom_meta(" +
+        "@dom.componentMeta(" +
         quote(element.tag) +
         ", " +
         props +
@@ -120,7 +125,12 @@ fn render_server_component(
   let props = render_server_component_props(element, static_mode)
   let meta_attrs = render_server_component_meta_attrs(element)
   let children = if has_named_slots(element.children) {
-    render_server_slots_record(element.children, indent + 2, scope_id, static_mode)
+    render_server_slots_record(
+      element.children,
+      indent + 2,
+      scope_id,
+      static_mode,
+    )
   } else {
     render_server_children(element.children, indent + 2, scope_id, static_mode)
   }

@@ -13,16 +13,16 @@ test "snapshot script setup close tag literal compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @dom,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  let closing = "</script>"
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.element("div")
-      #|      @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text_expr(fn() { closing.to_string() }))
-      #|      @vm_dom.to_node(__vm_el)
+      #|      let __vm_el = @dom.el("div")
+      #|      @dom.append(__vm_el.as_node(), @dom.setText(fn() { closing.to_string() }))
+      #|      @dom.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -42,7 +42,7 @@ test "snapshot script setup close tag literal compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|}
       #|
@@ -101,16 +101,16 @@ test "snapshot style close tag literal compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @dom,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.element("div")
-      #|      @vm_dom.apply_attr_entry(__vm_el, ("class", @vm_dom.attr_static("box")))
-      #|      @vm_dom.apply_attr_entry(__vm_el, ("data-vm-scope", @vm_dom.attr_static("vm-2407032203")))
-      #|      @vm_dom.to_node(__vm_el)
+      #|      let __vm_el = @dom.el("div")
+      #|      @dom.setAttr(__vm_el, ("class", @dom.attr("box")))
+      #|      @dom.setAttr(__vm_el, ("data-vm-scope", @dom.attr("vm-2407032203")))
+      #|      @dom.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -130,7 +130,7 @@ test "snapshot style close tag literal compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|}
       #|
@@ -189,23 +189,23 @@ test "snapshot nested template element compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @dom,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.element("section")
-      #|      @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.element("template")
-      #|                @vm_dom.append_child(__vm_el.as_node(), (fn() {
-      #|                                let __vm_el = @vm_dom.element("span")
-      #|                                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text("Inner"))
-      #|                                @vm_dom.to_node(__vm_el)
+      #|      let __vm_el = @dom.el("section")
+      #|      @dom.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @dom.el("template")
+      #|                @dom.append(__vm_el.as_node(), (fn() {
+      #|                                let __vm_el = @dom.el("span")
+      #|                                @dom.append(__vm_el.as_node(), @dom.text("Inner"))
+      #|                                @dom.into(__vm_el)
       #|                              })())
-      #|                @vm_dom.to_node(__vm_el)
+      #|                @dom.into(__vm_el)
       #|              })())
-      #|      @vm_dom.to_node(__vm_el)
+      #|      @dom.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -225,7 +225,7 @@ test "snapshot nested template element compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+      #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|}
       #|
