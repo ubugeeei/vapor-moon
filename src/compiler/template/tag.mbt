@@ -97,7 +97,9 @@ fn read_template_attr_value(
       }
       if chars[cursor] == marker {
         return (
-          String::unsafe_substring(source, start=start + 1, end=cursor),
+          decode_html_entities(
+            String::unsafe_substring(source, start=start + 1, end=cursor),
+          ),
           cursor + 1,
         )
       }
@@ -115,7 +117,10 @@ fn read_template_attr_value(
   if cursor == start {
     raise CompilerError::InvalidTemplate("expected attribute value")
   }
-  (String::unsafe_substring(source, start~, end=cursor), cursor)
+  (
+    decode_html_entities(String::unsafe_substring(source, start~, end=cursor)),
+    cursor,
+  )
 }
 
 ///|

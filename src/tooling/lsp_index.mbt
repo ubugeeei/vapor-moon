@@ -1,3 +1,4 @@
+///|
 priv enum ToolingBindingAccessMode {
   Direct
   ResolveTemplateRef
@@ -85,9 +86,7 @@ fn build_tooling_index(source : String, filename : String) -> ToolingIndex {
     }
   }
   let resolved_template_refs = resolve_tooling_template_refs(
-    doc,
-    template,
-    filename,
+    doc, template, filename,
   )
   let script_span = find_block_content_span(
     source,
@@ -136,11 +135,7 @@ fn build_tooling_index(source : String, filename : String) -> ToolingIndex {
     members,
   )
   collect_template_ref_index(
-    source,
-    script_span,
-    resolved_template_refs,
-    bindings,
-    members,
+    source, script_span, resolved_template_refs, bindings, members,
   )
   collect_contract_refs(source, script_span, bindings, members, refs)
   collect_contract_refs(source, template_span, bindings, members, refs)
@@ -285,11 +280,12 @@ fn collect_template_ref_refs(
         if binding.access_mode != ResolveTemplateRef {
           continue
         }
-        for ref_ in find_resolved_template_ref_member_refs(
-          source,
-          span,
-          binding.binding_name,
-        ) {
+        for
+          ref_ in find_resolved_template_ref_member_refs(
+            source,
+            span,
+            binding.binding_name,
+          ) {
           if overlaps_definition(ref_, bindings, members) {
             continue
           }
@@ -379,9 +375,11 @@ fn resolve_tooling_template_refs(
       Some(binding_name) => {
         let target = match template_ref.ref_name {
           Some(name) =>
-            find_static_template_ref_target(static_targets, name).unwrap_or(
-              { ref_name: name, type_name: "@js_dom.Element", fields: [] },
-            )
+            find_static_template_ref_target(static_targets, name).unwrap_or({
+              ref_name: name,
+              type_name: "@js_dom.Element",
+              fields: [],
+            })
           None =>
             {
               ref_name: template_ref.arg_source,
@@ -460,11 +458,7 @@ fn register_static_template_ref_target(
   ref_name : String,
   next_target : (String, Array[@compiler.MacroField]),
 ) -> Unit {
-  let next = {
-    ref_name,
-    type_name: next_target.0,
-    fields: next_target.1,
-  }
+  let next = { ref_name, type_name: next_target.0, fields: next_target.1 }
   for i in 0..<targets.length() {
     if targets[i].ref_name == ref_name {
       targets[i] = merge_static_template_ref_target(targets[i], next)
@@ -523,9 +517,7 @@ fn infer_component_template_ref_target(
       continue
     }
     let source = @fs.read_file_to_string(path) catch { _ => continue }
-    let doc = @compiler.parse_sfc(source, filename=path) catch {
-      _ => continue
-    }
+    let doc = @compiler.parse_sfc(source, filename=path) catch { _ => continue }
     if not(doc.expose.is_empty()) || doc.expose_binding is Some(_) {
       return (tag + " expose", doc.expose)
     }

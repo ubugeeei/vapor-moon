@@ -163,7 +163,7 @@ test "v-model with invalid syntax is rejected" {
 // ── Style with @media rule (codegen/utils.mbt) ────────────────
 
 ///|
-test "scoped style preserves @media rules" {
+test "scoped style scopes selectors inside media rules" {
   let source =
     #|<template>
     #|  <div class="box">text</div>
@@ -173,9 +173,52 @@ test "scoped style preserves @media rules" {
     #|.box { color: red; }
     #|@media (max-width: 768px) { .box { color: blue; } }
     #|</style>
-  let output = compile_snapshot(source, "MediaScoped.mbtv")
-  assert_true(output.contains("@media"))
-  assert_true(output.contains("data-vm-scope"))
+  let output = compile(source, filename="MediaScoped.mbtv")
+  let scope_id = match output.scope_id {
+    Some(id) => id
+    None => panic()
+  }
+  assert_eq(
+    output.css_output.trim().to_string(),
+    ("[data-vm-scope=\"" +
+    scope_id +
+    "\"] .box { color: red; }\n@media (max-width: 768px) { [data-vm-scope=\"" +
+    scope_id +
+    "\"] .box { color: blue; } }")
+    .trim()
+    .to_string(),
+  )
+}
+
+///|
+test "scoped style preserves keyframes without scoping frame selectors" {
+  let source =
+    #|<template>
+    #|  <div class="box">text</div>
+    #|</template>
+    #|
+    #|<style scoped>
+    #|.box { animation: fade 1s ease; }
+    #|@keyframes fade {
+    #|  from { opacity: 0; }
+    #|  to { opacity: 1; }
+    #|}
+    #|</style>
+  let output = compile(source, filename="ScopedKeyframes.mbtv")
+  let scope_id = match output.scope_id {
+    Some(id) => id
+    None => panic()
+  }
+  assert_true(
+    output.css_output.contains(
+      "[data-vm-scope=\"" + scope_id + "\"] .box { animation: fade 1s ease; }",
+    ),
+  )
+  assert_true(
+    output.css_output.contains(
+      "@keyframes fade { from { opacity: 0; }\n  to { opacity: 1; } }",
+    ),
+  )
 }
 
 // ── Style show with v-show (attrs_style.mbt) ──────────────────

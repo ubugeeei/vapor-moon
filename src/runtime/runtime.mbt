@@ -58,41 +58,7 @@ pub fn props_to_json(entries : Array[(String, String)]) -> String {
 
 ///|
 pub fn scope_css(css : String, scope_id : String) -> String {
-  let chunks = css.split("}").map(fn(part) { part.to_string() }).collect()
-  let scoped : Array[String] = []
-  for chunk in chunks {
-    let trimmed = chunk.trim().to_string()
-    if trimmed.length() == 0 {
-      continue
-    }
-    match trimmed.find("{") {
-      Some(index) => {
-        let selector = String::unsafe_substring(trimmed, start=0, end=index)
-          .trim()
-          .to_string()
-        let body = String::unsafe_substring(
-            trimmed,
-            start=index + 1,
-            end=trimmed.length(),
-          )
-          .trim()
-          .to_string()
-        if selector.has_prefix("@") {
-          scoped.push(selector + " { " + body + " }")
-        } else {
-          let selectors = selector
-            .split(",")
-            .map(fn(part) {
-              "[data-vm-scope=\"" + scope_id + "\"] " + part.trim().to_string()
-            })
-            .collect()
-          scoped.push(selectors.join(", ") + " { " + body + " }")
-        }
-      }
-      None => scoped.push(trimmed)
-    }
-  }
-  scoped.join("\n")
+  scope_css_rules(css, scope_id)
 }
 
 ///|
@@ -202,4 +168,263 @@ fn sanitize_component_name(component_name : String) -> String {
 ///|
 fn normalize_style(source : String) -> String {
   source.trim().to_string()
+}
+
+///|
+fn scope_css_rules(css : String, scope_id : String) -> String {
+  let scoped_chunks : Array[String] = []
+  let mut index = 0
+  while index < css.length() {
+    index = skip_css_ignored(css, index)
+    if index >= css.length() {
+      break
+    }
+    if css[index] == '/' && index + 1 < css.length() && css[index + 1] == '*' {
+      let next_index = skip_css_comment(css, index)
+      scoped_chunks.push(
+        String::unsafe_substring(css, start=index, end=next_index)
+        .trim()
+        .to_string(),
+      )
+      index = next_index
+      continue
+    }
+    let header_start = index
+    let mut in_string : UInt16? = None
+    let mut escaped = false
+    while index < css.length() {
+      let ch = css[index]
+      match in_string {
+        Some(quote) => {
+          if escaped {
+            escaped = false
+          } else if ch == '\\' {
+            escaped = true
+          } else if ch == quote {
+            in_string = None
+          }
+          index += 1
+        }
+        None =>
+          if ch == '"' || ch == '\'' {
+            in_string = Some(ch)
+            index += 1
+          } else if ch == '/' &&
+            index + 1 < css.length() &&
+            css[index + 1] == '*' {
+            index = skip_css_comment(css, index)
+          } else if ch == '{' || ch == ';' {
+            break
+          } else {
+            index += 1
+          }
+      }
+    }
+    let header = String::unsafe_substring(css, start=header_start, end=index)
+      .trim()
+      .to_string()
+    if index >= css.length() {
+      if header.length() > 0 {
+        scoped_chunks.push(header)
+      }
+      break
+    }
+    let delimiter = css[index]
+    if delimiter == ';' {
+      if header.length() > 0 {
+        scoped_chunks.push(header + ";")
+      }
+      index += 1
+      continue
+    }
+    let (body, next_index) = read_css_block(css, index)
+    index = next_index
+    if header.length() == 0 {
+      continue
+    }
+    if header.has_prefix("@") {
+      let nested = if scopes_nested_css_rules(header) {
+        scope_css_rules(body, scope_id)
+      } else {
+        body.trim().to_string()
+      }
+      scoped_chunks.push(wrap_css_block(header, nested))
+    } else {
+      let selectors = split_css_selector_list(header)
+      let scoped_selectors : Array[String] = []
+      for selector in selectors {
+        let trimmed = selector.trim().to_string()
+        if trimmed.length() > 0 {
+          scoped_selectors.push(
+            "[data-vm-scope=\"" + scope_id + "\"] " + trimmed,
+          )
+        }
+      }
+      if not(scoped_selectors.is_empty()) {
+        scoped_chunks.push(
+          wrap_css_block(scoped_selectors.join(", "), body.trim().to_string()),
+        )
+      }
+    }
+  }
+  scoped_chunks.join("\n")
+}
+
+///|
+fn read_css_block(source : String, open_brace_index : Int) -> (String, Int) {
+  let mut index = open_brace_index + 1
+  let mut depth = 1
+  let mut in_string : UInt16? = None
+  let mut escaped = false
+  while index < source.length() {
+    let ch = source[index]
+    match in_string {
+      Some(quote) => {
+        if escaped {
+          escaped = false
+        } else if ch == '\\' {
+          escaped = true
+        } else if ch == quote {
+          in_string = None
+        }
+        index += 1
+      }
+      None =>
+        if ch == '"' || ch == '\'' {
+          in_string = Some(ch)
+          index += 1
+        } else if ch == '/' &&
+          index + 1 < source.length() &&
+          source[index + 1] == '*' {
+          index = skip_css_comment(source, index)
+        } else if ch == '{' {
+          depth += 1
+          index += 1
+        } else if ch == '}' {
+          depth -= 1
+          if depth == 0 {
+            return (
+              String::unsafe_substring(
+                source,
+                start=open_brace_index + 1,
+                end=index,
+              ),
+              index + 1,
+            )
+          }
+          index += 1
+        } else {
+          index += 1
+        }
+    }
+  }
+  (
+    String::unsafe_substring(
+      source,
+      start=open_brace_index + 1,
+      end=source.length(),
+    ),
+    source.length(),
+  )
+}
+
+///|
+fn split_css_selector_list(source : String) -> Array[String] {
+  let selectors : Array[String] = []
+  let mut start = 0
+  let mut index = 0
+  let mut in_string : UInt16? = None
+  let mut escaped = false
+  let mut paren_depth = 0
+  let mut bracket_depth = 0
+  while index < source.length() {
+    let ch = source[index]
+    match in_string {
+      Some(quote) => {
+        if escaped {
+          escaped = false
+        } else if ch == '\\' {
+          escaped = true
+        } else if ch == quote {
+          in_string = None
+        }
+        index += 1
+      }
+      None =>
+        if ch == '"' || ch == '\'' {
+          in_string = Some(ch)
+          index += 1
+        } else if ch == '/' &&
+          index + 1 < source.length() &&
+          source[index + 1] == '*' {
+          index = skip_css_comment(source, index)
+        } else if ch == '(' {
+          paren_depth += 1
+          index += 1
+        } else if ch == ')' {
+          if paren_depth > 0 {
+            paren_depth -= 1
+          }
+          index += 1
+        } else if ch == '[' {
+          bracket_depth += 1
+          index += 1
+        } else if ch == ']' {
+          if bracket_depth > 0 {
+            bracket_depth -= 1
+          }
+          index += 1
+        } else if ch == ',' && paren_depth == 0 && bracket_depth == 0 {
+          selectors.push(String::unsafe_substring(source, start~, end=index))
+          start = index + 1
+          index += 1
+        } else {
+          index += 1
+        }
+    }
+  }
+  selectors.push(String::unsafe_substring(source, start~, end=source.length()))
+  selectors
+}
+
+///|
+fn skip_css_ignored(source : String, start : Int) -> Int {
+  let mut index = start
+  while index < source.length() {
+    let ch = source[index]
+    if ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t' {
+      index += 1
+      continue
+    }
+    break
+  }
+  index
+}
+
+///|
+fn skip_css_comment(source : String, start : Int) -> Int {
+  let mut index = start + 2
+  while index + 1 < source.length() {
+    if source[index] == '*' && source[index + 1] == '/' {
+      return index + 2
+    }
+    index += 1
+  }
+  source.length()
+}
+
+///|
+fn scopes_nested_css_rules(header : String) -> Bool {
+  not(
+    header.has_prefix("@keyframes") ||
+    header.has_prefix("@-webkit-keyframes") ||
+    header.has_prefix("@font-face") ||
+    header.has_prefix("@page") ||
+    header.has_prefix("@property"),
+  )
+}
+
+///|
+fn wrap_css_block(header : String, body : String) -> String {
+  header + " { " + body.trim().to_string() + " }"
 }

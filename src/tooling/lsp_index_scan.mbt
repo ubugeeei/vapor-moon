@@ -103,15 +103,14 @@ fn find_resolved_template_ref_member_refs(
   let refs : Array[ToolingMemberRef] = []
   let mut cursor = search_span.start
   while true {
-    match find_substring_in_span_from(
-      source,
-      "resolve_template_ref",
-      search_span,
-      cursor,
-    ) {
+    match
+      find_substring_in_span_from(
+        source, "resolve_template_ref", search_span, cursor,
+      ) {
       Some(start) => {
         cursor = start + "resolve_template_ref".length()
-        match parse_resolved_template_ref_member_ref(source, search_span, start) {
+        match
+          parse_resolved_template_ref_member_ref(source, search_span, start) {
           Some((resolved_binding_name, binding_span, member_span)) =>
             if resolved_binding_name == binding_name {
               refs.push({
@@ -147,11 +146,13 @@ fn parse_resolved_template_ref_member_ref(
     return None
   }
   let open_paren = cursor
-  let close_paren = match find_matching_paren_forward(chars, open_paren, search_span.end) {
+  let close_paren = match
+    find_matching_paren_forward(chars, open_paren, search_span.end) {
     Some(index) => index
     None => return None
   }
-  let binding_span = match trim_span_whitespace(chars, open_paren + 1, close_paren) {
+  let binding_span = match
+    trim_span_whitespace(chars, open_paren + 1, close_paren) {
     Some(span) => span
     None => return None
   }
@@ -405,7 +406,11 @@ fn find_substring_in_span_from(
     span.end - needle_chars.length(),
     source_chars.length() - needle_chars.length(),
   )
-  let mut cursor = if start_offset > span.start { start_offset } else { span.start }
+  let mut cursor = if start_offset > span.start {
+    start_offset
+  } else {
+    span.start
+  }
   while cursor <= last {
     let mut matched = true
     for offset in 0..<needle_chars.length() {

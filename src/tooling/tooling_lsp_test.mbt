@@ -161,34 +161,19 @@ test "lsp supports defineExpose members in script setup" {
     #|  <div>{{ current }}</div>
     #|</template>
   inspect(
-    hover_at(
-      source,
-      7,
-      21,
-      filename="examples/expose_hover.mbtv",
-    ).to_string(),
+    hover_at(source, 7, 21, filename="examples/expose_hover.mbtv").to_string(),
     content=(
       #|Some({contents: "expose focus : Unit", location: {filename: "examples/expose_hover.mbtv", span: {start: 121, end: 126}, range: {start: {line: 7, character: 21}, end_: {line: 7, character: 26}}}})
     ),
   )
   inspect(
-    definition_at(
-      source,
-      7,
-      21,
-      filename="examples/expose_hover.mbtv",
-    ).to_string(),
+    definition_at(source, 7, 21, filename="examples/expose_hover.mbtv").to_string(),
     content=(
       #|Some({name: "focus", location: {filename: "examples/expose_hover.mbtv", span: {start: 33, end: 38}, range: {start: {line: 2, character: 2}, end_: {line: 2, character: 7}}}})
     ),
   )
   inspect(
-    complete_at(
-      source,
-      7,
-      21,
-      filename="examples/expose_hover.mbtv",
-    ).to_string(),
+    complete_at(source, 7, 21, filename="examples/expose_hover.mbtv").to_string(),
     content=(
       #|[{label: "focus", kind: "expose", detail: "expose focus : Unit", insert_text: "focus"}, {label: "count", kind: "expose", detail: "expose count : Int", insert_text: "count"}]
     ),
@@ -291,8 +276,7 @@ test "resolved template refs inherit defineExpose members for hover and completi
     #|  <ExposedPanel ref='panel' />
     #|</template>
   let (binding_line, binding_character) = line_character_at(
-    source,
-    "panel_ref).focus",
+    source, "panel_ref).focus",
   )
   let binding_hover = hover_at(
     source,
@@ -310,8 +294,7 @@ test "resolved template refs inherit defineExpose members for hover and completi
   }
 
   let (member_line, member_character) = line_character_after(
-    source,
-    "resolve_template_ref(panel_ref).",
+    source, "resolve_template_ref(panel_ref).",
   )
   let member_hover = hover_at(
     source,
@@ -325,8 +308,7 @@ test "resolved template refs inherit defineExpose members for hover and completi
   }
 
   let (complete_line, complete_character) = line_character_after(
-    source,
-    "let next = @vm_dom.resolve_template_ref(panel_ref).",
+    source, "let next = @vm_dom.resolve_template_ref(panel_ref).",
   )
   let completions = complete_at(
     source,
@@ -359,7 +341,9 @@ test "resolved template refs report unknown exposed members" {
     filename="examples/template_ref_expose_invalid.mbtv",
   )
   assert_eq(items.length(), 1)
-  assert_true(items[0].message.contains("unknown template ref member `missing`"))
+  assert_true(
+    items[0].message.contains("unknown template ref member `missing`"),
+  )
 }
 
 ///|

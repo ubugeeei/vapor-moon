@@ -321,8 +321,8 @@ extern "js" fn register_template_ref(name : String, target : @js.Any) -> Unit =
   #| }
 
 ///|
-extern "js" fn lookup_template_ref(name : String) -> @js.Any? =
-  #| (name) => globalThis.__vaporMoonTemplateRefs?.get(name) ?? null
+extern "js" fn lookup_template_ref(name : String) -> @js.Any =
+  #| (name) => globalThis.__vaporMoonTemplateRefs?.get(name) ?? undefined
 
 ///|
 extern "js" fn register_bound_template_ref(
@@ -335,8 +335,8 @@ extern "js" fn register_bound_template_ref(
   #| }
 
 ///|
-extern "js" fn lookup_bound_template_ref(ref_ : @js.Any) -> @js.Any? =
-  #| (ref_) => globalThis.__vaporMoonBoundTemplateRefs?.get(ref_) ?? null
+extern "js" fn lookup_bound_template_ref(ref_ : @js.Any) -> @js.Any =
+  #| (ref_) => globalThis.__vaporMoonBoundTemplateRefs?.get(ref_) ?? undefined
 
 ///|
 pub fn bind_template_ref_name(name : String, target : @js.Any) -> Unit {
@@ -363,13 +363,15 @@ pub fn[T] bindRef(ref_ : @vm.TemplateRef[T], target : @js.Any) -> Unit {
 
 ///|
 pub fn[T] resolve_template_ref(ref_ : @vm.TemplateRef[T]) -> T? {
-  match lookup_bound_template_ref(@js.any(ref_)) {
-    Some(target) => Some(target.cast())
-    None =>
-      match lookup_template_ref(ref_.name()) {
-        Some(target) => Some(target.cast())
-        None => None
-      }
+  let bound_target = lookup_bound_template_ref(@js.any(ref_))
+  if not(@js.is_nullish(bound_target)) {
+    return Some(bound_target.cast())
+  }
+  let named_target = lookup_template_ref(ref_.name())
+  if @js.is_nullish(named_target) {
+    None
+  } else {
+    Some(named_target.cast())
   }
 }
 
