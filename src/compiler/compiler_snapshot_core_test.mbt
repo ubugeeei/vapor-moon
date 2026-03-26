@@ -6,8 +6,8 @@ test "snapshot basic compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @d,
       #|  "mizchi/luna/js/resource" @reactivity,
       #|}
       #|
@@ -15,11 +15,11 @@ test "snapshot basic compile" {
       #|  let signal = @reactivity.signal,
       #|  let count = signal(0)
       #|  (fn() {
-      #|      let __vm_el = @v.el("div")
-      #|      @v.setAttr(__vm_el, ("class", @v.attr("counter")))
-      #|      @v.setAttr(__vm_el, ("data-vm-scope", @v.attr("vm-4048536636")))
-      #|      @v.append(__vm_el.as_node(), @v.setText(fn() { count.get().to_string() }))
-      #|      @v.into(__vm_el)
+      #|      let __vm_el = @d.el("div")
+      #|      @d.setAttr(__vm_el, ("class", @d.attr("counter")))
+      #|      @d.setAttr(__vm_el, ("data-vm-scope", @d.attr("vm-4048536636")))
+      #|      @d.append(__vm_el.as_node(), @d.setText(fn() { count.get().to_string() }))
+      #|      @d.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -39,7 +39,7 @@ test "snapshot basic compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|  "mizchi/luna/js/resource" @reactivity,
       #|}
@@ -94,8 +94,8 @@ test "snapshot macros compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @d,
       #|}
       #|
       #|pub struct MacrosProps {
@@ -125,11 +125,11 @@ test "snapshot macros compile" {
       #|    cancel : Unit
       #|  }
       #|  (fn() {
-      #|      let __vm_el = @v.el("button")
-      #|      @v.setAttr(__vm_el, ("click", @v.on(fn(_event) { emit.save() })))
-      #|      @v.setAttr(__vm_el, ("class", @v.attr("primary")))
-      #|      @v.append(__vm_el.as_node(), @v.setText(fn() { props.title.to_string() }))
-      #|      @v.into(__vm_el)
+      #|      let __vm_el = @d.el("button")
+      #|      @d.setAttr(__vm_el, ("click", @d.on(fn(_event) { emit.save() })))
+      #|      @d.setAttr(__vm_el, ("class", @d.attr("primary")))
+      #|      @d.append(__vm_el.as_node(), @d.setText(fn() { props.title.to_string() }))
+      #|      @d.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -149,7 +149,7 @@ test "snapshot macros compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|}
       #|

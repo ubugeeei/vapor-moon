@@ -926,7 +926,7 @@ test "script setup macros are found through grouped expressions" {
   assert_eq(info.props[0].name, "title")
   assert_eq(info.props[0].signature, Some("String"))
   assert_false(info.transformed.contains("defineProps"))
-  assert_true(info.transformed.contains("@vm.use_id(component_name, 0)"))
+  assert_true(info.transformed.contains("@r.use_id(component_name, 0)"))
 }
 
 ///|

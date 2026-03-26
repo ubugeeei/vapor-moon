@@ -6,8 +6,8 @@ test "snapshot island visible compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @d,
       #|  "mizchi/luna/js/resource" @reactivity,
       #|}
       #|
@@ -15,9 +15,9 @@ test "snapshot island visible compile" {
       #|  let signal = @reactivity.signal,
       #|  let count = signal(3)
       #|  (fn() {
-      #|      let __vm_el = @v.el("section")
-      #|      @v.append(__vm_el.as_node(), @v.island("CounterPanel", @vm.HydrationMode::Visible, [("count", fn() { count.get().to_string() })], []))
-      #|      @v.into(__vm_el)
+      #|      let __vm_el = @d.el("section")
+      #|      @d.append(__vm_el.as_node(), @d.island("CounterPanel", @r.HydrationMode::Visible, [("count", fn() { count.get().to_string() })], []))
+      #|      @d.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -37,7 +37,7 @@ test "snapshot island visible compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|  "mizchi/luna/js/resource" @reactivity,
       #|}
@@ -46,7 +46,7 @@ test "snapshot island visible compile" {
       #|  let signal = @reactivity.signal,
       #|  let count = signal(3)
       #|  @luna_core.h("section", [], [
-      #|      @vm_server.island_ssr("CounterPanel", @vm.props_to_json([("count", count.get().to_string())]), [], @vm.HydrationMode::Visible)
+      #|      @vm_server.island_ssr("CounterPanel", @r.props_to_json([("count", count.get().to_string())]), [], @r.HydrationMode::Visible)
       #|    ])
       #|}
       #|
@@ -92,21 +92,21 @@ test "snapshot directives compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @d,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  let items = [1, 2, 3]
       #|  let visible = true
-      #|  @v.show(fn() { visible }, fn() { (fn() {
-      #|      let __vm_el = @v.el("ul")
-      #|      @v.append(__vm_el.as_node(), @v.each(fn() { items }, fn(item, index) { (fn() {
-      #|                let __vm_el = @v.el("li")
-      #|                @v.append(__vm_el.as_node(), @v.setText(fn() { item.to_string() + ":" + index.to_string().to_string() }))
-      #|                @v.into(__vm_el)
+      #|  @d.show(fn() { visible }, fn() { (fn() {
+      #|      let __vm_el = @d.el("ul")
+      #|      @d.append(__vm_el.as_node(), @d.each(fn() { items }, fn(item, index) { (fn() {
+      #|                let __vm_el = @d.el("li")
+      #|                @d.append(__vm_el.as_node(), @d.setText(fn() { item.to_string() + ":" + index.to_string().to_string() }))
+      #|                @d.into(__vm_el)
       #|              })() }))
-      #|      @v.into(__vm_el)
+      #|      @d.into(__vm_el)
       #|    })() })
       #|}
       #|
@@ -126,7 +126,7 @@ test "snapshot directives compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|}
       #|
@@ -182,16 +182,16 @@ test "snapshot media and defer compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @d,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  (fn() {
-      #|      let __vm_el = @v.el("main")
-      #|      @v.append(__vm_el.as_node(), @v.island("HeroBanner", @vm.HydrationMode::Media("(max-width: 768px)"), [], []))
-      #|      @v.append(__vm_el.as_node(), @v.island("ArticleChunk", @vm.HydrationMode::ServerDefer, [], []))
-      #|      @v.into(__vm_el)
+      #|      let __vm_el = @d.el("main")
+      #|      @d.append(__vm_el.as_node(), @d.island("HeroBanner", @r.HydrationMode::Media("(max-width: 768px)"), [], []))
+      #|      @d.append(__vm_el.as_node(), @d.island("ArticleChunk", @r.HydrationMode::ServerDefer, [], []))
+      #|      @d.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -211,14 +211,14 @@ test "snapshot media and defer compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|}
       #|
       #|pub fn render_ssr() -> @luna_core.StaticDomNode {
       #|  @luna_core.h("main", [], [
-      #|      @vm_server.island_ssr("HeroBanner", @vm.props_to_json([]), [], @vm.HydrationMode::Media("(max-width: 768px)")),
-      #|      @vm_server.island_ssr("ArticleChunk", @vm.props_to_json([]), [], @vm.HydrationMode::ServerDefer)
+      #|      @vm_server.island_ssr("HeroBanner", @r.props_to_json([]), [], @r.HydrationMode::Media("(max-width: 768px)")),
+      #|      @vm_server.island_ssr("ArticleChunk", @r.props_to_json([]), [], @r.HydrationMode::ServerDefer)
       #|    ])
       #|}
       #|

@@ -2,9 +2,7 @@
 fn render_client_key_attr(element : TemplateElement) -> String? {
   match element.key_expr {
     Some(expr) =>
-      Some(
-        "(\"data-vm-key\", @v.dynAttr(fn() { " + expr + ".to_string() }))",
-      )
+      Some("(\"data-vm-key\", @d.dynAttr(fn() { " + expr + ".to_string() }))")
     None => None
   }
 }
@@ -27,7 +25,7 @@ fn render_client_ref_attr(element : TemplateElement) -> String? {
   match element.ref_binding_name {
     Some(binding_name) =>
       Some(
-        "(\"__ref\", @v.on(fn(target) { @v.bindRef(" +
+        "(\"__ref\", @d.on(fn(target) { @d.bindRef(" +
         binding_name +
         ", target) }))",
       )
@@ -35,7 +33,7 @@ fn render_client_ref_attr(element : TemplateElement) -> String? {
       match element.ref_name {
         Some(expr) =>
           Some(
-            "(\"__ref\", @v.on(fn(target) { @v.bindRefName(" +
+            "(\"__ref\", @d.on(fn(target) { @d.bindRefName(" +
             expr +
             ", target) }))",
           )
@@ -89,13 +87,9 @@ fn render_client_html_attr(
   match element.html_expr {
     Some(expr) =>
       if static_mode {
-        Some("(\"__innerHTML\", @v.attr(" + expr + ".to_string()))")
+        Some("(\"__innerHTML\", @d.attr(" + expr + ".to_string()))")
       } else {
-        Some(
-          "(\"__innerHTML\", @v.dynAttr(fn() { " +
-          expr +
-          ".to_string() }))",
-        )
+        Some("(\"__innerHTML\", @d.dynAttr(fn() { " + expr + ".to_string() }))")
       }
     None => None
   }
@@ -118,20 +112,16 @@ fn render_client_model_attrs(
       }
       let attr_name = if checked { "checked" } else { "value" }
       if static_mode {
-        parts.push("(\"" + attr_name + "\", @v.attr(" + value_expr + "))")
+        parts.push("(\"" + attr_name + "\", @d.attr(" + value_expr + "))")
       } else {
         parts.push(
-          "(\"" +
-          attr_name +
-          "\", @v.dynAttr(fn() { " +
-          value_expr +
-          " }))",
+          "(\"" + attr_name + "\", @d.dynAttr(fn() { " + value_expr + " }))",
         )
       }
       parts.push(
         "(\"" +
         event_name +
-        "\", @v.on(fn(_event) { " +
+        "\", @d.on(fn(_event) { " +
         render_model_write_expr(
           model.expression,
           render_model_read_expr(model, checked),

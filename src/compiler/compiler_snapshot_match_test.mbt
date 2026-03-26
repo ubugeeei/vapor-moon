@@ -18,8 +18,8 @@ test "snapshot v-match string matching" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @d,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
@@ -27,21 +27,21 @@ test "snapshot v-match string matching" {
       #|  match status {
       #|      "loading" =>
       #|        (fn() {
-      #|                let __vm_el = @v.el("p")
-      #|                @v.append(__vm_el.as_node(), @v.text("Loading..."))
-      #|                @v.into(__vm_el)
+      #|                let __vm_el = @d.el("p")
+      #|                @d.append(__vm_el.as_node(), @d.text("Loading..."))
+      #|                @d.into(__vm_el)
       #|              })()
       #|      "error" =>
       #|        (fn() {
-      #|                let __vm_el = @v.el("p")
-      #|                @v.append(__vm_el.as_node(), @v.text("Error!"))
-      #|                @v.into(__vm_el)
+      #|                let __vm_el = @d.el("p")
+      #|                @d.append(__vm_el.as_node(), @d.text("Error!"))
+      #|                @d.into(__vm_el)
       #|              })()
       #|      _ =>
       #|        (fn() {
-      #|                let __vm_el = @v.el("p")
-      #|                @v.append(__vm_el.as_node(), @v.text("Unknown"))
-      #|                @v.into(__vm_el)
+      #|                let __vm_el = @d.el("p")
+      #|                @d.append(__vm_el.as_node(), @d.text("Unknown"))
+      #|                @d.into(__vm_el)
       #|              })()
       #|    }
       #|}
@@ -62,7 +62,7 @@ test "snapshot v-match string matching" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|}
       #|
@@ -137,8 +137,8 @@ test "snapshot v-match enum pattern" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @d,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
@@ -146,15 +146,15 @@ test "snapshot v-match enum pattern" {
       #|  match result {
       #|      Ok(data) =>
       #|        (fn() {
-      #|                let __vm_el = @v.el("p")
-      #|                @v.append(__vm_el.as_node(), @v.setText(fn() { data.to_string() }))
-      #|                @v.into(__vm_el)
+      #|                let __vm_el = @d.el("p")
+      #|                @d.append(__vm_el.as_node(), @d.setText(fn() { data.to_string() }))
+      #|                @d.into(__vm_el)
       #|              })()
       #|      Err(msg) =>
       #|        (fn() {
-      #|                let __vm_el = @v.el("p")
-      #|                @v.append(__vm_el.as_node(), @v.setText(fn() { msg.to_string() }))
-      #|                @v.into(__vm_el)
+      #|                let __vm_el = @d.el("p")
+      #|                @d.append(__vm_el.as_node(), @d.setText(fn() { msg.to_string() }))
+      #|                @d.into(__vm_el)
       #|              })()
       #|    }
       #|}
@@ -175,7 +175,7 @@ test "snapshot v-match enum pattern" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|}
       #|
@@ -246,8 +246,8 @@ test "snapshot v-match with wildcard default" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @d,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
@@ -255,15 +255,15 @@ test "snapshot v-match with wildcard default" {
       #|  match mode {
       #|      "dark" =>
       #|        (fn() {
-      #|                let __vm_el = @v.el("p")
-      #|                @v.append(__vm_el.as_node(), @v.text("Dark"))
-      #|                @v.into(__vm_el)
+      #|                let __vm_el = @d.el("p")
+      #|                @d.append(__vm_el.as_node(), @d.text("Dark"))
+      #|                @d.into(__vm_el)
       #|              })()
       #|      _ =>
       #|        (fn() {
-      #|                let __vm_el = @v.el("p")
-      #|                @v.append(__vm_el.as_node(), @v.text("Default"))
-      #|                @v.into(__vm_el)
+      #|                let __vm_el = @d.el("p")
+      #|                @d.append(__vm_el.as_node(), @d.text("Default"))
+      #|                @d.into(__vm_el)
       #|              })()
       #|    }
       #|}
@@ -284,7 +284,7 @@ test "snapshot v-match with wildcard default" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|}
       #|

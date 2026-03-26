@@ -353,14 +353,14 @@ fn specialize_template_ref_calls(
         current = current.replace_all(
           old="let " +
             binding_name +
-            " = @vm.use_template_ref(" +
+            " = @r.use_template_ref(" +
             ref_.arg_source +
             ")",
           new="let " +
             binding_name +
-            " : @vm.TemplateRef[" +
+            " : @r.TemplateRef[" +
             ref_.type_name +
-            "] = @vm.use_template_ref(" +
+            "] = @r.use_template_ref(" +
             ref_.arg_source +
             ")",
         )

@@ -8,7 +8,7 @@ fn render_client_nodes(
     indent_block(render_client_node(nodes[0], indent, scope_id, false), indent)
   } else {
     let children = render_client_children(nodes, indent, scope_id, false)
-    indent_block("@v.frag(" + children + ")", indent)
+    indent_block("@d.frag(" + children + ")", indent)
   }
 }
 
@@ -34,12 +34,12 @@ fn render_client_node(
   static_mode : Bool,
 ) -> String {
   match node {
-    Text(content) => "@v.text(" + quote(content) + ")"
+    Text(content) => "@d.text(" + quote(content) + ")"
     Interpolation(expr) =>
       if static_mode {
-        "@v.text(" + expr + ".to_string())"
+        "@d.text(" + expr + ".to_string())"
       } else {
-        "@v.setText(fn() { " + expr + ".to_string() })"
+        "@d.setText(fn() { " + expr + ".to_string() })"
       }
     Element(element) => {
       let next_static = static_mode || element.once
@@ -121,7 +121,7 @@ fn render_client_append_statements(
   let statements : Array[String] = []
   for node in nodes {
     statements.push(
-      "@v.append(" +
+      "@d.append(" +
       target_expr +
       ", " +
       render_client_node(node, indent + 2, scope_id, static_mode) +
@@ -223,13 +223,13 @@ fn wrap_client_directives(
   let mut current = rendered
   match element.if_expr {
     Some(expr) =>
-      current = "@v.show(fn() { " + expr + " }, fn() { " + current + " })"
+      current = "@d.show(fn() { " + expr + " }, fn() { " + current + " })"
     None => ()
   }
   match element.for_binding {
     Some(binding) => {
       let index_name = binding.index.unwrap_or("_index")
-      current = "@v.each(fn() { " +
+      current = "@d.each(fn() { " +
         binding.source +
         " }, fn(" +
         binding.value +

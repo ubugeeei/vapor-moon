@@ -23,8 +23,8 @@ test "snapshot props defaults compile" {
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @d,
       #|}
       #|
       #|pub struct PropsDefaultsProps {
@@ -45,9 +45,9 @@ test "snapshot props defaults compile" {
       #|    tone: __vm_props_input.tone.unwrap_or("primary"),
       #|  }
       #|  (fn() {
-      #|      let __vm_el = @v.el("div")
-      #|      @v.append(__vm_el.as_node(), @v.setText(fn() { props.title + ":" + props.count.to_string() + ":" + props.tone.to_string() }))
-      #|      @v.into(__vm_el)
+      #|      let __vm_el = @d.el("div")
+      #|      @d.append(__vm_el.as_node(), @d.setText(fn() { props.title + ":" + props.count.to_string() + ":" + props.tone.to_string() }))
+      #|      @d.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -67,7 +67,7 @@ test "snapshot props defaults compile" {
       #|=== server ===
       #|import {
       #|  "mizchi/luna/core" @luna_core,
-      #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+      #|  "ubugeeei/vapor_moon/src/runtime" @r,
       #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
       #|}
       #|
