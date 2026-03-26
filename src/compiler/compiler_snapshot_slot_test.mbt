@@ -16,31 +16,31 @@ test "snapshot named slots with #shorthand" {
     #|=== client ===
     #|import {
     #|  "mizchi/luna/dom" @luna_dom,
-    #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-    #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+    #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
+    #|  "ubugeeei/vapor_moon/src/runtime/dom" @dom,
     #|}
     #|
     #|pub fn render_dom() -> @luna_dom.DomNode {
-    #|  @vm_dom.component_dom("MyLayout", [], {
+    #|  @dom.component("MyLayout", [], {
     #|        header: Some(fn() { [
     #|            (fn() {
-    #|                        let __vm_el = @vm_dom.element("h1")
-    #|                        @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text("Title"))
-    #|                        @vm_dom.to_node(__vm_el)
+    #|                        let __vm_el = @dom.el("h1")
+    #|                        @dom.append(__vm_el.as_node(), @dom.text("Title"))
+    #|                        @dom.into(__vm_el)
     #|                      })()
     #|          ] }),
     #|        footer: Some(fn() { [
     #|            (fn() {
-    #|                        let __vm_el = @vm_dom.element("p")
-    #|                        @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text("Footer"))
-    #|                        @vm_dom.to_node(__vm_el)
+    #|                        let __vm_el = @dom.el("p")
+    #|                        @dom.append(__vm_el.as_node(), @dom.text("Footer"))
+    #|                        @dom.into(__vm_el)
     #|                      })()
     #|          ] }),
     #|        default: Some(fn() { [
     #|            (fn() {
-    #|                        let __vm_el = @vm_dom.element("p")
-    #|                        @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text("Default content"))
-    #|                        @vm_dom.to_node(__vm_el)
+    #|                        let __vm_el = @dom.el("p")
+    #|                        @dom.append(__vm_el.as_node(), @dom.text("Default content"))
+    #|                        @dom.into(__vm_el)
     #|                      })()
     #|          ] })
     #|      })
@@ -62,12 +62,12 @@ test "snapshot named slots with #shorthand" {
     #|=== server ===
     #|import {
     #|  "mizchi/luna/core" @luna_core,
-    #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+    #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
     #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
     #|}
     #|
     #|pub fn render_ssr() -> @luna_core.StaticDomNode {
-    #|  @vm_server.component_ssr("MyLayout", @vm.props_to_json([]), {
+    #|  @vm_server.component_ssr("MyLayout", @hlp.props_to_json([]), {
     #|      header: Some(fn() { [
     #|          @luna_core.h("h1", [], [
     #|              @luna_core.text("Title")
@@ -131,16 +131,16 @@ test "snapshot default slot only (no named slots)" {
     #|=== client ===
     #|import {
     #|  "mizchi/luna/dom" @luna_dom,
-    #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-    #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+    #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
+    #|  "ubugeeei/vapor_moon/src/runtime/dom" @dom,
     #|}
     #|
     #|pub fn render_dom() -> @luna_dom.DomNode {
-    #|  @vm_dom.component_dom("MyCard", [], [
+    #|  @dom.component("MyCard", [], [
     #|        (fn() {
-    #|                let __vm_el = @vm_dom.element("p")
-    #|                @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text("Just default"))
-    #|                @vm_dom.to_node(__vm_el)
+    #|                let __vm_el = @dom.el("p")
+    #|                @dom.append(__vm_el.as_node(), @dom.text("Just default"))
+    #|                @dom.into(__vm_el)
     #|              })()
     #|      ])
     #|}
@@ -161,12 +161,12 @@ test "snapshot default slot only (no named slots)" {
     #|=== server ===
     #|import {
     #|  "mizchi/luna/core" @luna_core,
-    #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+    #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
     #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
     #|}
     #|
     #|pub fn render_ssr() -> @luna_core.StaticDomNode {
-    #|  @vm_server.component_ssr("MyCard", @vm.props_to_json([]), [
+    #|  @vm_server.component_ssr("MyCard", @hlp.props_to_json([]), [
     #|      @luna_core.h("p", [], [
     #|          @luna_core.text("Just default")
     #|        ])
@@ -223,24 +223,24 @@ test "snapshot v-slot:name full syntax" {
     #|=== client ===
     #|import {
     #|  "mizchi/luna/dom" @luna_dom,
-    #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-    #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+    #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
+    #|  "ubugeeei/vapor_moon/src/runtime/dom" @dom,
     #|}
     #|
     #|pub fn render_dom() -> @luna_dom.DomNode {
-    #|  @vm_dom.component_dom("MyDialog", [], {
+    #|  @dom.component("MyDialog", [], {
     #|        body: Some(fn() { [
     #|            (fn() {
-    #|                        let __vm_el = @vm_dom.element("p")
-    #|                        @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text("Body content"))
-    #|                        @vm_dom.to_node(__vm_el)
+    #|                        let __vm_el = @dom.el("p")
+    #|                        @dom.append(__vm_el.as_node(), @dom.text("Body content"))
+    #|                        @dom.into(__vm_el)
     #|                      })()
     #|          ] }),
     #|        actions: Some(fn() { [
     #|            (fn() {
-    #|                        let __vm_el = @vm_dom.element("button")
-    #|                        @vm_dom.append_child(__vm_el.as_node(), @vm_dom.text("OK"))
-    #|                        @vm_dom.to_node(__vm_el)
+    #|                        let __vm_el = @dom.el("button")
+    #|                        @dom.append(__vm_el.as_node(), @dom.text("OK"))
+    #|                        @dom.into(__vm_el)
     #|                      })()
     #|          ] })
     #|      })
@@ -262,12 +262,12 @@ test "snapshot v-slot:name full syntax" {
     #|=== server ===
     #|import {
     #|  "mizchi/luna/core" @luna_core,
-    #|  "ubugeeei/vapor_moon/src/runtime" @vm,
+    #|  "ubugeeei/vapor_moon/src/runtime" @hlp,
     #|  "ubugeeei/vapor_moon/src/runtime/server" @vm_server,
     #|}
     #|
     #|pub fn render_ssr() -> @luna_core.StaticDomNode {
-    #|  @vm_server.component_ssr("MyDialog", @vm.props_to_json([]), {
+    #|  @vm_server.component_ssr("MyDialog", @hlp.props_to_json([]), {
     #|      body: Some(fn() { [
     #|          @luna_core.h("p", [], [
     #|              @luna_core.text("Body content")

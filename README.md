@@ -128,7 +128,7 @@ component=Basic
 extension=.mbtv
 scope=vm-4048536636
 ```
-Client-side lowering is intentionally raw-DOM-oriented: native elements become `element -> apply_attr_entry -> append_child -> to_node`, while SSR still emits static HTML-oriented nodes.
+Client-side lowering is intentionally raw-DOM-oriented: native elements become `el -> setAttr -> append -> into`, while SSR still emits static HTML-oriented nodes.
 When a component declares `props`, `emits`, or `slots`, the generated module also includes typed contract surfaces and declaration metadata alongside these render functions.
 
 ## Compiler macros

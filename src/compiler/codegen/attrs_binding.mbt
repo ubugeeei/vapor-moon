@@ -89,7 +89,9 @@ fn render_client_html_attr(
       if static_mode {
         Some("(\"__innerHTML\", @dom.attr(" + expr + ".to_string()))")
       } else {
-        Some("(\"__innerHTML\", @dom.dynAttr(fn() { " + expr + ".to_string() }))")
+        Some(
+          "(\"__innerHTML\", @dom.dynAttr(fn() { " + expr + ".to_string() }))",
+        )
       }
     None => None
   }
