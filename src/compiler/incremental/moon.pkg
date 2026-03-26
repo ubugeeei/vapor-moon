@@ -1,0 +1,13 @@
+import {
+  "ubugeeei/vapor_moon/src/compiler" @compiler,
+  "ubugeeei/vapor_moon/src/compiler/common" @common,
+  "mizchi/ripple" @ripple,
+}
+
+import "test" {
+  "moonbitlang/core/bench" @bench,
+}
+
+options(
+  "supported-targets": "native",
+)

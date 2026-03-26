@@ -8,14 +8,20 @@ pub fn compile(
 ) -> CompileOutput raise CompilerError {
   let doc = @sfc.parse_sfc(source, filename~)
   let template = @template.parse_template(doc.template)
+  compile_from_parts(doc, template, filename)
+}
+
+///|
+/// Assemble CompileOutput from pre-parsed SFC document and template nodes.
+/// Use this when you already have parsed results (e.g. from incremental queries).
+pub fn compile_from_parts(
+  doc : SfcDocument,
+  template : Array[TemplateNode],
+  filename : String,
+) -> CompileOutput raise CompilerError {
   reject_legacy_emit_calls(doc, template, filename)
   let component_name = @codegen.pascal_case(@codegen.base_name(filename))
-  let scoped = doc.has_scoped_style()
-  let scope_id = if scoped {
-    Some("vm-" + @codegen.hash_string(filename))
-  } else {
-    None
-  }
+  let scope_id = compute_scope_id(doc, filename)
   let css_output = @codegen.emit_css(doc.styles, scope_id)
   {
     filename,
@@ -37,6 +43,15 @@ pub fn compile(
     emits: doc.emits,
     slots_binding: doc.slots_binding,
     slots: doc.slots,
+  }
+}
+
+///|
+pub fn compute_scope_id(doc : SfcDocument, filename : String) -> String? {
+  if doc.has_scoped_style() {
+    Some("vm-" + @codegen.hash_string(filename))
+  } else {
+    None
   }
 }
 

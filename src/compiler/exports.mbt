@@ -29,3 +29,6 @@ pub using @template {parse_template}
 
 ///|
 pub using @script_setup {analyze_script_setup}
+
+///|
+pub using @codegen {emit_css, hash_string}
