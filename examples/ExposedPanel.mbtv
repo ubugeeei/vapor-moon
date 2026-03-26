@@ -1,0 +1,12 @@
+<script>
+struct Expose {
+  focus : Unit
+  count : Int
+}
+
+let expose : Expose = defineExpose()
+</script>
+
+<template>
+  <section />
+</template>

@@ -45,6 +45,12 @@ fn line_character_at(source : String, needle : String) -> (Int, Int) {
 }
 
 ///|
+fn line_character_after(source : String, needle : String) -> (Int, Int) {
+  let (line, character) = line_character_at(source, needle)
+  (line, character + needle.length())
+}
+
+///|
 test "snapshot lsp diagnostics" {
   let source =
     #|<script setup>
@@ -266,6 +272,94 @@ test "macro completion includes defineExpose" {
       #|[{label: "defineExpose", kind: "macro", detail: "declare typed exposed members", insert_text: "defineExpose"}]
     ),
   )
+}
+
+///|
+test "resolved template refs inherit defineExpose members for hover and completion" {
+  let source =
+    #|<script setup>
+    #|import {
+    #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+    #|}
+    #|
+    #|let panel_ref = useTemplateRef("panel")
+    #|let focus = @vm_dom.resolve_template_ref(panel_ref).focus
+    #|let next = @vm_dom.resolve_template_ref(panel_ref).
+    #|</script>
+    #|
+    #|<template>
+    #|  <ExposedPanel ref='panel' />
+    #|</template>
+  let (binding_line, binding_character) = line_character_at(
+    source,
+    "panel_ref).focus",
+  )
+  let binding_hover = hover_at(
+    source,
+    binding_line,
+    binding_character,
+    filename="examples/template_ref_expose_parent.mbtv",
+  )
+  match binding_hover {
+    Some(result) => {
+      assert_true(result.contents.contains("template ref `panel_ref`"))
+      assert_true(result.contents.contains("ExposedPanel expose"))
+      assert_true(result.contents.contains("template ref focus : Unit"))
+    }
+    None => panic()
+  }
+
+  let (member_line, member_character) = line_character_after(
+    source,
+    "resolve_template_ref(panel_ref).",
+  )
+  let member_hover = hover_at(
+    source,
+    member_line,
+    member_character,
+    filename="examples/template_ref_expose_parent.mbtv",
+  )
+  match member_hover {
+    Some(result) => assert_eq(result.contents, "template ref focus : Unit")
+    None => panic()
+  }
+
+  let (complete_line, complete_character) = line_character_after(
+    source,
+    "let next = @vm_dom.resolve_template_ref(panel_ref).",
+  )
+  let completions = complete_at(
+    source,
+    complete_line,
+    complete_character,
+    filename="examples/template_ref_expose_parent.mbtv",
+  )
+  assert_eq(completions.length(), 2)
+  assert_eq(completions[0].label, "focus")
+  assert_eq(completions[1].label, "count")
+}
+
+///|
+test "resolved template refs report unknown exposed members" {
+  let source =
+    #|<script setup>
+    #|import {
+    #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+    #|}
+    #|
+    #|let panel_ref = useTemplateRef("panel")
+    #|let missing = @vm_dom.resolve_template_ref(panel_ref).missing
+    #|</script>
+    #|
+    #|<template>
+    #|  <ExposedPanel ref='panel' />
+    #|</template>
+  let items = diagnostics(
+    source,
+    filename="examples/template_ref_expose_invalid.mbtv",
+  )
+  assert_eq(items.length(), 1)
+  assert_true(items[0].message.contains("unknown template ref member `missing`"))
 }
 
 ///|
