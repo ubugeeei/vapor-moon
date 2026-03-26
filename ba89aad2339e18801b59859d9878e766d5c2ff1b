@@ -1,0 +1,60 @@
+version 1
+key hub/work-item/3/meta
+kind work-item
+clock mizchi=1
+timestamp 1774521270
+node mizchi
+deleted 0
+
+work-item 3
+title feat: incremental compilation infrastructure using mizchi/ripple
+author mizchi
+created 1774518044
+updated 1774519224
+state merged
+source feat/incremental-compiler
+source-ref refs/heads/feat/incremental-compiler
+source-commit 6829d864e0fbfe61cb44947a18384c77bcb262dd
+target main
+target-commit 70be7c309785b4236aae90425f286c6f74cc984c
+
+## Summary
+
+- Add `src/compiler/incremental/` package wrapping the compiler pipeline with [mizchi/ripple](https://github.com/mizchi/ripple) (salsa-inspired incremental computation)
+- When file source is unchanged, cached compile returns in **~0.3µs** vs **~130-680µs** for full recompilation
+- Foundation for future watch mode and IDE integration
+
+### Benchmark: direct vs incremental (2nd+ build)
+
+| Benchmark | Direct (every call) | Incremental (cached) | Speedup |
+|---|---|---|---|
+| basic | 136 µs | **0.31 µs** | **438x** |
+| composable | 679 µs | **0.31 µs** | **2190x** |
+
+### Query graph
+
+```
+Input[file_sources] → Query[sfc]      → Query[template]
+                                       → Query[css]
+                    → Query[compile]   (full pipeline)
+```
+
+### API
+
+```moonbit
+let ic = IncrementalCompiler::new()
+ic.set_source("App.mbtv", source)  // returns false if unchanged
+ic.compile("App.mbtv")             // cached on 2nd+ call
+ic.get_sfc("App.mbtv")             // fine-grained cached queries
+ic.get_template("App.mbtv")
+ic.get_css("App.mbtv")
+```
+
+## Test plan
+
+- [x] 10 new tests covering cache hit, invalidation, backdate, error caching, multi-file independence
+- [x] All 185 tests pass (175 existing + 10 new)
+- [x] Benchmarks via `moon bench -p ubugeeei/vapor_moon/src/compiler/incremental`
+- [x] No regression on existing compiler benchmarks
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
