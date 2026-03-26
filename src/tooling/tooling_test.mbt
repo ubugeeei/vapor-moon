@@ -22,8 +22,13 @@ test "snapshot macro analysis" {
     #|  cancel : Unit
     #|}
     #|
+    #|struct Expose {
+    #|  focus : Unit
+    #|}
+    #|
     #|let props : Props = defineProps()
     #|let emit : Emits = defineEmits()
+    #|let expose : Expose = defineExpose()
     #|</script>
     #|
     #|<template>
@@ -34,7 +39,7 @@ test "snapshot macro analysis" {
   assert_snapshot(
     analyze_snapshot(source, "examples/macros.mbtv"),
     (
-      #|{symbols: [{name: "script", kind: "block", span: {start: 0, end: 184}}, {name: "template", kind: "block", span: {start: 186, end: 290}}, {name: "props", kind: "macro defineProps", span: {start: 0, end: 0}}, {name: "emit", kind: "macro defineEmits", span: {start: 0, end: 0}}], expressions: ["emit.save()", "props.title"], diagnostics: [], island_components: [], extension: ".mbtv", props_binding: Some("props"), props: ["title", "count"], emits_binding: Some("emit"), emits: ["save", "cancel"]}
+      #|{symbols: [{name: "script", kind: "block", span: {start: 0, end: 255}}, {name: "template", kind: "block", span: {start: 257, end: 361}}, {name: "props", kind: "macro defineProps", span: {start: 0, end: 0}}, {name: "emit", kind: "macro defineEmits", span: {start: 0, end: 0}}, {name: "expose", kind: "macro defineExpose", span: {start: 0, end: 0}}], expressions: ["emit.save()", "props.title"], diagnostics: [], island_components: [], extension: ".mbtv", props_binding: Some("props"), props: ["title", "count"], emits_binding: Some("emit"), emits: ["save", "cancel"], expose_binding: Some("expose"), expose: ["focus"]}
     ),
   )
 }
@@ -59,7 +64,7 @@ test "snapshot island analysis" {
   assert_snapshot(
     analyze_snapshot(source, "examples/island_visible.mbtv"),
     (
-      #|{symbols: [{name: "script", kind: "block", span: {start: 0, end: 128}}, {name: "template", kind: "block", span: {start: 130, end: 234}}], expressions: ["count.get()"], diagnostics: [], island_components: ["CounterPanel"], extension: ".mbtv", props_binding: None, props: [], emits_binding: None, emits: []}
+      #|{symbols: [{name: "script", kind: "block", span: {start: 0, end: 128}}, {name: "template", kind: "block", span: {start: 130, end: 234}}], expressions: ["count.get()"], diagnostics: [], island_components: ["CounterPanel"], extension: ".mbtv", props_binding: None, props: [], emits_binding: None, emits: [], expose_binding: None, expose: []}
     ),
   )
 }

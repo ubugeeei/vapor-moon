@@ -84,6 +84,8 @@ pub(all) struct ScriptSetupInfo {
   emits : Array[MacroField]
   slots_binding : String?
   slots : Array[MacroField]
+  expose_binding : String?
+  expose : Array[MacroField]
 } derive(Eq, Show)
 
 ///|
@@ -114,6 +116,8 @@ pub(all) struct SfcDocument {
   emits : Array[MacroField]
   slots_binding : String?
   slots : Array[MacroField]
+  expose_binding : String?
+  expose : Array[MacroField]
   styles : Array[StyleBlock]
   blocks : Array[SfcBlock]
 } derive(Eq, Show)

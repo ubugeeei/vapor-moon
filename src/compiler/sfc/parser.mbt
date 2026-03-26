@@ -20,10 +20,12 @@ pub fn parse_sfc(
   let mut props_binding : String? = None
   let mut emits_binding : String? = None
   let mut slots_binding : String? = None
+  let mut expose_binding : String? = None
   let mut props : Array[MacroField] = []
   let mut prop_defaults : Array[PropDefault] = []
   let mut emits : Array[MacroField] = []
   let mut slots : Array[MacroField] = []
+  let mut expose : Array[MacroField] = []
   let styles : Array[StyleBlock] = []
 
   for block in blocks {
@@ -71,7 +73,16 @@ pub fn parse_sfc(
             emits = info.emits
             slots_binding = info.slots_binding
             slots = info.slots
-            validate_generic_usage(generics, props, emits, slots, filename)
+            expose_binding = info.expose_binding
+            expose = info.expose
+            validate_generic_usage(
+              generics,
+              props,
+              emits,
+              slots,
+              expose,
+              filename,
+            )
           }
         }
       Style => {
@@ -109,6 +120,8 @@ pub fn parse_sfc(
         emits,
         slots_binding,
         slots,
+        expose_binding,
+        expose,
         styles,
         blocks,
       }

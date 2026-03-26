@@ -52,12 +52,12 @@ struct Slots[T, U] {
 
 let props : Props[T, U] = defineProps()
 let emit : Emits[T] = defineEmits()
-let slots : Slots[T, U] = defineSlot()
+let slots : Slots[T, U] = defineSlots()
 </script>
 ```
 
 - `generic="..."` is only valid on `<script>`
-- generic parameters must appear in the local contract types referenced by `defineProps()` / `defineEmits()` / `defineSlot()`
+- generic parameters must appear in the local contract types referenced by `defineProps()` / `defineEmits()` / `defineSlots()` / `defineExpose()`
 - the compiler threads those parameters through generated `Props`, `Emits`, `DomSlots`, `SsrSlots`, and `render_*` signatures
 - generics stay type-level only; no runtime validation or runtime type registry is emitted
 
@@ -148,9 +148,13 @@ struct Slots {
   default : Unit
   footer : String
 }
+struct Expose {
+  focus : Unit
+}
 let props : Props = defineProps()
 let emit : Emits = defineEmits()
-let slots : Slots = defineSlot()
+let slots : Slots = defineSlots()
+let expose : Expose = defineExpose()
 ```
 For props defaults, pass only a record literal of default values:
 
@@ -165,8 +169,9 @@ let props : Props = defineProps({
 - the compiler generates typed component surfaces such as `ExampleProps`, `ExampleEmits`, `ExampleDomSlots`, and `ExampleSsrSlots`
 - a prop with a default stays required inside the component but becomes optional in the generated caller-facing props type
 - generated `render_dom` / `render_ssr` functions take those contracts as plain arguments, so the runtime does not own props, emits, or slot bags
-- `defineProps()` / `defineEmits()` / `defineSlot()` are zero-argument markers that bind to the annotated local `struct`
+- `defineProps()` / `defineEmits()` / `defineSlots()` / `defineExpose()` are zero-argument markers that bind to the annotated local `struct`
 - `defineProps({ ... })` is reserved for defaults only, not runtime declarations
+- `defineExpose()` is type-first metadata for the component's exposed surface; it participates in generic validation and tooling even though it is erased from lowered setup code
 - runtime-declaration literals are intentionally unsupported, so component interfaces stay type-first and MoonBit-native
 
 ## Supported template features

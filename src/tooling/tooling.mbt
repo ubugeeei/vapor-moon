@@ -19,6 +19,8 @@ pub struct ToolingAnalysis {
   props : Array[String]
   emits_binding : String?
   emits : Array[String]
+  expose_binding : String?
+  expose : Array[String]
 } derive(Eq, Show)
 
 ///|
@@ -39,6 +41,8 @@ pub fn analyze(
         props: [],
         emits_binding: None,
         emits: [],
+        expose_binding: None,
+        expose: [],
       }
   }
 }
@@ -57,6 +61,8 @@ fn try_analyze(source : String, filename : String) -> ToolingAnalysis? {
         props: [],
         emits_binding: None,
         emits: [],
+        expose_binding: None,
+        expose: [],
       })
   }
   let template = @compiler.parse_template(doc.template) catch {
@@ -71,6 +77,8 @@ fn try_analyze(source : String, filename : String) -> ToolingAnalysis? {
         props: macro_names(doc.props),
         emits_binding: doc.emits_binding,
         emits: macro_names(doc.emits),
+        expose_binding: doc.expose_binding,
+        expose: macro_names(doc.expose),
       })
   }
   let expressions : Array[String] = []
@@ -88,6 +96,8 @@ fn try_analyze(source : String, filename : String) -> ToolingAnalysis? {
     props: macro_names(doc.props),
     emits_binding: doc.emits_binding,
     emits: macro_names(doc.emits),
+    expose_binding: doc.expose_binding,
+    expose: macro_names(doc.expose),
   })
 }
 
@@ -128,6 +138,15 @@ fn macro_symbols(doc : @compiler.SfcDocument) -> Array[ToolingSymbol] {
       symbols.push({
         name,
         kind: "macro defineEmits",
+        span: @compiler.new_source_span(0, 0),
+      })
+    None => ()
+  }
+  match doc.expose_binding {
+    Some(name) =>
+      symbols.push({
+        name,
+        kind: "macro defineExpose",
         span: @compiler.new_source_span(0, 0),
       })
     None => ()

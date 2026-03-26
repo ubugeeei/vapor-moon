@@ -14,10 +14,12 @@ pub fn analyze_script_setup(
   let mut props_binding : String? = None
   let mut emits_binding : String? = None
   let mut slots_binding : String? = None
+  let mut expose_binding : String? = None
   let mut props : Array[MacroField] = []
   let mut prop_defaults : Array[PropDefault] = []
   let mut emits : Array[MacroField] = []
   let mut slots : Array[MacroField] = []
+  let mut expose : Array[MacroField] = []
 
   for statement in ir.statements {
     match statement {
@@ -80,6 +82,22 @@ pub fn analyze_script_setup(
                     )
                   }
                 }
+              "defineExpose" =>
+                match expose_binding {
+                  Some(_) =>
+                    raise CompilerError::InvalidScriptSetup(
+                      "duplicate defineExpose() in \{filename}",
+                    )
+                  None => {
+                    expose_binding = let_stmt.binding
+                    expose = resolve_macro_fields(
+                      macro_,
+                      let_stmt.annotation,
+                      contract_types,
+                      filename,
+                    )
+                  }
+                }
               _ => ()
             }
           _ => ()
@@ -133,6 +151,19 @@ pub fn analyze_script_setup(
                     filename,
                   )
                 }
+              "defineExpose" =>
+                if expose_binding is Some(_) || not(expose.is_empty()) {
+                  raise CompilerError::InvalidScriptSetup(
+                    "duplicate defineExpose() in \{filename}",
+                  )
+                } else {
+                  expose = resolve_macro_fields(
+                    macro_,
+                    None,
+                    contract_types,
+                    filename,
+                  )
+                }
               _ => ()
             }
           _ => ()
@@ -156,6 +187,8 @@ pub fn analyze_script_setup(
     emits,
     slots_binding,
     slots,
+    expose_binding,
+    expose,
   }
 }
 
@@ -199,7 +232,8 @@ fn validate_script_extern_expr(
       match macro_.name {
         "defineProps"
         | "defineEmits"
-        | "defineSlot"
+        | "defineSlots"
+        | "defineExpose"
         | "useId"
         | "useTemplateRef" =>
           raise CompilerError::InvalidScriptExtern(
@@ -281,7 +315,10 @@ fn lower_script_setup_expr(
 
 ///|
 fn is_interface_macro(name : String) -> Bool {
-  name == "defineProps" || name == "defineEmits" || name == "defineSlots"
+  name == "defineProps" ||
+  name == "defineEmits" ||
+  name == "defineSlots" ||
+  name == "defineExpose"
 }
 
 ///|

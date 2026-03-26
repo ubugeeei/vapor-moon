@@ -6,7 +6,12 @@ fn component_source() -> String {
     #|  title : String
     #|}
     #|
+    #|struct Expose {
+    #|  focus : Unit
+    #|}
+    #|
     #|let props : Props = defineProps()
+    #|let expose : Expose = defineExpose()
     #|</script>
     #|
     #|<template>
@@ -188,6 +193,32 @@ test "hover definition and completion use opened documents" {
     definition.messages[0].contains("\"line\":" + definition_line.to_string()),
   )
   assert_true(completion.messages[0].contains("\"label\":\"title\""))
+}
+
+///|
+test "server completion returns defineExpose members" {
+  let state = ServerState::new()
+  let source =
+    #|<script setup>
+    #|struct Expose {
+    #|  focus : Unit
+    #|}
+    #|
+    #|let expose : Expose = defineExpose()
+    #|let x = expose.
+    #|</script>
+    #|
+    #|<template><div /></template>
+  let did_open = open_request("file:///Component.mbtv", source)
+  ignore(handle_message(state, did_open))
+
+  let (line, character) = line_character_at(source, "expose.")
+  let completion = handle_message(
+    state,
+    position_request(5, "textDocument/completion", line, character + 7),
+  )
+
+  assert_true(completion.messages[0].contains("\"label\":\"focus\""))
 }
 
 ///|

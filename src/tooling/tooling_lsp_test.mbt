@@ -139,6 +139,57 @@ test "snapshot lsp hover and definition" {
 }
 
 ///|
+test "lsp supports defineExpose members in script setup" {
+  let source =
+    #|<script setup>
+    #|struct Expose {
+    #|  focus : Unit
+    #|  count : Int
+    #|}
+    #|
+    #|let expose : Expose = defineExpose()
+    #|let current = expose.focus()
+    #|</script>
+    #|
+    #|<template>
+    #|  <div>{{ current }}</div>
+    #|</template>
+  inspect(
+    hover_at(
+      source,
+      7,
+      21,
+      filename="examples/expose_hover.mbtv",
+    ).to_string(),
+    content=(
+      #|Some({contents: "expose focus : Unit", location: {filename: "examples/expose_hover.mbtv", span: {start: 121, end: 126}, range: {start: {line: 7, character: 21}, end_: {line: 7, character: 26}}}})
+    ),
+  )
+  inspect(
+    definition_at(
+      source,
+      7,
+      21,
+      filename="examples/expose_hover.mbtv",
+    ).to_string(),
+    content=(
+      #|Some({name: "focus", location: {filename: "examples/expose_hover.mbtv", span: {start: 33, end: 38}, range: {start: {line: 2, character: 2}, end_: {line: 2, character: 7}}}})
+    ),
+  )
+  inspect(
+    complete_at(
+      source,
+      7,
+      21,
+      filename="examples/expose_hover.mbtv",
+    ).to_string(),
+    content=(
+      #|[{label: "focus", kind: "expose", detail: "expose focus : Unit", insert_text: "focus"}, {label: "count", kind: "expose", detail: "expose count : Int", insert_text: "count"}]
+    ),
+  )
+}
+
+///|
 test "hover does not bleed past the end of a symbol" {
   let source =
     #|<script setup>
@@ -191,6 +242,28 @@ test "snapshot lsp completion" {
     complete_at(source, 10, 28, filename="examples/complete.mbtv").to_string(),
     content=(
       #|[{label: "v-if", kind: "directive", detail: "conditional rendering", insert_text: "v-if"}, {label: "v-else-if", kind: "directive", detail: "conditional branch (requires preceding v-if)", insert_text: "v-else-if"}, {label: "v-else", kind: "directive", detail: "fallback branch (requires preceding v-if or v-else-if)", insert_text: "v-else"}, {label: "v-for", kind: "directive", detail: "list rendering", insert_text: "v-for"}, {label: "v-show", kind: "directive", detail: "toggle visibility via CSS display", insert_text: "v-show"}, {label: "v-unsafe-html", kind: "directive", detail: "render unsafe raw HTML content", insert_text: "v-unsafe-html"}, {label: "v-model", kind: "directive", detail: "two-way binding on form elements", insert_text: "v-model"}, {label: "v-once", kind: "directive", detail: "render once (skip reactivity)", insert_text: "v-once"}, {label: "v-match", kind: "directive", detail: "pattern matching on an expression", insert_text: "v-match"}, {label: "v-case", kind: "directive", detail: "match branch pattern (inside v-match)", insert_text: "v-case"}, {label: "v-default", kind: "directive", detail: "default match branch (inside v-match)", insert_text: "v-default"}]
+    ),
+  )
+}
+
+///|
+test "macro completion includes defineExpose" {
+  let source =
+    #|<script setup>
+    #|  defineEx
+    #|</script>
+    #|
+    #|<template><div /></template>
+  let (line, character) = line_character_at(source, "defineEx")
+  inspect(
+    complete_at(
+      source,
+      line,
+      character + 8,
+      filename="examples/complete_define_expose.mbtv",
+    ).to_string(),
+    content=(
+      #|[{label: "defineExpose", kind: "macro", detail: "declare typed exposed members", insert_text: "defineExpose"}]
     ),
   )
 }

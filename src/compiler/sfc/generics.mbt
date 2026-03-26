@@ -15,16 +15,18 @@ fn validate_generic_usage(
   props : Array[MacroField],
   emits : Array[MacroField],
   slots : Array[MacroField],
+  expose : Array[MacroField],
   filename : String,
 ) -> Unit raise CompilerError {
   for generic_ in generics {
     if generic_used_in_fields(generic_.name, props) ||
       generic_used_in_fields(generic_.name, emits) ||
-      generic_used_in_fields(generic_.name, slots) {
+      generic_used_in_fields(generic_.name, slots) ||
+      generic_used_in_fields(generic_.name, expose) {
       continue
     }
     raise CompilerError::InvalidSfc(
-      "`generic` parameter \{generic_.name} must appear in defineProps/defineEmits/defineSlots signatures in \{filename}",
+      "`generic` parameter \{generic_.name} must appear in defineProps/defineEmits/defineSlots/defineExpose signatures in \{filename}",
     )
   }
 }

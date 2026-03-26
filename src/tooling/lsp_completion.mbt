@@ -4,6 +4,7 @@ fn macro_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
     ("defineProps", "macro", "declare typed props"),
     ("defineEmits", "macro", "declare typed emits"),
     ("defineSlots", "macro", "declare typed slots"),
+    ("defineExpose", "macro", "declare typed exposed members"),
     ("useId", "macro", "generate stable ids"),
     ("useTemplateRef", "macro", "create a template ref"),
   ]

@@ -112,15 +112,16 @@ fn parse_script_setup_macro(
   match expr {
     Apply(func~, args~, loc~, ..) =>
       match macro_name_from_expr(func) {
-        Some(name) =>
-          if is_supported_macro(name) {
+        Some(name) => {
+          let canonical_name = canonical_macro_name(name)
+          if is_supported_macro(canonical_name) {
             let mut arg_count = 0
             for _ in args {
               arg_count += 1
             }
-            validate_runtime_helper_macro(name, arg_count, filename)
+            validate_runtime_helper_macro(canonical_name, arg_count, filename)
             Some({
-              name,
+              name: canonical_name,
               args: extract_call_args(
                 slice_location(source, loc),
                 name,
@@ -133,6 +134,7 @@ fn parse_script_setup_macro(
           } else {
             None
           }
+        }
         None => None
       }
     _ => None
@@ -153,8 +155,18 @@ fn is_supported_macro(name : String) -> Bool {
   name == "defineProps" ||
   name == "defineEmits" ||
   name == "defineSlots" ||
+  name == "defineExpose" ||
   name == "useId" ||
   name == "useTemplateRef"
+}
+
+///|
+fn canonical_macro_name(name : String) -> String {
+  if name == "defineExporse" {
+    "defineExpose"
+  } else {
+    name
+  }
 }
 
 ///|

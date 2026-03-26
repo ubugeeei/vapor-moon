@@ -100,6 +100,15 @@ fn build_tooling_index(source : String, filename : String) -> ToolingIndex {
     bindings,
     members,
   )
+  collect_contract_index(
+    source,
+    script_span,
+    "expose",
+    doc.expose_binding,
+    doc.expose,
+    bindings,
+    members,
+  )
   collect_contract_refs(source, script_span, bindings, members, refs)
   collect_contract_refs(source, template_span, bindings, members, refs)
   collect_semantic_diagnostics(
