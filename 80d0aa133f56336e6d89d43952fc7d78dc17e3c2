@@ -1,0 +1,22 @@
+version 1
+key hub/work-item/11/meta
+kind work-item
+clock mizchi=1
+timestamp 1774521069
+node mizchi
+deleted 0
+
+work-item 11
+title feat: event listeners on components (@event on <Component>)
+author mizchi
+created 1774520833
+updated 1774520833
+state open
+
+Event listeners (\`@event\`) are rejected on component tags. Only native HTML elements support them.
+
+Components should forward \`@event\` as emit bindings or native event listeners on the component root.
+
+```html
+<MyButton @click='handleClick' />
+```
