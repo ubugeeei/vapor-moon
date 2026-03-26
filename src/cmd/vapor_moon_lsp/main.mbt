@@ -2,6 +2,7 @@
 /// stdio JSON-RPC server for Vapor Moon editor integrations.
 
 ///|
+/// Bridge stdin/stdout streams to the LSP request handler.
 fn main {
   let state = @lsp.ServerState::new()
   let buffer = @lsp.MessageBuffer::new()

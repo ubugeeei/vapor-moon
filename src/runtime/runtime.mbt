@@ -3,6 +3,7 @@
 /// Component contracts themselves are generated as plain typed arguments.
 
 ///|
+/// Declarative hydration strategies encoded into SSR and DOM markers.
 pub(all) enum HydrationMode {
   Manual
   Load
@@ -14,37 +15,44 @@ pub(all) enum HydrationMode {
 } derive(Eq, Show)
 
 ///|
+/// Typed handle for a DOM node addressed through `ref` / `use_template_ref`.
 pub struct TemplateRef[T] {
   name : String
   phantom : T?
 }
 
 ///|
+/// Map a component name to the client module path expected by the island runtime.
 pub fn client_module_path(component_name : String) -> String {
   "/_vapor_moon/" + sanitize_component_name(component_name) + ".js"
 }
 
 ///|
+/// Build the deterministic `data-vm-scope` suffix for one component.
 pub fn make_scope_id(component_name : String) -> String {
   "vm-" + hash_string(component_name)
 }
 
 ///|
+/// Create a typed template-ref token that can be resolved later in the DOM runtime.
 pub fn[T] use_template_ref(name : String) -> TemplateRef[T] {
   { name, phantom: None }
 }
 
 ///|
+/// Generate stable element ids for compiler-emitted `use_id` calls.
 pub fn use_id(component_name : String, index : Int) -> String {
   sanitize_component_name(component_name) + "-id-" + index.to_string()
 }
 
 ///|
+/// Expose the raw template-ref lookup key.
 pub fn[T] TemplateRef::name(self : TemplateRef[T]) -> String {
   self.name
 }
 
 ///|
+/// Serialize island props into a compact JSON object without pulling in a JSON library.
 pub fn props_to_json(entries : Array[(String, String)]) -> String {
   if entries.is_empty() {
     return "{}"
@@ -57,11 +65,13 @@ pub fn props_to_json(entries : Array[(String, String)]) -> String {
 }
 
 ///|
+/// Scope raw CSS text by prefixing selectors with the component scope attribute.
 pub fn scope_css(css : String, scope_id : String) -> String {
   scope_css_rules(css, scope_id)
 }
 
 ///|
+/// Merge conditional visibility into an inline style string.
 pub fn show_style(visible : Bool, base : String) -> String {
   let base_style = normalize_style(base)
   if visible {
@@ -77,6 +87,7 @@ pub fn show_style(visible : Bool, base : String) -> String {
 }
 
 ///|
+/// Join class fragments while trimming empty segments.
 pub fn merge_class_names(parts : Array[String]) -> String {
   let merged : Array[String] = []
   for part in parts {
@@ -89,6 +100,7 @@ pub fn merge_class_names(parts : Array[String]) -> String {
 }
 
 ///|
+/// Join inline style fragments into normalized semicolon-terminated CSS.
 pub fn merge_styles(parts : Array[String]) -> String {
   let merged : Array[String] = []
   for part in parts {
@@ -106,6 +118,7 @@ pub fn merge_styles(parts : Array[String]) -> String {
 }
 
 ///|
+/// Quote one JSON string literal with the escaping required by generated props payloads.
 fn escape_json_string(source : String) -> String {
   let sb = StringBuilder::new()
   sb.write_char('"')
@@ -124,6 +137,7 @@ fn escape_json_string(source : String) -> String {
 }
 
 ///|
+/// Preserve JSON literals such as booleans/numbers, otherwise quote the value.
 fn escape_json_value(source : String) -> String {
   if source == "true" || source == "false" || source == "null" {
     return source
@@ -140,6 +154,7 @@ fn escape_json_value(source : String) -> String {
 }
 
 ///|
+/// Shared string hash used for deterministic runtime ids.
 fn hash_string(source : String) -> String {
   let mut hash : UInt = 5381
   for ch in source {
@@ -149,6 +164,7 @@ fn hash_string(source : String) -> String {
 }
 
 ///|
+/// Normalize component names for use in filenames, ids, and DOM attributes.
 fn sanitize_component_name(component_name : String) -> String {
   let sb = StringBuilder::new()
   for ch in component_name {
@@ -166,11 +182,13 @@ fn sanitize_component_name(component_name : String) -> String {
 }
 
 ///|
+/// Trim an inline style fragment without changing its CSS semantics.
 fn normalize_style(source : String) -> String {
   source.trim().to_string()
 }
 
 ///|
+/// CSS scoping engine used by the shared runtime and generated helpers.
 fn scope_css_rules(css : String, scope_id : String) -> String {
   let scoped_chunks : Array[String] = []
   let mut index = 0
@@ -271,6 +289,7 @@ fn scope_css_rules(css : String, scope_id : String) -> String {
 }
 
 ///|
+/// Read the body of a CSS block, preserving nested braces and strings.
 fn read_css_block(source : String, open_brace_index : Int) -> (String, Int) {
   let mut index = open_brace_index + 1
   let mut depth = 1
@@ -329,6 +348,7 @@ fn read_css_block(source : String, open_brace_index : Int) -> (String, Int) {
 }
 
 ///|
+/// Split a selector list on top-level commas only.
 fn split_css_selector_list(source : String) -> Array[String] {
   let selectors : Array[String] = []
   let mut start = 0
@@ -388,6 +408,7 @@ fn split_css_selector_list(source : String) -> Array[String] {
 }
 
 ///|
+/// Skip ASCII whitespace between CSS tokens.
 fn skip_css_ignored(source : String, start : Int) -> Int {
   let mut index = start
   while index < source.length() {
@@ -402,6 +423,7 @@ fn skip_css_ignored(source : String, start : Int) -> Int {
 }
 
 ///|
+/// Skip a CSS block comment and return the first index after it.
 fn skip_css_comment(source : String, start : Int) -> Int {
   let mut index = start + 2
   while index + 1 < source.length() {
@@ -414,6 +436,7 @@ fn skip_css_comment(source : String, start : Int) -> Int {
 }
 
 ///|
+/// Return whether an at-rule contains nested selectors that still need scoping.
 fn scopes_nested_css_rules(header : String) -> Bool {
   not(
     header.has_prefix("@keyframes") ||
@@ -425,6 +448,7 @@ fn scopes_nested_css_rules(header : String) -> Bool {
 }
 
 ///|
+/// Reassemble a CSS rule header and body after scoping.
 fn wrap_css_block(header : String, body : String) -> String {
   header + " { " + body.trim().to_string() + " }"
 }

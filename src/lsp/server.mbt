@@ -1,4 +1,8 @@
 ///|
+/// JSON-RPC request router for the stdio LSP server.
+
+///|
+/// Decode one JSON-RPC body and dispatch it to the appropriate request handler.
 pub fn handle_message(state : ServerState, body : String) -> ServerResult {
   match decode_request(body) {
     Ok(request) => dispatch_request(state, request)
@@ -8,6 +12,7 @@ pub fn handle_message(state : ServerState, body : String) -> ServerResult {
 }
 
 ///|
+/// Resolve the current document text, falling back to disk when not cached in memory.
 fn ServerState::document_text(self : ServerState, uri : String) -> String? {
   match self.documents.get(uri) {
     Some(text) => Some(text)
@@ -16,6 +21,7 @@ fn ServerState::document_text(self : ServerState, uri : String) -> String? {
 }
 
 ///|
+/// Route one decoded request to the matching LSP method implementation.
 fn dispatch_request(
   state : ServerState,
   request : RequestMessage,
@@ -44,6 +50,7 @@ fn dispatch_request(
 }
 
 ///|
+/// Cache the opened document and immediately publish diagnostics.
 fn handle_did_open(state : ServerState, params : @js.Any?) -> ServerResult {
   match (request_document_uri(params), request_document_text(params)) {
     (Some(uri), Some(text)) => {
@@ -55,6 +62,7 @@ fn handle_did_open(state : ServerState, params : @js.Any?) -> ServerResult {
 }
 
 ///|
+/// Replace the cached document text with the latest incremental change payload.
 fn handle_did_change(state : ServerState, params : @js.Any?) -> ServerResult {
   match (request_document_uri(params), request_change_text(params)) {
     (Some(uri), Some(text)) => {
@@ -66,6 +74,7 @@ fn handle_did_change(state : ServerState, params : @js.Any?) -> ServerResult {
 }
 
 ///|
+/// Refresh diagnostics on save, optionally updating the cached text first.
 fn handle_did_save(state : ServerState, params : @js.Any?) -> ServerResult {
   match request_document_uri(params) {
     Some(uri) => {
@@ -80,6 +89,7 @@ fn handle_did_save(state : ServerState, params : @js.Any?) -> ServerResult {
 }
 
 ///|
+/// Clear cached document state and publish an empty diagnostics set.
 fn handle_did_close(state : ServerState, params : @js.Any?) -> ServerResult {
   match request_document_uri(params) {
     Some(uri) => {
@@ -91,6 +101,7 @@ fn handle_did_close(state : ServerState, params : @js.Any?) -> ServerResult {
 }
 
 ///|
+/// Serve `textDocument/hover` requests from the tooling query layer.
 fn handle_hover(state : ServerState, request : RequestMessage) -> ServerResult {
   match request_document_position(request.params) {
     Some((uri, line, character)) => {
@@ -114,6 +125,7 @@ fn handle_hover(state : ServerState, request : RequestMessage) -> ServerResult {
 }
 
 ///|
+/// Serve `textDocument/definition` requests from the tooling query layer.
 fn handle_definition(
   state : ServerState,
   request : RequestMessage,
@@ -140,6 +152,7 @@ fn handle_definition(
 }
 
 ///|
+/// Serve `textDocument/completion` requests from the tooling query layer.
 fn handle_completion(
   state : ServerState,
   request : RequestMessage,
@@ -166,6 +179,7 @@ fn handle_completion(
 }
 
 ///|
+/// Recompute diagnostics for one document and wrap them in an LSP notification.
 fn publish_diagnostics(state : ServerState, uri : String) -> ServerResult {
   let source = state.document_text(uri).unwrap_or("")
   let diagnostics = @tooling.diagnostics(source, filename=uri_to_filename(uri))
@@ -173,6 +187,7 @@ fn publish_diagnostics(state : ServerState, uri : String) -> ServerResult {
 }
 
 ///|
+/// Emit a successful JSON-RPC response when the request expects one.
 fn reply_ok(request : RequestMessage, payload : @js.Any) -> ServerResult {
   match request.id {
     Some(id) => { messages: [success_message(id, payload)], exit_code: None }
@@ -181,6 +196,7 @@ fn reply_ok(request : RequestMessage, payload : @js.Any) -> ServerResult {
 }
 
 ///|
+/// Emit an error JSON-RPC response when the request expects one.
 fn reply_error(
   request : RequestMessage,
   code : Int,
@@ -194,6 +210,7 @@ fn reply_error(
 }
 
 ///|
+/// Standard fallback for unsupported JSON-RPC methods.
 fn reply_missing_method(request : RequestMessage) -> ServerResult {
   reply_error(
     request,

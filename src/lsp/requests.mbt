@@ -1,4 +1,5 @@
 ///|
+/// Decoded JSON-RPC request used by the LSP server dispatcher.
 pub struct RequestMessage {
   id : @js.Any?
   method_name : String
@@ -6,6 +7,7 @@ pub struct RequestMessage {
 }
 
 ///|
+/// Decode one JSON-RPC request body into the internal request representation.
 pub fn decode_request(body : String) -> Result[RequestMessage, (Int, String)] {
   match parse_json(body) {
     Ok(value) => decode_request_value(value)
@@ -15,11 +17,13 @@ pub fn decode_request(body : String) -> Result[RequestMessage, (Int, String)] {
 }
 
 ///|
+/// Return the request id or JSON null when the request is a notification.
 pub fn request_id(request : RequestMessage) -> @js.Any {
   request.id.unwrap_or(json_null())
 }
 
 ///|
+/// Extract `textDocument.uri` from request params.
 pub fn request_document_uri(params : @js.Any?) -> String? {
   match params_object(params) {
     Some(value) =>
@@ -32,6 +36,7 @@ pub fn request_document_uri(params : @js.Any?) -> String? {
 }
 
 ///|
+/// Extract `textDocument.text` from request params when present.
 pub fn request_document_text(params : @js.Any?) -> String? {
   match params_object(params) {
     Some(value) =>
@@ -44,6 +49,7 @@ pub fn request_document_text(params : @js.Any?) -> String? {
 }
 
 ///|
+/// Extract the newest text value from `contentChanges`.
 pub fn request_change_text(params : @js.Any?) -> String? {
   match params_object(params) {
     Some(params) =>
@@ -65,6 +71,7 @@ pub fn request_change_text(params : @js.Any?) -> String? {
 }
 
 ///|
+/// Extract `(uri, line, character)` from params used by hover/definition/completion.
 pub fn request_document_position(params : @js.Any?) -> (String, Int, Int)? {
   match params_object(params) {
     Some(params) =>
@@ -88,6 +95,7 @@ pub fn request_document_position(params : @js.Any?) -> (String, Int, Int)? {
 }
 
 ///|
+/// Validate the JSON-RPC envelope and build a `RequestMessage`.
 fn decode_request_value(
   value : @js.Any,
 ) -> Result[RequestMessage, (Int, String)] {
@@ -109,6 +117,7 @@ fn decode_request_value(
 }
 
 ///|
+/// Treat missing or non-object params as absent.
 fn params_object(params : @js.Any?) -> @js.Any? {
   match params {
     Some(value) => object_value(value)

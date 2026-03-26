@@ -2,6 +2,7 @@
 /// SSR helpers layered on top of luna islands and HTML rendering.
 
 ///|
+/// Render a component placeholder node for server output.
 pub fn component_ssr(
   name : String,
   props_json : String,
@@ -11,6 +12,7 @@ pub fn component_ssr(
 }
 
 ///|
+/// Render a component placeholder node with extra metadata attributes.
 pub fn component_ssr_meta(
   name : String,
   props_json : String,
@@ -28,6 +30,7 @@ pub fn component_ssr_meta(
 }
 
 ///|
+/// Render an island shell for the requested hydration mode.
 pub fn island_ssr(
   name : String,
   props_json : String,
@@ -38,6 +41,7 @@ pub fn island_ssr(
 }
 
 ///|
+/// Render an island shell with extra metadata attributes.
 pub fn island_ssr_meta(
   name : String,
   props_json : String,
@@ -60,6 +64,7 @@ pub fn island_ssr_meta(
 }
 
 ///|
+/// Render a client-only island marker with no SSR children.
 fn island_only_ssr(
   name : String,
   props_json : String,
@@ -77,6 +82,7 @@ fn island_only_ssr(
 }
 
 ///|
+/// Render the server-deferred shell that preserves SSR children.
 fn island_defer_ssr(
   name : String,
   props_json : String,
@@ -94,11 +100,13 @@ fn island_defer_ssr(
 }
 
 ///|
+/// Convert a Luna static DOM tree into HTML.
 pub fn render_html(node : @luna_core.StaticDomNode) -> String {
   @render.render_to_string(node).html
 }
 
 ///|
+/// Map Vapor Moon hydration modes to Luna island triggers.
 fn to_luna_trigger(mode : @vm.HydrationMode) -> @luna_core.Trigger {
   match mode {
     Load => @luna_core.Load
@@ -110,11 +118,13 @@ fn to_luna_trigger(mode : @vm.HydrationMode) -> @luna_core.Trigger {
 }
 
 ///|
+/// Build a deterministic island id from component name and serialized props.
 fn island_id(name : String, props_json : String) -> String {
   "vm-island-" + hash_string(name + ":" + props_json)
 }
 
 ///|
+/// Shared string hash used for SSR island ids.
 fn hash_string(source : String) -> String {
   let mut hash : UInt = 5381
   for ch in source {

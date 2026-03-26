@@ -2,6 +2,7 @@
 /// Parse the `<template>` body into a lightweight HTML-like AST.
 
 ///|
+/// Tokenize the raw template source and rebuild it as normalized template nodes.
 pub fn parse_template(
   source : String,
 ) -> Array[TemplateNode] raise CompilerError {
@@ -11,6 +12,8 @@ pub fn parse_template(
 }
 
 ///|
+/// Parse a `v-for` expression such as `(item, index) in items`.
+/// Comments and nested delimiters are ignored so only top-level separators count.
 fn parse_for_binding(source : String) -> ForBinding raise CompilerError {
   match find_top_level_for_separator(source) {
     Some((left_end, right_start)) => {
@@ -82,6 +85,7 @@ fn parse_for_binding(source : String) -> ForBinding raise CompilerError {
 }
 
 ///|
+/// Remove comments from the binding side of `v-for` without disturbing quoted strings.
 fn strip_for_comments(source : String) -> String {
   let parts : Array[String] = []
   let chars = source.to_array()
@@ -116,6 +120,7 @@ fn strip_for_comments(source : String) -> String {
 }
 
 ///|
+/// Find the top-level `in` separator that splits the binding and source expressions.
 fn find_top_level_for_separator(source : String) -> (Int, Int)? {
   let chars = source.to_array()
   let mut cursor = 0

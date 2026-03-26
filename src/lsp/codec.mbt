@@ -1,14 +1,17 @@
 ///|
+/// Byte buffer that incrementally frames LSP `Content-Length` messages.
 pub struct MessageBuffer {
   mut pending : @buffer.Buffer
 }
 
 ///|
+/// Create an empty message buffer for the stdio transport.
 pub fn MessageBuffer::new() -> MessageBuffer {
   { pending: @buffer.Buffer::alloc(0) }
 }
 
 ///|
+/// Append a new byte chunk and drain every complete JSON-RPC message body.
 pub fn MessageBuffer::push(
   self : MessageBuffer,
   chunk : @buffer.Buffer,
@@ -22,6 +25,7 @@ pub fn MessageBuffer::push(
 }
 
 ///|
+/// Add the `Content-Length` header required by the LSP stdio transport.
 pub fn frame_json_text(json_text : String) -> String {
   "Content-Length: " +
   @buffer.Buffer::byteLength(json_text).to_string() +
@@ -30,6 +34,7 @@ pub fn frame_json_text(json_text : String) -> String {
 }
 
 ///|
+/// Drain all complete frames currently available in the pending buffer.
 fn MessageBuffer::drain_messages(self : MessageBuffer) -> Array[String] {
   let messages : Array[String] = []
   while true {
@@ -49,6 +54,7 @@ fn MessageBuffer::drain_messages(self : MessageBuffer) -> Array[String] {
 }
 
 ///|
+/// Parse the next complete message body from the pending byte buffer.
 fn next_message(pending : @buffer.Buffer) -> (String, Int)? {
   match find_header_end(pending) {
     Some((header_end, separator_length)) => {
@@ -71,6 +77,7 @@ fn next_message(pending : @buffer.Buffer) -> (String, Int)? {
 }
 
 ///|
+/// Find the boundary between LSP headers and the message body.
 fn find_header_end(pending : @buffer.Buffer) -> (Int, Int)? {
   let header = @buffer.Buffer::from_string("\r\n\r\n")
   let index = pending.indexOf(header.as_any())
@@ -87,6 +94,7 @@ fn find_header_end(pending : @buffer.Buffer) -> (Int, Int)? {
 }
 
 ///|
+/// Read the `Content-Length` header from a decoded header block.
 fn parse_content_length(header_text : String) -> Int? {
   for raw_line in header_text.split("\n") {
     let line = raw_line.trim(char_set=" \r")

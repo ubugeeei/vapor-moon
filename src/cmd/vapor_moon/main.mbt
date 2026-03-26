@@ -2,6 +2,7 @@
 /// Minimal CLI for Vapor Moon compiler and tooling.
 
 ///|
+/// Dispatch the small CLI surface used for local compiler and tooling experiments.
 fn main {
   let args = @env.args()
   if args.length() < 3 {
@@ -50,12 +51,14 @@ fn main {
 }
 
 ///|
+/// Read a UTF-8 source file, returning an empty string on failure.
 fn read_text(path : String) -> String {
   let bytes = @fs.read_file_to_bytes(path) catch { _ => return "" }
   @utf8.decode_lossy(bytes[:])
 }
 
 ///|
+/// Run the hover query and stringify the result for CLI output.
 fn query_hover(
   source : String,
   path : String,
@@ -71,6 +74,7 @@ fn query_hover(
 }
 
 ///|
+/// Run the definition query and stringify the result for CLI output.
 fn query_definition(
   source : String,
   path : String,
@@ -86,6 +90,7 @@ fn query_definition(
 }
 
 ///|
+/// Run the completion query and stringify the result for CLI output.
 fn query_completion(
   source : String,
   path : String,
@@ -98,6 +103,7 @@ fn query_completion(
 }
 
 ///|
+/// Parse a CLI integer argument, defaulting to `0` when invalid.
 fn parse_cli_int(source : String) -> Int {
   @strconv.parse_int(source) catch {
     _ => 0
@@ -105,6 +111,7 @@ fn parse_cli_int(source : String) -> Int {
 }
 
 ///|
+/// Print the supported CLI command surface.
 fn print_usage() -> Unit {
   println(
     "Usage: moon run src/cmd/vapor_moon -- <compile|analyze|diagnostics|hover|definition|complete> <file.mbtv> [line] [character]",

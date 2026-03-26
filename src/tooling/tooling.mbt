@@ -2,6 +2,7 @@
 /// Language-tool oriented analysis for `.mbtv` documents.
 
 ///|
+/// Symbol surfaced to editors for outline views and quick navigation.
 pub struct ToolingSymbol {
   name : String
   kind : String
@@ -9,6 +10,7 @@ pub struct ToolingSymbol {
 } derive(Eq, Show)
 
 ///|
+/// Aggregated semantic summary consumed by CLI tooling and the LSP layer.
 pub struct ToolingAnalysis {
   symbols : Array[ToolingSymbol]
   expressions : Array[String]
@@ -24,6 +26,8 @@ pub struct ToolingAnalysis {
 } derive(Eq, Show)
 
 ///|
+/// Run a best-effort document analysis that never raises parser/compiler errors.
+/// Failures are converted into `diagnostics` so editor features can degrade gently.
 pub fn analyze(
   source : String,
   filename? : String = "Component.mbtv",
@@ -48,6 +52,7 @@ pub fn analyze(
 }
 
 ///|
+/// Internal analysis pipeline that preserves partial results when parsing fails.
 fn try_analyze(source : String, filename : String) -> ToolingAnalysis? {
   let doc = @compiler.parse_sfc(source, filename~) catch {
     err =>
@@ -102,6 +107,7 @@ fn try_analyze(source : String, filename : String) -> ToolingAnalysis? {
 }
 
 ///|
+/// Convert discovered SFC blocks into editor outline symbols.
 fn block_symbols(blocks : Array[@compiler.SfcBlock]) -> Array[ToolingSymbol] {
   let symbols : Array[ToolingSymbol] = []
   let mut style_index = 1
@@ -122,6 +128,7 @@ fn block_symbols(blocks : Array[@compiler.SfcBlock]) -> Array[ToolingSymbol] {
 }
 
 ///|
+/// Surface macro bindings such as `defineProps()` as synthetic symbols.
 fn macro_symbols(doc : @compiler.SfcDocument) -> Array[ToolingSymbol] {
   let symbols : Array[ToolingSymbol] = []
   match doc.props_binding {
@@ -155,6 +162,7 @@ fn macro_symbols(doc : @compiler.SfcDocument) -> Array[ToolingSymbol] {
 }
 
 ///|
+/// Extract field names from compiler macro metadata.
 fn macro_names(fields : Array[@compiler.MacroField]) -> Array[String] {
   let result : Array[String] = []
   for field in fields {
@@ -164,6 +172,7 @@ fn macro_names(fields : Array[@compiler.MacroField]) -> Array[String] {
 }
 
 ///|
+/// Walk the template tree and collect expressions plus hydrated component tags.
 fn collect_template_metadata(
   node : @compiler.TemplateNode,
   expressions : Array[String],
