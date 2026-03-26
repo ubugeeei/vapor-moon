@@ -1,8 +1,8 @@
 version 1
 key hub/work-item/9/meta
 kind work-item
-clock mizchi=1
-timestamp 1774521069
+clock mizchi=2
+timestamp 1774521218
 node mizchi
 deleted 0
 
@@ -10,20 +10,35 @@ work-item 9
 title feat: v-slot directive for slot outlets
 author mizchi
 created 1774520810
-updated 1774520810
+updated 1774521218
 state open
+label critical
 
-\`v-slot\` is rejected with \"not supported yet\". Slot contracts via \`defineSlot()\` exist, but there's no way to render slot content in templates.
+## Priority: Critical
 
-## Expected
+Slot contracts exist via `defineSlot()` but there is no way to render slot content in templates. `v-slot` is rejected with "not supported yet". Without this, component composition is severely limited.
+
+## Scope
+
+- Parse `v-slot:name` and `#name` shorthand on `<template>` tags
+- Default slot support (`v-slot:default` or `#default`)
+- Pass slot content to component render function
+- Generate slot rendering in client and server codegen
+
+## Example
 
 ```html
 <MyLayout>
-  <template v-slot:header>
+  <template #header>
     <h1>Title</h1>
   </template>
-  <template v-slot:default>
-    <p>Content</p>
-  </template>
+  <p>Default content</p>
 </MyLayout>
 ```
+
+## Files to modify
+
+- `src/compiler/template/builder_validate.mbt` — accept v-slot
+- `src/compiler/template/builder_attrs.mbt` — parse slot binding
+- `src/compiler/codegen/attrs_component.mbt` — emit slot content
+- `src/compiler/common/types.mbt` — add slot info to TemplateElement
