@@ -244,16 +244,10 @@ fn occupied_directive_value(target : String?) -> String? {
 
 ///|
 fn reject_unsupported_slot_outlet(
-  attr : ParsedTemplateAttr,
-  tag : String,
-) -> Unit raise CompilerError {
-  if attr.name == "v-slot" ||
-    attr.name.has_prefix("v-slot:") ||
-    attr.name.has_prefix("#") {
-    raise CompilerError::InvalidDirective(
-      "slot outlet syntax is not supported yet on <\{tag}>",
-    )
-  }
+  _attr : ParsedTemplateAttr,
+  _tag : String,
+) -> Unit {
+  // v-slot / #name is now supported; validation happens in build_template_element
 }
 
 ///|
@@ -489,6 +483,9 @@ fn is_supported_directive_name(name : String) -> Bool {
   name == "client:only" ||
   name == "client:media" ||
   name == "server:defer" ||
+  name == "v-slot" ||
+  name.has_prefix("v-slot:") ||
+  name.has_prefix("#") ||
   name.has_prefix(":") ||
   name.has_prefix("@") ||
   name.has_prefix("v-bind:") ||

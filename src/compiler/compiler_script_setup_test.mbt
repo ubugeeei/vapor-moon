@@ -656,19 +656,19 @@ test "rejects duplicate defineEmits" {
 }
 
 ///|
-test "rejects duplicate defineSlot" {
+test "rejects duplicate defineSlots" {
   let source =
     #|<script setup>
     #|struct Slots {
     #|  default : Unit
     #|}
     #|
-    #|let slots : Slots = defineSlot()
-    #|let other : Slots = defineSlot()
+    #|let slots : Slots = defineSlots()
+    #|let other : Slots = defineSlots()
     #|</script>
   assert_eq(
     compile_error(source, "invalid/duplicate_slots.mbtv"),
-    "InvalidScriptSetup(\"duplicate defineSlot() in invalid/duplicate_slots.mbtv\")",
+    "InvalidScriptSetup(\"duplicate defineSlots() in invalid/duplicate_slots.mbtv\")",
   )
 }
 
@@ -698,7 +698,7 @@ test "rejects unused generic interface parameters" {
     #|<template><div>{{ props.title }}</div></template>
   assert_eq(
     compile_error(source, "invalid/unused_generic.mbtv"),
-    "InvalidSfc(\"`generic` parameter T must appear in defineProps/defineEmits/defineSlot signatures in invalid/unused_generic.mbtv\")",
+    "InvalidSfc(\"`generic` parameter T must appear in defineProps/defineEmits/defineSlots signatures in invalid/unused_generic.mbtv\")",
   )
 }
 
@@ -844,14 +844,14 @@ test "rejects runtime declaration literals for defineEmits" {
 }
 
 ///|
-test "rejects runtime declaration literals for defineSlot" {
+test "rejects runtime declaration literals for defineSlots" {
   let source =
     #|<script setup>
-    #|let slots = defineSlot([])
+    #|let slots = defineSlots([])
     #|</script>
   assert_eq(
     compile_error(source, "invalid/slots_runtime_decl.mbtv"),
-    "InvalidScriptSetup(\"defineSlot() no longer accepts runtime declaration literals in invalid/slots_runtime_decl.mbtv; defineSlot() requires a typed contract like `struct Slots { ... }` plus `let slots : Slots = defineSlot()` in invalid/slots_runtime_decl.mbtv\")",
+    "InvalidScriptSetup(\"defineSlots() no longer accepts runtime declaration literals in invalid/slots_runtime_decl.mbtv; defineSlots() requires a typed contract like `struct Slots { ... }` plus `let slots : Slots = defineSlots()` in invalid/slots_runtime_decl.mbtv\")",
   )
 }
 

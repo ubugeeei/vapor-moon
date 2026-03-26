@@ -3,7 +3,7 @@ fn macro_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
   let entries = [
     ("defineProps", "macro", "declare typed props"),
     ("defineEmits", "macro", "declare typed emits"),
-    ("defineSlot", "macro", "declare typed slots"),
+    ("defineSlots", "macro", "declare typed slots"),
     ("useId", "macro", "generate stable ids"),
     ("useTemplateRef", "macro", "create a template ref"),
   ]
