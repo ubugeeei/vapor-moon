@@ -267,6 +267,96 @@ let accent = "highlight"
   });
 });
 
+test.describe("v-match / v-case pattern matching", () => {
+  test("v-match with string literals generates match expression", () => {
+    const output = compileSource(
+      `<script setup>
+let status = "loading"
+</script>
+
+<template>
+  <div v-match='status'>
+    <p v-case='"loading"'>Loading...</p>
+    <p v-case='"error"'>Error!</p>
+    <p v-default>Unknown</p>
+  </div>
+</template>`,
+      "MatchStr.mbtv"
+    );
+
+    expect(output.client_code).toContain("match status {");
+    expect(output.client_code).toContain('"loading" =>');
+    expect(output.client_code).toContain('"error" =>');
+    expect(output.client_code).toContain("_ =>");
+    expect(output.server_code).toContain("match status {");
+  });
+
+  test("v-match with enum patterns generates match with binding", () => {
+    const output = compileSource(
+      `<script setup>
+let result = Ok("data")
+</script>
+
+<template>
+  <div v-match='result'>
+    <p v-case='Ok(data)'>{{ data }}</p>
+    <p v-case='Err(msg)'>{{ msg }}</p>
+  </div>
+</template>`,
+      "MatchEnum.mbtv"
+    );
+
+    expect(output.client_code).toContain("match result {");
+    expect(output.client_code).toContain("Ok(data) =>");
+    expect(output.client_code).toContain("Err(msg) =>");
+    expect(output.server_code).toContain("match result {");
+    expect(output.server_code).toContain("Ok(data) =>");
+  });
+
+  test("v-match with wildcard underscore pattern", () => {
+    const output = compileSource(
+      `<script setup>
+let mode = "dark"
+</script>
+
+<template>
+  <div v-match='mode'>
+    <p v-case='"dark"'>Dark</p>
+    <p v-case='_'>Default</p>
+  </div>
+</template>`,
+      "MatchWild.mbtv"
+    );
+
+    expect(output.client_code).toContain("match mode {");
+    expect(output.client_code).toContain("_ =>");
+  });
+
+  test("v-case outside v-match produces error", () => {
+    const output = compileSource(
+      `<template>
+  <div v-case='"x"'>text</div>
+</template>`,
+      "CaseNoMatch.mbtv"
+    );
+
+    expect(output.client_code).not.toContain("render_dom(");
+  });
+
+  test("v-match with no v-case children produces error", () => {
+    const output = compileSource(
+      `<template>
+  <div v-match='x'>
+    <p>no case here</p>
+  </div>
+</template>`,
+      "MatchNoCases.mbtv"
+    );
+
+    expect(output.client_code).not.toContain("render_dom(");
+  });
+});
+
 test.describe("all examples compile without error", () => {
   const examples = [
     "basic",
