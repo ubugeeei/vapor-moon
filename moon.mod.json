@@ -5,7 +5,8 @@
     "mizchi/js": "0.10.14",
     "mizchi/luna": "0.18.3",
     "moonbitlang/parser": "0.1.17",
-    "moonbitlang/x": "0.4.40"
+    "moonbitlang/x": "0.4.40",
+    "mizchi/ripple": "0.1.3"
   },
   "readme": "README.md",
   "repository": "https://github.com/ubugeeei/vapor-moon",
