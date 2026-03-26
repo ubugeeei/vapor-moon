@@ -1,8 +1,8 @@
 version 1
 key hub/work-item/5/meta
 kind work-item
-clock mizchi=1
-timestamp 1774521069
+clock mizchi=2
+timestamp 1774521199
 node mizchi
 deleted 0
 
@@ -10,17 +10,21 @@ work-item 5
 title feat: v-else / v-else-if support
 author mizchi
 created 1774520776
-updated 1774520776
+updated 1774521199
 state open
-label enhancement
+label critical
 
-## Summary
+## Priority: Critical
 
-Add `v-else` and `v-else-if` directive support to the template compiler.
+Conditional rendering is incomplete without `v-else` and `v-else-if`. Currently only `v-if` is supported; the others are explicitly rejected in `builder_validate.mbt`.
 
-Currently only `v-if` is supported. `v-else` and `v-else-if` are explicitly rejected in `builder_validate.mbt`.
+## Scope
 
-## Expected behavior
+- Parse `v-else` and `v-else-if` directives in template builder
+- Track sibling elements to validate correct ordering (must follow `v-if` or `v-else-if`)
+- Generate conditional branching in both client (`@vm_dom`) and server (`@luna_core`) codegen
+
+## Example
 
 ```html
 <template>
@@ -30,9 +34,9 @@ Currently only `v-if` is supported. `v-else` and `v-else-if` are explicitly reje
 </template>
 ```
 
-Should generate conditional branching in both client and server codegen.
+## Files to modify
 
-## Notes
-
-- Requires sibling element tracking in the template builder
-- Must validate that `v-else`/`v-else-if` follows a `v-if` or `v-else-if` sibling
+- `src/compiler/template/builder_validate.mbt` — remove rejection, add validation
+- `src/compiler/template/builder.mbt` — sibling tracking
+- `src/compiler/codegen/nodes.mbt` — conditional codegen
+- `src/compiler/common/types.mbt` — extend `TemplateElement` if needed
