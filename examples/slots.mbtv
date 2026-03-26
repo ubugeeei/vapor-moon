@@ -4,7 +4,7 @@ struct Slots {
   footer : String
 }
 
-let slots : Slots = defineSlot()
+let slots : Slots = defineSlots()
 </script>
 
 <template>

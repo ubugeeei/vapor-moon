@@ -24,7 +24,7 @@ fn validate_generic_usage(
       continue
     }
     raise CompilerError::InvalidSfc(
-      "`generic` parameter \{generic_.name} must appear in defineProps/defineEmits/defineSlot signatures in \{filename}",
+      "`generic` parameter \{generic_.name} must appear in defineProps/defineEmits/defineSlots signatures in \{filename}",
     )
   }
 }

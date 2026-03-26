@@ -150,7 +150,7 @@ fn macro_name_from_expr(expr : @mbt_syntax.Expr) -> String? {
 fn is_supported_macro(name : String) -> Bool {
   name == "defineProps" ||
   name == "defineEmits" ||
-  name == "defineSlot" ||
+  name == "defineSlots" ||
   name == "useId" ||
   name == "useTemplateRef"
 }

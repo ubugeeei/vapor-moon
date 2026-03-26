@@ -110,6 +110,7 @@ fn build_template_element(
   let mut match_expr : String? = None
   let mut case_pattern : String? = None
   let mut is_case_default = false
+  let mut slot_name : String? = None
   let mut island_directive : String? = None
   let final_attrs : Array[TemplateAttr] = []
   for attr in attrs {
@@ -281,6 +282,27 @@ fn build_template_element(
         ensure_empty_expr_directive(ref_name, attr, tag)
         ref_name = Some(expect_attr_value(attr, tag))
       }
+      _ if attr.name == "v-slot" => {
+        ensure_empty_expr_directive(slot_name, attr, tag)
+        slot_name = Some("default")
+      }
+      _ if attr.name.has_prefix("v-slot:") => {
+        ensure_empty_expr_directive(slot_name, attr, tag)
+        slot_name = Some(
+          String::unsafe_substring(attr.name, start=7, end=attr.name.length()),
+        )
+      }
+      _ if attr.name.has_prefix("#") => {
+        ensure_empty_expr_directive(slot_name, attr, tag)
+        let name = String::unsafe_substring(
+          attr.name, start=1, end=attr.name.length(),
+        )
+        slot_name = Some(if name == "default" || name.length() == 0 {
+          "default"
+        } else {
+          name
+        })
+      }
       _ =>
         match parse_model_attr(attr) {
           Some(binding) => {
@@ -324,6 +346,7 @@ fn build_template_element(
     match_expr,
     case_pattern,
     is_case_default,
+    slot_name,
   }
 }
 

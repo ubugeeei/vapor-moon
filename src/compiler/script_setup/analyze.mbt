@@ -63,11 +63,11 @@ pub fn analyze_script_setup(
                     )
                   }
                 }
-              "defineSlot" =>
+              "defineSlots" =>
                 match slots_binding {
                   Some(_) =>
                     raise CompilerError::InvalidScriptSetup(
-                      "duplicate defineSlot() in \{filename}",
+                      "duplicate defineSlots() in \{filename}",
                     )
                   None => {
                     slots_binding = let_stmt.binding
@@ -119,10 +119,10 @@ pub fn analyze_script_setup(
                     filename,
                   )
                 }
-              "defineSlot" =>
+              "defineSlots" =>
                 if slots_binding is Some(_) || not(slots.is_empty()) {
                   raise CompilerError::InvalidScriptSetup(
-                    "duplicate defineSlot() in \{filename}",
+                    "duplicate defineSlots() in \{filename}",
                   )
                 } else {
                   slots = resolve_macro_fields(
@@ -218,7 +218,7 @@ fn lower_script_setup_expr(
 
 ///|
 fn is_interface_macro(name : String) -> Bool {
-  name == "defineProps" || name == "defineEmits" || name == "defineSlot"
+  name == "defineProps" || name == "defineEmits" || name == "defineSlots"
 }
 
 ///|

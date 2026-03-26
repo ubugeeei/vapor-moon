@@ -57,8 +57,8 @@ test "duplicate defineSlot is rejected" {
   let source =
     #|<script setup>
     #|struct Slots { a : Unit }
-    #|let s1 : Slots = defineSlot()
-    #|let s2 : Slots = defineSlot()
+    #|let s1 : Slots = defineSlots()
+    #|let s2 : Slots = defineSlots()
     #|</script>
     #|
     #|<template>

@@ -357,6 +357,66 @@ let mode = "dark"
   });
 });
 
+test.describe("v-slot / #name slot outlets", () => {
+  test("named slots generate slots record literal", () => {
+    const output = compileSource(
+      `<template>
+  <MyLayout>
+    <template #header><h1>Title</h1></template>
+    <template #footer><p>Footer</p></template>
+    <p>Default</p>
+  </MyLayout>
+</template>`,
+      "NamedSlots.mbtv"
+    );
+
+    // Client should have record literal with slot names
+    expect(output.client_code).toContain("header: Some(fn()");
+    expect(output.client_code).toContain("footer: Some(fn()");
+    expect(output.client_code).toContain("default: Some(fn()");
+    // Server same structure
+    expect(output.server_code).toContain("header: Some(fn()");
+    expect(output.server_code).toContain("footer: Some(fn()");
+  });
+
+  test("default-only children use array (no record)", () => {
+    const output = compileSource(
+      `<template>
+  <MyCard><p>Content</p></MyCard>
+</template>`,
+      "DefaultOnly.mbtv"
+    );
+
+    // Should use flat array, not record
+    expect(output.client_code).not.toContain("Some(fn()");
+    expect(output.client_code).toContain("component_dom");
+  });
+
+  test("v-slot:name full syntax works", () => {
+    const output = compileSource(
+      `<template>
+  <MyDialog>
+    <template v-slot:body><p>Body</p></template>
+    <template v-slot:actions><button>OK</button></template>
+  </MyDialog>
+</template>`,
+      "VSlotFull.mbtv"
+    );
+
+    expect(output.client_code).toContain("body: Some(fn()");
+    expect(output.client_code).toContain("actions: Some(fn()");
+  });
+
+  test("slots.mbtv example compiles with slot contract", () => {
+    const output = compileFile("examples/slots.mbtv");
+
+    expect(output.meta.slots).toContain("default");
+    expect(output.meta.slots).toContain("footer");
+    expect(output.client_code).toContain("DomSlots");
+    expect(output.server_code).toContain("SsrSlots");
+  });
+});
+
 test.describe("all examples compile without error", () => {
   const examples = [
     "basic",

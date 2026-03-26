@@ -15,7 +15,7 @@ struct Slots[T, U] {
 
 let props : Props[T, U] = defineProps()
 let emit : Emits[T] = defineEmits()
-let slots : Slots[T, U] = defineSlot()
+let slots : Slots[T, U] = defineSlots()
 </script>
 
 <template>
