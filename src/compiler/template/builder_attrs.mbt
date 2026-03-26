@@ -1,4 +1,7 @@
 ///|
+/// Parse `v-model` variants into a normalized binding descriptor.
+/// The builder keeps the original expression string and only separates the
+/// optional argument and modifier segments here.
 fn parse_model_attr(
   attr : ParsedTemplateAttr,
 ) -> TemplateModel? raise CompilerError {
@@ -70,6 +73,7 @@ fn parse_model_attr(
 }
 
 ///|
+/// Parse `@click.stop` / `v-on:click.stop` into an event name plus modifiers.
 fn parse_event_attr(
   directive : String,
   raw_name : String,
@@ -101,6 +105,7 @@ fn parse_event_attr(
 }
 
 ///|
+/// Quote a raw attribute value as a MoonBit string literal for generated code.
 fn quote_template_literal(source : String) -> String {
   let sb = StringBuilder::new()
   sb.write_char('"')
