@@ -9,7 +9,7 @@ test "snapshot v-match string matching" {
     #|  <div v-match='status'>
     #|    <p v-case='"loading"'>Loading...</p>
     #|    <p v-case='"error"'>Error!</p>
-    #|    <p v-case.default>Unknown</p>
+    #|    <p v-default>Unknown</p>
     #|  </div>
     #|</template>
   inspect(compile_snapshot(source, "MatchString.mbtv"), content=(
@@ -350,13 +350,13 @@ test "v-match with no v-case children is rejected" {
 }
 
 ///|
-test "duplicate v-case.default is rejected" {
+test "duplicate v-default is rejected" {
   let source =
     #|<template>
     #|  <div v-match='x'>
     #|    <p v-case='"a"'>A</p>
-    #|    <p v-case.default>B</p>
-    #|    <p v-case.default>C</p>
+    #|    <p v-default>B</p>
+    #|    <p v-default>C</p>
     #|  </div>
     #|</template>
   let error = compile_error(source, "DupDefault.mbtv")

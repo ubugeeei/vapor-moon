@@ -138,6 +138,11 @@ fn build_template_element(
         match_expr = Some(expect_attr_value(attr, tag))
       }
       "v-case" => {
+        if is_case_default {
+          raise CompilerError::InvalidDirective(
+            "`v-case` cannot be combined with `v-default` on <\{tag}>",
+          )
+        }
         ensure_empty_expr_directive(case_pattern, attr, tag)
         if attr.has_value {
           let value = attr.value.trim().to_string()
@@ -148,15 +153,20 @@ fn build_template_element(
           }
         } else {
           raise CompilerError::InvalidDirective(
-            "`v-case` requires a pattern value on <\{tag}>; use `v-case.default` for the fallback branch",
+            "`v-case` requires a pattern value on <\{tag}>; use `v-default` for the fallback branch",
           )
         }
       }
-      "v-case.default" => {
+      "v-default" => {
         reject_unexpected_attr_value(attr, tag)
+        if case_pattern is Some(_) {
+          raise CompilerError::InvalidDirective(
+            "`v-default` cannot be combined with `v-case` on <\{tag}>",
+          )
+        }
         if is_case_default {
           raise CompilerError::InvalidDirective(
-            "duplicate `v-case.default` on <\{tag}>",
+            "duplicate `v-default` on <\{tag}>",
           )
         }
         is_case_default = true
@@ -441,7 +451,7 @@ fn build_match_node(
         if element.is_case_default {
           if has_default {
             raise CompilerError::InvalidDirective(
-              "duplicate `v-case.default` in `v-match` on <\{tag}>",
+              "duplicate `v-default` in `v-match` on <\{tag}>",
             )
           }
           has_default = true

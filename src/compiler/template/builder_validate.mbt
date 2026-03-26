@@ -430,7 +430,7 @@ fn is_supported_directive_name(name : String) -> Bool {
   name == "v-else-if" ||
   name == "v-match" ||
   name == "v-case" ||
-  name == "v-case.default" ||
+  name == "v-default" ||
   name == "v-for" ||
   name == "v-show" ||
   name == "v-html" ||
