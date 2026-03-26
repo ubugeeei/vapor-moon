@@ -1,0 +1,22 @@
+version 1
+key hub/work-item/12/meta
+kind work-item
+clock mizchi=1
+timestamp 1774521069
+node mizchi
+deleted 0
+
+work-item 12
+title feat: :deep(), :global(), :slotted() CSS pseudo-classes
+author mizchi
+created 1774520834
+updated 1774520834
+state open
+
+Scoped styles only prepend \`[data-vm-scope=\"...\"] \` to selectors. Vue 3's scoped CSS pseudo-classes are missing:
+
+- \`:deep(.child)\` — target child component elements
+- \`:global(.class)\` — escape scoping for global rules
+- \`:slotted(.class)\` — target slotted content
+
+These are essential for real-world scoped styling.
