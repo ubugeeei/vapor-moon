@@ -220,12 +220,123 @@ let slots : Slots[T, U] = defineSlots()
 ```
 
 - `generic="..."` is only valid on `<script>`
-- generic parameters must appear in the local contract types referenced by `defineProps()`, `defineEmits()`, and `defineSlots()`
+- generic parameters must appear in the local contract types referenced by `defineProps()` / `defineEmits()` / `defineSlots()` / `defineExpose()`
 - the compiler threads those parameters through generated contract and render signatures
-- generics stay type-level only; no runtime type registry is emitted
+- generics stay type-level only; no runtime validation or runtime type registry is emitted
 
 ## Supported Template Features
+```html
+<script>
+import {
+  "mizchi/luna/js/resource" @reactivity,
+  let signal = @reactivity.signal,
+}
 
+let count = signal(0)
+</script>
+
+<template>
+  <section class="counter">
+    <button @click='count.update(fn(n) { n + 1 })'>+</button>
+    <p>{{ "Count: " + count.get().to_string() }}</p>
+    <CounterPanel :count="count.get()" client:visible />
+  </section>
+</template>
+
+<style>
+.counter {
+  display: grid;
+  gap: 12px;
+}
+</style>
+```
+
+`<script>` is the default setup-scope block. Use `<script extern>` for module-scope helpers that should live outside render/setup.
+The older `<script setup>` spelling still works as an alias, but plain `<script>` is now the canonical form.
+
+`<style>` blocks are scoped by default. Use `<style scoped="false">` when you explicitly want global CSS.
+
+The recommended reactivity surface is an explicit import with a meaningful alias like `@reactivity`. Vapor Moon examples avoid leaking the older luna-internal alias into authoring code.
+
+## Compile output
+
+Running `moon run src/cmd/vapor_moon -- compile examples/basic.mbtv` prints a client module, an SSR module, scoped CSS, and metadata. An excerpt of the current output looks like this:
+
+```text
+=== client ===
+pub fn render_dom() -> @luna_dom.DomNode {
+  let signal = @reactivity.signal,
+  let count = signal(0)
+  (fn() {
+      let __vm_el = @dom.el("div")
+      @dom.setAttr(__vm_el, ("class", @dom.attr("counter")))
+      @dom.setAttr(__vm_el, ("data-vm-scope", @dom.attr("vm-4048536636")))
+      @dom.append(__vm_el.as_node(), @dom.setText(fn() { count.get().to_string() }))
+      @dom.into(__vm_el)
+    })()
+}
+=== server ===
+pub fn render_ssr() -> @luna_core.StaticDomNode {
+  let signal = @reactivity.signal,
+  let count = signal(0)
+  @luna_core.h("div", [("class", @luna_core.attr_static("counter")), ("data-vm-scope", @luna_core.attr_static("vm-4048536636"))], [
+      @luna_core.text_dyn(fn() { count.get().to_string() })
+    ])
+}
+=== css ===
+[data-vm-scope="vm-4048536636"] .counter { color: red; }
+=== meta ===
+component=Basic
+extension=.mbtv
+scope=vm-4048536636
+```
+Client-side lowering is intentionally raw-DOM-oriented: native elements become `el -> setAttr -> append -> into`, while SSR still emits static HTML-oriented nodes.
+When a component declares `props`, `emits`, or `slots`, the generated module also includes typed contract surfaces and declaration metadata alongside these render functions.
+
+## Compiler macros
+
+Vapor Moon currently supports MoonBit-flavored macro calls inside `<script>`:
+
+```moonbit
+struct Props {
+  title : String
+  count : Int
+}
+struct Emits {
+  save : String
+  cancel : Unit
+}
+struct Slots {
+  default : Unit
+  footer : String
+}
+struct Expose {
+  focus : Unit
+}
+let props : Props = defineProps()
+let emit : Emits = defineEmits()
+let slots : Slots = defineSlots()
+let expose : Expose = defineExpose()
+```
+For props defaults, pass only a record literal of default values:
+
+```moonbit
+let props : Props = defineProps({
+  count: 0,
+  tone: "primary",
+})
+```
+
+- these declarations are compiler-only and disappear from lowered setup-scope script
+- the compiler generates typed component surfaces such as `ExampleProps`, `ExampleEmits`, `ExampleDomSlots`, and `ExampleSsrSlots`
+- a prop with a default stays required inside the component but becomes optional in the generated caller-facing props type
+- generated `render_dom` / `render_ssr` functions take those contracts as plain arguments, so the runtime does not own props, emits, or slot bags
+- `defineProps()` / `defineEmits()` / `defineSlots()` / `defineExpose()` are zero-argument markers that bind to the annotated local `struct`
+- `defineProps({ ... })` is reserved for defaults only, not runtime declarations
+- `defineExpose()` is type-first metadata for the component's exposed surface; it participates in generic validation and tooling even though it is erased from lowered setup code
+- runtime-declaration literals are intentionally unsupported, so component interfaces stay type-first and MoonBit-native
+
+## Supported template features
 Today the template layer supports:
 
 - text nodes and `{{ expression }}`

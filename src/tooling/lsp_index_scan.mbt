@@ -95,6 +95,154 @@ fn find_member_refs(
 }
 
 ///|
+fn find_resolved_template_ref_member_refs(
+  source : String,
+  search_span : @compiler.SourceSpan,
+  binding_name : String,
+) -> Array[ToolingMemberRef] {
+  let refs : Array[ToolingMemberRef] = []
+  let mut cursor = search_span.start
+  while true {
+    match find_substring_in_span_from(
+      source,
+      "resolve_template_ref",
+      search_span,
+      cursor,
+    ) {
+      Some(start) => {
+        cursor = start + "resolve_template_ref".length()
+        match parse_resolved_template_ref_member_ref(source, search_span, start) {
+          Some((resolved_binding_name, binding_span, member_span)) =>
+            if resolved_binding_name == binding_name {
+              refs.push({
+                contract_kind: "template ref",
+                binding_name,
+                member_name: span_text(source, member_span),
+                binding_span,
+                member_span,
+              })
+            }
+          None => ()
+        }
+      }
+      None => break
+    }
+  }
+  refs
+}
+
+///|
+fn parse_resolved_template_ref_member_ref(
+  source : String,
+  search_span : @compiler.SourceSpan,
+  start : Int,
+) -> (String, @compiler.SourceSpan, @compiler.SourceSpan)? {
+  let chars = source.to_array()
+  let mut cursor = start + "resolve_template_ref".length()
+  while cursor < search_span.end &&
+        (chars[cursor] == ' ' || chars[cursor] == '\t') {
+    cursor += 1
+  }
+  if cursor >= search_span.end || chars[cursor] != '(' {
+    return None
+  }
+  let open_paren = cursor
+  let close_paren = match find_matching_paren_forward(chars, open_paren, search_span.end) {
+    Some(index) => index
+    None => return None
+  }
+  let binding_span = match trim_span_whitespace(chars, open_paren + 1, close_paren) {
+    Some(span) => span
+    None => return None
+  }
+  let binding_name = span_text(source, binding_span)
+  if not(is_identifier_literal_scan(binding_name)) {
+    return None
+  }
+  cursor = close_paren + 1
+  while cursor < search_span.end &&
+        (chars[cursor] == ' ' || chars[cursor] == '\t') {
+    cursor += 1
+  }
+  if cursor >= search_span.end || chars[cursor] != '.' {
+    return None
+  }
+  cursor += 1
+  while cursor < search_span.end &&
+        (chars[cursor] == ' ' || chars[cursor] == '\t') {
+    cursor += 1
+  }
+  if cursor >= search_span.end || not(is_identifier_char(chars[cursor])) {
+    return None
+  }
+  let member_start = cursor
+  while cursor < search_span.end && is_identifier_char(chars[cursor]) {
+    cursor += 1
+  }
+  Some((binding_name, binding_span, { start: member_start, end: cursor }))
+}
+
+///|
+fn find_matching_paren_forward(
+  chars : Array[Char],
+  open_paren : Int,
+  limit : Int,
+) -> Int? {
+  let mut depth = 0
+  let mut cursor = open_paren
+  while cursor < limit {
+    match chars[cursor] {
+      '(' => depth += 1
+      ')' => {
+        depth -= 1
+        if depth == 0 {
+          return Some(cursor)
+        }
+      }
+      _ => ()
+    }
+    cursor += 1
+  }
+  None
+}
+
+///|
+fn trim_span_whitespace(
+  chars : Array[Char],
+  start : Int,
+  end_ : Int,
+) -> @compiler.SourceSpan? {
+  let mut trimmed_start = start
+  while trimmed_start < end_ &&
+        (chars[trimmed_start] == ' ' || chars[trimmed_start] == '\t') {
+    trimmed_start += 1
+  }
+  let mut trimmed_end = end_
+  while trimmed_end > trimmed_start &&
+        (chars[trimmed_end - 1] == ' ' || chars[trimmed_end - 1] == '\t') {
+    trimmed_end -= 1
+  }
+  if trimmed_start >= trimmed_end {
+    None
+  } else {
+    Some({ start: trimmed_start, end: trimmed_end })
+  }
+}
+
+///|
+fn is_identifier_literal_scan(source : String) -> Bool {
+  if source.length() == 0 {
+    return false
+  }
+  for ch in source {
+    if not(is_identifier_char(ch)) {
+      return false
+    }
+  }
+  true
+}
+
+///|
 fn member_span_after_binding(
   source : String,
   binding_span : @compiler.SourceSpan,
@@ -225,6 +373,39 @@ fn find_substring_in_span(
     source_chars.length() - needle_chars.length(),
   )
   let mut cursor = span.start
+  while cursor <= last {
+    let mut matched = true
+    for offset in 0..<needle_chars.length() {
+      if source_chars[cursor + offset] != needle_chars[offset] {
+        matched = false
+        break
+      }
+    }
+    if matched {
+      return Some(cursor)
+    }
+    cursor += 1
+  }
+  None
+}
+
+///|
+fn find_substring_in_span_from(
+  source : String,
+  needle : String,
+  span : @compiler.SourceSpan,
+  start_offset : Int,
+) -> Int? {
+  let source_chars = source.to_array()
+  let needle_chars = needle.to_array()
+  if needle_chars.length() == 0 || span.start >= source_chars.length() {
+    return None
+  }
+  let last = min_int(
+    span.end - needle_chars.length(),
+    source_chars.length() - needle_chars.length(),
+  )
+  let mut cursor = if start_offset > span.start { start_offset } else { span.start }
   while cursor <= last {
     let mut matched = true
     for offset in 0..<needle_chars.length() {

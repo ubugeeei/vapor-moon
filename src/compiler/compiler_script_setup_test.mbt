@@ -75,6 +75,23 @@ test "rejects setup-only helpers in script extern" {
 }
 
 ///|
+test "rejects defineExpose in script extern" {
+  let source =
+    #|<script extern>
+    #|struct Expose {
+    #|  focus : Unit
+    #|}
+    #|
+    #|let expose : Expose = defineExpose()
+    #|</script>
+    #|<template><div /></template>
+  assert_eq(
+    compile_error(source, "invalid/extern_define_expose.mbtv"),
+    "InvalidScriptExtern(\"`defineExpose()` is only supported in <script> setup scope in invalid/extern_define_expose.mbtv; move it from <script extern> to <script>\")",
+  )
+}
+
+///|
 test "rejects lang attributes" {
   let source =
     #|<script setup lang="mbt">
@@ -673,6 +690,23 @@ test "rejects duplicate defineSlots" {
 }
 
 ///|
+test "rejects duplicate defineExpose" {
+  let source =
+    #|<script setup>
+    #|struct Expose {
+    #|  focus : Unit
+    #|}
+    #|
+    #|let expose : Expose = defineExpose()
+    #|let other : Expose = defineExpose()
+    #|</script>
+  assert_eq(
+    compile_error(source, "invalid/duplicate_expose.mbtv"),
+    "InvalidScriptSetup(\"duplicate defineExpose() in invalid/duplicate_expose.mbtv\")",
+  )
+}
+
+///|
 test "parses script setup generic attribute" {
   let doc = parse_sfc(generic_source(), filename="examples/generic_list.mbtv") catch {
     err => {
@@ -698,8 +732,29 @@ test "rejects unused generic interface parameters" {
     #|<template><div>{{ props.title }}</div></template>
   assert_eq(
     compile_error(source, "invalid/unused_generic.mbtv"),
-    "InvalidSfc(\"`generic` parameter T must appear in defineProps/defineEmits/defineSlots signatures in invalid/unused_generic.mbtv\")",
+    "InvalidSfc(\"`generic` parameter T must appear in defineProps/defineEmits/defineSlots/defineExpose signatures in invalid/unused_generic.mbtv\")",
   )
+}
+
+///|
+test "accepts generic usage discovered from defineExpose contract" {
+  let source =
+    #|<script setup generic="T">
+    #|struct Expose[T] {
+    #|  current : T
+    #|}
+    #|
+    #|let expose : Expose[T] = defineExpose()
+    #|</script>
+    #|<template><div /></template>
+  let doc = parse_sfc(source, filename="examples/expose_generic_usage.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_eq(doc.generics[0].name, "T")
+  assert_eq(doc.expose[0].signature, Some("T"))
 }
 
 ///|
@@ -753,6 +808,30 @@ test "captures macro field type metadata from AST" {
   assert_eq(doc.props[0].type_shape, SingleValue)
   assert_eq(doc.emits[0].type_shape, TupleValues(2))
   assert_eq(doc.emits[1].type_shape, UnitLike)
+}
+
+///|
+test "captures defineExpose field metadata from AST" {
+  let source =
+    #|<script setup>
+    #|struct Expose {
+    #|  focus : Unit
+    #|  count : Int
+    #|}
+    #|
+    #|let expose : Expose = defineExpose()
+    #|</script>
+    #|<template><div /></template>
+  let doc = parse_sfc(source, filename="examples/expose_metadata.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_eq(doc.expose_binding, Some("expose"))
+  assert_eq(doc.expose.length(), 2)
+  assert_eq(doc.expose[0].type_shape, UnitLike)
+  assert_eq(doc.expose[1].signature, Some("Int"))
 }
 
 ///|
@@ -856,6 +935,18 @@ test "rejects runtime declaration literals for defineSlots" {
 }
 
 ///|
+test "rejects runtime declaration literals for defineExpose" {
+  let source =
+    #|<script setup>
+    #|let expose = defineExpose([])
+    #|</script>
+  assert_eq(
+    compile_error(source, "invalid/expose_runtime_decl.mbtv"),
+    "InvalidScriptSetup(\"defineExpose() no longer accepts runtime declaration literals in invalid/expose_runtime_decl.mbtv; defineExpose() requires a typed contract like `struct Expose { ... }` plus `let expose : Expose = defineExpose()` in invalid/expose_runtime_decl.mbtv\")",
+  )
+}
+
+///|
 test "rejects non local struct contracts for defineProps" {
   let source =
     #|<script setup>
@@ -927,6 +1018,21 @@ test "script setup macros are found through grouped expressions" {
   assert_eq(info.props[0].signature, Some("String"))
   assert_false(info.transformed.contains("defineProps"))
   assert_true(info.transformed.contains("@hlp.use_id(component_name, 0)"))
+}
+
+///|
+test "script setup defineExpose is lowered as a typed contract macro" {
+  let source =
+    #|struct Expose {
+    #|  focus : Unit
+    #|}
+    #|let expose : Expose = defineExpose()
+  let info = must_analyze_script_setup(source, "inline/define_expose.mbtv")
+  assert_eq(info.expose_binding, Some("expose"))
+  assert_eq(info.expose.length(), 1)
+  assert_eq(info.expose[0].name, "focus")
+  assert_false(info.transformed.contains("defineExpose"))
+  assert_true(info.transformed.contains("struct Expose"))
 }
 
 ///|

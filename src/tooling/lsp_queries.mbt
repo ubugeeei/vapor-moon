@@ -47,10 +47,166 @@ pub fn complete_at(
 ) -> Array[ToolingCompletionItem] {
   let index = build_tooling_index(source, filename)
   let offset = position_to_offset(source, line, character)
-  match member_completion_items(index, offset) {
+  match resolved_template_ref_completion_items(index, offset) {
     Some(items) => items
-    None => general_completion_items(index, offset)
+    None =>
+      match member_completion_items(index, offset) {
+        Some(items) => items
+        None => general_completion_items(index, offset)
+      }
   }
+}
+
+///|
+fn resolved_template_ref_completion_items(
+  index : ToolingIndex,
+  offset : Int,
+) -> Array[ToolingCompletionItem]? {
+  let context = resolved_template_ref_completion_context(index.source, offset)
+  match context {
+    Some((binding_name, prefix)) => {
+      let items : Array[ToolingCompletionItem] = []
+      for binding in index.bindings {
+        if binding.access_mode != ResolveTemplateRef ||
+          binding.binding_name != binding_name {
+          continue
+        }
+        for field in binding.fields {
+          if not(field.name.has_prefix(prefix)) {
+            continue
+          }
+          items.push({
+            label: field.name,
+            kind: binding.contract_kind,
+            detail: render_field_detail(binding.contract_kind, field),
+            insert_text: field.name,
+          })
+        }
+        return Some(items)
+      }
+      Some([])
+    }
+    None => None
+  }
+}
+
+///|
+fn resolved_template_ref_completion_context(
+  source : String,
+  offset : Int,
+) -> (String, String)? {
+  let chars = source.to_array()
+  let limit = if offset < chars.length() { offset } else { chars.length() }
+  let mut start = limit
+  while start > 0 && is_identifier_char(chars[start - 1]) {
+    start -= 1
+  }
+  let prefix = String::unsafe_substring(source, start~, end=limit)
+  if start == 0 || chars[start - 1] != '.' {
+    return None
+  }
+  let mut cursor = start - 1
+  while cursor > 0 && (chars[cursor - 1] == ' ' || chars[cursor - 1] == '\t') {
+    cursor -= 1
+  }
+  if cursor == 0 || chars[cursor - 1] != ')' {
+    return None
+  }
+  let close_paren = cursor - 1
+  let open_paren = match matching_open_paren_backward(chars, close_paren) {
+    Some(index) => index
+    None => return None
+  }
+  let arg_span = match trim_whitespace_span(chars, open_paren + 1, close_paren) {
+    Some(span) => span
+    None => return None
+  }
+  let binding_name = String::unsafe_substring(
+    source,
+    start=arg_span.0,
+    end=arg_span.1,
+  )
+  if not(is_identifier_literal(binding_name)) {
+    return None
+  }
+  cursor = open_paren
+  while cursor > 0 && (chars[cursor - 1] == ' ' || chars[cursor - 1] == '\t') {
+    cursor -= 1
+  }
+  let name_end = cursor
+  let mut name_start = name_end
+  while name_start > 0 {
+    let ch = chars[name_start - 1]
+    if is_identifier_char(ch) || ch == '.' || ch == '@' {
+      name_start -= 1
+    } else {
+      break
+    }
+  }
+  let callee = String::unsafe_substring(source, start=name_start, end=name_end)
+  if not(callee.has_suffix("resolve_template_ref")) {
+    return None
+  }
+  Some((binding_name, prefix))
+}
+
+///|
+fn matching_open_paren_backward(
+  chars : Array[Char],
+  close_paren : Int,
+) -> Int? {
+  let mut depth = 0
+  let mut cursor = close_paren + 1
+  while cursor > 0 {
+    cursor -= 1
+    match chars[cursor] {
+      ')' => depth += 1
+      '(' => {
+        depth -= 1
+        if depth == 0 {
+          return Some(cursor)
+        }
+      }
+      _ => ()
+    }
+  }
+  None
+}
+
+///|
+fn trim_whitespace_span(
+  chars : Array[Char],
+  start : Int,
+  end_ : Int,
+) -> (Int, Int)? {
+  let mut trimmed_start = start
+  while trimmed_start < end_ &&
+        (chars[trimmed_start] == ' ' || chars[trimmed_start] == '\t') {
+    trimmed_start += 1
+  }
+  let mut trimmed_end = end_
+  while trimmed_end > trimmed_start &&
+        (chars[trimmed_end - 1] == ' ' || chars[trimmed_end - 1] == '\t') {
+    trimmed_end -= 1
+  }
+  if trimmed_start >= trimmed_end {
+    None
+  } else {
+    Some((trimmed_start, trimmed_end))
+  }
+}
+
+///|
+fn is_identifier_literal(source : String) -> Bool {
+  if source.length() == 0 {
+    return false
+  }
+  for ch in source {
+    if not(is_identifier_char(ch)) {
+      return false
+    }
+  }
+  true
 }
 
 ///|
@@ -143,7 +299,7 @@ fn member_completion_items(
     Some((binding_name, prefix)) => {
       let items : Array[ToolingCompletionItem] = []
       for binding in index.bindings {
-        if binding.binding_name != binding_name {
+        if binding.access_mode != Direct || binding.binding_name != binding_name {
           continue
         }
         for field in binding.fields {
@@ -237,6 +393,22 @@ fn member_hover_text(entry : ToolingMemberDef) -> String {
 
 ///|
 fn binding_hover_text(binding : ToolingBindingDef) -> String {
+  if binding.access_mode == ResolveTemplateRef {
+    let type_name = binding.type_name.unwrap_or("@js_dom.Element")
+    let fields : Array[String] = []
+    for field in binding.fields {
+      fields.push(render_field_detail(binding.contract_kind, field))
+    }
+    if fields.is_empty() {
+      return "template ref `" + binding.binding_name + "` : " + type_name
+    }
+    return "template ref `" +
+      binding.binding_name +
+      "` : " +
+      type_name +
+      "\n" +
+      fields.join("\n")
+  }
   let fields : Array[String] = []
   for field in binding.fields {
     fields.push(render_field_detail(binding.contract_kind, field))

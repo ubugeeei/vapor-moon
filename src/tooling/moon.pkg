@@ -1,6 +1,7 @@
 import {
   "ubugeeei/vapor_moon/src/compiler" @compiler,
   "ubugeeei/vapor_moon/src/compiler/common" @compiler_common,
+  "moonbitlang/x/fs" @fs,
 }
 
 options(

@@ -139,6 +139,7 @@ fn default_contract_type_name(macro_name : String) -> String {
     "defineProps" => "Props"
     "defineEmits" => "Emits"
     "defineSlots" => "Slots"
+    "defineExpose" => "Expose"
     _ => "Contract"
   }
 }
@@ -149,6 +150,7 @@ fn default_contract_binding_name(macro_name : String) -> String {
     "defineProps" => "props"
     "defineEmits" => "emit"
     "defineSlots" => "slots"
+    "defineExpose" => "expose"
     _ => "contract"
   }
 }
