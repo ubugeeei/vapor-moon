@@ -1,0 +1,38 @@
+version 1
+key hub/work-item/4/meta
+kind work-item
+clock mizchi=1
+timestamp 1774521270
+node mizchi
+deleted 0
+
+work-item 4
+title ci: add GitHub Actions workflow and fix luna AttrValue API
+author mizchi
+created 1774520243
+updated 1774520392
+state merged
+source ci/setup
+source-ref refs/heads/ci/setup
+source-commit ffe4fb76c42172b5549ba70ad6e91446e56150ea
+target main
+target-commit fc260ced5139d562a95c04f99e807820d329fcc8
+
+## Summary
+
+- Add GitHub Actions CI workflow with native/js target matrix
+- Fix `luna_core.AttrValue` → `Attr[Unit, String]` to match luna API update
+
+### CI configuration
+
+- `moon check --deny-warn` for both native and js targets
+- `moon test` for native target
+- yacc duplicate-alias warning filtered from stderr
+
+## Test plan
+
+- [x] `moon check --deny-warn --target native` passes
+- [x] `moon check --deny-warn --target js` passes
+- [x] All 175 tests pass
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
