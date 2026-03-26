@@ -44,10 +44,10 @@
     "body": "v-model='${1:ref}.get()'",
     "description": "Two-way binding"
   },
-  "v-html": {
-    "prefix": "v-html",
-    "body": "v-html='${1:content}'",
-    "description": "Render raw HTML"
+  "v-unsafe-html": {
+    "prefix": "v-unsafe-html",
+    "body": "v-unsafe-html='${1:content}'",
+    "description": "Render unsafe raw HTML"
   },
   "v-once": {
     "prefix": "v-once",

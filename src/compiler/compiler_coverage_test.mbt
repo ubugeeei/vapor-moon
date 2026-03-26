@@ -121,19 +121,19 @@ test "legacy emit.emit() in template expression is rejected" {
   assert_true(error.contains("legacy"))
 }
 
-// ── v-html validation ─────────────────────────────────────────
+// ── v-unsafe-html validation ──────────────────────────────────
 
 ///|
-test "v-html on element with children compiles" {
+test "v-unsafe-html on element with children compiles" {
   let source =
     #|<script setup>
     #|let html = "<b>bold</b>"
     #|</script>
     #|
     #|<template>
-    #|  <div v-html='html'></div>
+    #|  <div v-unsafe-html='html'></div>
     #|</template>
-  let output = compile_snapshot(source, "VHtml.mbtv")
+  let output = compile_snapshot(source, "VUnsafeHtml.mbtv")
   assert_true(output.contains("raw_html"))
 }
 
@@ -313,16 +313,16 @@ test "v-show on component is rejected" {
   assert_true(error.contains("v-show"))
 }
 
-// ── v-html on void element is rejected ────────────────────────
+// ── v-unsafe-html on void element is rejected ─────────────────
 
 ///|
-test "v-html on void element is rejected" {
+test "v-unsafe-html on void element is rejected" {
   let source =
     #|<template>
-    #|  <br v-html='content' />
+    #|  <br v-unsafe-html='content' />
     #|</template>
-  let error = compile_error(source, "VHtmlVoid.mbtv")
-  assert_true(error.contains("v-html"))
+  let error = compile_error(source, "VUnsafeHtmlVoid.mbtv")
+  assert_true(error.contains("v-unsafe-html"))
 }
 
 // ── Duplicate directive is rejected ───────────────────────────

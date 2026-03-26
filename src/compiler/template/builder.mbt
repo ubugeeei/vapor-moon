@@ -252,7 +252,7 @@ fn build_template_element(
         ensure_empty_expr_directive(show_expr, attr, tag)
         show_expr = Some(expect_attr_value(attr, tag))
       }
-      "v-html" => {
+      "v-unsafe-html" => {
         ensure_empty_expr_directive(html_expr, attr, tag)
         html_expr = Some(expect_attr_value(attr, tag))
       }

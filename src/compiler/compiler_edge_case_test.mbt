@@ -1,12 +1,12 @@
 ///|
-test "rejects v-html mixed with child nodes" {
+test "rejects v-unsafe-html mixed with child nodes" {
   let source =
     #|<template>
-    #|  <div v-html='content'><span>fallback</span></div>
+    #|  <div v-unsafe-html='content'><span>fallback</span></div>
     #|</template>
   assert_eq(
-    compile_error(source, "invalid/v_html_children.mbtv"),
-    "InvalidDirective(\"v-html cannot be combined with child nodes on <div>\")",
+    compile_error(source, "invalid/v_unsafe_html_children.mbtv"),
+    "InvalidDirective(\"v-unsafe-html cannot be combined with child nodes on <div>\")",
   )
 }
 
@@ -465,22 +465,22 @@ test "rejects v-show on component tags" {
 }
 
 ///|
-test "rejects v-html on component tags" {
+test "rejects v-unsafe-html on component tags" {
   let source =
-    #|<template><Panel v-html='content' /></template>
+    #|<template><Panel v-unsafe-html='content' /></template>
   assert_eq(
-    compile_error(source, "invalid/component_v_html.mbtv"),
-    "InvalidDirective(\"v-html is not supported on component tags: <Panel>\")",
+    compile_error(source, "invalid/component_v_unsafe_html.mbtv"),
+    "InvalidDirective(\"v-unsafe-html is not supported on component tags: <Panel>\")",
   )
 }
 
 ///|
-test "rejects v-html on void elements" {
+test "rejects v-unsafe-html on void elements" {
   let source =
-    #|<template><img v-html='content' /></template>
+    #|<template><img v-unsafe-html='content' /></template>
   assert_eq(
-    compile_error(source, "invalid/v_html_void_element.mbtv"),
-    "InvalidDirective(\"v-html is not supported on void elements: <img>\")",
+    compile_error(source, "invalid/v_unsafe_html_void_element.mbtv"),
+    "InvalidDirective(\"v-unsafe-html is not supported on void elements: <img>\")",
   )
 }
 

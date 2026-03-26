@@ -13,11 +13,11 @@ fn validate_finalized_element(
   match element.html_expr {
     Some(_) if is_void_html_tag(element.tag) =>
       raise CompilerError::InvalidDirective(
-        "v-html is not supported on void elements: <\{element.tag}>",
+        "v-unsafe-html is not supported on void elements: <\{element.tag}>",
       )
     Some(_) if not(children.is_empty()) =>
       raise CompilerError::InvalidDirective(
-        "v-html cannot be combined with child nodes on <\{element.tag}>",
+        "v-unsafe-html cannot be combined with child nodes on <\{element.tag}>",
       )
     _ => ()
   }
@@ -301,7 +301,7 @@ fn validate_component_bindings(
     match html_expr {
       Some(_) if is_void_html_tag(tag) =>
         raise CompilerError::InvalidDirective(
-          "v-html is not supported on void elements: <\{tag}>",
+          "v-unsafe-html is not supported on void elements: <\{tag}>",
         )
       _ => ()
     }
@@ -328,7 +328,7 @@ fn validate_component_bindings(
   match html_expr {
     Some(_) =>
       raise CompilerError::InvalidDirective(
-        "v-html is not supported on component tags: <\{tag}>",
+        "v-unsafe-html is not supported on component tags: <\{tag}>",
       )
     None => ()
   }
@@ -433,7 +433,7 @@ fn is_supported_directive_name(name : String) -> Bool {
   name == "v-default" ||
   name == "v-for" ||
   name == "v-show" ||
-  name == "v-html" ||
+  name == "v-unsafe-html" ||
   name == "v-once" ||
   name == "key" ||
   name == "ref" ||

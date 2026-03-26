@@ -30,7 +30,7 @@ fn directive_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
     ("v-else", "fallback branch (requires preceding v-if or v-else-if)"),
     ("v-for", "list rendering"),
     ("v-show", "toggle visibility via CSS display"),
-    ("v-html", "render raw HTML content"),
+    ("v-unsafe-html", "render unsafe raw HTML content"),
     ("v-model", "two-way binding on form elements"),
     ("v-once", "render once (skip reactivity)"),
     ("v-match", "pattern matching on an expression"),
