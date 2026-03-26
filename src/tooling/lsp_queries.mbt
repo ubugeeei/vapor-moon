@@ -168,7 +168,8 @@ fn ToolingQuery::resolved_template_ref_completion_context(
     Some(index) => index
     None => return None
   }
-  let arg_span = match document.trim_span_whitespace(open_paren + 1, close_paren) {
+  let arg_span = match
+    document.trim_span_whitespace(open_paren + 1, close_paren) {
     Some(span) => span
     None => return None
   }
@@ -220,11 +221,7 @@ fn ToolingQuery::find_hover_target(
   for ref_ in self.index.refs {
     if contains_offset(ref_.member_span, offset) {
       match
-        find_binding(
-          self.index.bindings,
-          ref_.contract_kind,
-          ref_.binding_name,
-        ) {
+        find_binding(self.index.bindings, ref_.contract_kind, ref_.binding_name) {
         Some(binding) =>
           match
             find_member(
@@ -241,11 +238,7 @@ fn ToolingQuery::find_hover_target(
     }
     if contains_offset(ref_.binding_span, offset) {
       match
-        find_binding(
-          self.index.bindings,
-          ref_.contract_kind,
-          ref_.binding_name,
-        ) {
+        find_binding(self.index.bindings, ref_.contract_kind, ref_.binding_name) {
         Some(binding) =>
           return Some((binding_hover_text(binding), ref_.binding_span))
         None => ()
@@ -274,11 +267,7 @@ fn ToolingQuery::find_definition_target(
   for ref_ in self.index.refs {
     if contains_offset(ref_.member_span, offset) {
       match
-        find_binding(
-          self.index.bindings,
-          ref_.contract_kind,
-          ref_.binding_name,
-        ) {
+        find_binding(self.index.bindings, ref_.contract_kind, ref_.binding_name) {
         Some(binding) =>
           match
             find_member(
@@ -294,11 +283,7 @@ fn ToolingQuery::find_definition_target(
     }
     if contains_offset(ref_.binding_span, offset) {
       match
-        find_binding(
-          self.index.bindings,
-          ref_.contract_kind,
-          ref_.binding_name,
-        ) {
+        find_binding(self.index.bindings, ref_.contract_kind, ref_.binding_name) {
         Some(binding) => return Some((binding.binding_name, binding.span))
         None => ()
       }

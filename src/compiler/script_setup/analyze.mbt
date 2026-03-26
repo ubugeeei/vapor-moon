@@ -52,11 +52,7 @@ pub fn analyze_script_extern(
   let (ir, _) = source.parse_module_with_contracts()
   ir.validate_script_extern(filename)
   let transformed = ir.render(false)
-  {
-    source: transformed,
-    transformed,
-    import_entries: ir.import_entries(),
-  }
+  { source: transformed, transformed, import_entries: ir.import_entries() }
 }
 
 ///|

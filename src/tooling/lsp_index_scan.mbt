@@ -24,9 +24,9 @@ fn ToolingDocument::find_block_content_span(
     if block.content.length() == 0 {
       return Some(block.span)
     }
-    return self.find_substring_in_span(block.content, block.span).map(fn(start) {
-      { start, end: start + block.content.length() }
-    })
+    return self
+      .find_substring_in_span(block.content, block.span)
+      .map(fn(start) { { start, end: start + block.content.length() } })
   }
   None
 }
@@ -103,9 +103,7 @@ fn ToolingDocument::find_resolved_template_ref_member_refs(
   while true {
     match
       self.find_substring_in_span_from(
-        "resolve_template_ref",
-        search_span,
-        cursor,
+        "resolve_template_ref", search_span, cursor,
       ) {
       Some(start) => {
         cursor = start + "resolve_template_ref".length()
@@ -150,7 +148,8 @@ fn ToolingDocument::parse_resolved_template_ref_member_ref(
     Some(index) => index
     None => return None
   }
-  let binding_span = match self.trim_span_whitespace(open_paren + 1, close_paren) {
+  let binding_span = match
+    self.trim_span_whitespace(open_paren + 1, close_paren) {
     Some(span) => span
     None => return None
   }
@@ -255,9 +254,7 @@ fn ToolingDocument::trim_span_whitespace(
 }
 
 ///|
-fn ToolingDocument::identifier_literal(
-  source : String,
-) -> Bool {
+fn ToolingDocument::identifier_literal(source : String) -> Bool {
   if source.length() == 0 {
     return false
   }
@@ -481,7 +478,8 @@ fn ToolingDocument::find_token_in_span(
     }
     let before_ok = cursor == 0 || not(is_identifier_char(chars[cursor - 1]))
     let end_ = cursor + token_chars.length()
-    let after_ok = end_ >= chars.length() || not(is_identifier_char(chars[end_]))
+    let after_ok = end_ >= chars.length() ||
+      not(is_identifier_char(chars[end_]))
     if matched && before_ok && after_ok {
       return Some({ start: cursor, end: end_ })
     }

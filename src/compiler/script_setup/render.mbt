@@ -11,9 +11,7 @@ fn ScriptSetupModule::render(
           lines.push(render_import_statement(entries))
         }
       LetStatement(let_stmt) =>
-        lines.push(
-          let_stmt.declaration + " = " + let_stmt.expr.render(),
-        )
+        lines.push(let_stmt.declaration + " = " + let_stmt.expr.render())
       ExpressionStatement(expr) => lines.push(expr.render())
       RawStatement(raw) => lines.push(raw)
     }

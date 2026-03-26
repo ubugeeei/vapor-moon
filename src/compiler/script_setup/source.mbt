@@ -50,22 +50,14 @@ fn ScriptSetupSource::split_top_level_statements(
       continue
     }
     let depths = update_scan_depths(
-      current,
-      paren_depth,
-      bracket_depth,
-      brace_depth,
+      current, paren_depth, bracket_depth, brace_depth,
     )
     paren_depth = depths.0
     bracket_depth = depths.1
     brace_depth = depths.2
     if (current == '\n' || current == ';') &&
       not(
-        self.continues_top_level_statement(
-          start,
-          cursor,
-          cursor + 1,
-          current,
-        ),
+        self.continues_top_level_statement(start, cursor, cursor + 1, current),
       ) &&
       paren_depth == 0 &&
       bracket_depth == 0 &&
@@ -234,10 +226,7 @@ fn ScriptSetupSource::find_top_level_char(
       return Some(cursor)
     }
     let depths = update_scan_depths(
-      current,
-      paren_depth,
-      bracket_depth,
-      brace_depth,
+      current, paren_depth, bracket_depth, brace_depth,
     )
     paren_depth = depths.0
     bracket_depth = depths.1
@@ -329,10 +318,7 @@ fn ScriptSetupSource::split_top_level(
       continue
     }
     let depths = update_scan_depths(
-      current,
-      paren_depth,
-      bracket_depth,
-      brace_depth,
+      current, paren_depth, bracket_depth, brace_depth,
     )
     paren_depth = depths.0
     bracket_depth = depths.1

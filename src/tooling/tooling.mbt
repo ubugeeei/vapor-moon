@@ -53,7 +53,8 @@ fn ToolingAnalyzer::new(source : String, filename : String) -> ToolingAnalyzer {
 fn ToolingAnalyzer::analyze(self : ToolingAnalyzer) -> ToolingAnalysis {
   match self.try_analyze() {
     Some(analysis) => analysis
-    None => ToolingAnalyzer::failed_analysis("failed to analyze " + self.filename)
+    None =>
+      ToolingAnalyzer::failed_analysis("failed to analyze " + self.filename)
   }
 }
 
@@ -74,9 +75,7 @@ fn ToolingAnalyzer::try_analyze(self : ToolingAnalyzer) -> ToolingAnalysis? {
 
 ///|
 /// Default failure payload used when even a partial analysis cannot be produced.
-fn ToolingAnalyzer::failed_analysis(
-  message : String,
-) -> ToolingAnalysis {
+fn ToolingAnalyzer::failed_analysis(message : String) -> ToolingAnalysis {
   {
     symbols: [],
     expressions: [],
@@ -99,9 +98,8 @@ fn ToolingAnalyzer::analysis_from_template_error(
   message : String,
 ) -> ToolingAnalysis {
   {
-    symbols:
-      ToolingAnalyzer::block_symbols(doc.blocks) +
-      ToolingAnalyzer::macro_symbols(doc),
+    symbols: ToolingAnalyzer::block_symbols(doc.blocks) +
+    ToolingAnalyzer::macro_symbols(doc),
     expressions: [],
     diagnostics: [message],
     island_components: [],
@@ -124,9 +122,8 @@ fn ToolingAnalyzer::analysis_from_doc(
 ) -> ToolingAnalysis {
   let (expressions, island_components) = self.template_metadata(template)
   {
-    symbols:
-      ToolingAnalyzer::block_symbols(doc.blocks) +
-      ToolingAnalyzer::macro_symbols(doc),
+    symbols: ToolingAnalyzer::block_symbols(doc.blocks) +
+    ToolingAnalyzer::macro_symbols(doc),
     expressions,
     diagnostics: [],
     island_components,

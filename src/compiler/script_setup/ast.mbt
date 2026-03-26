@@ -248,11 +248,7 @@ fn ScriptSetupSource::slice_location(
   self : ScriptSetupSource,
   loc : @mbt_basic.Location,
 ) -> String {
-  String::unsafe_substring(
-    self.source,
-    start=loc.start.cnum,
-    end=loc.end.cnum,
-  )
+  String::unsafe_substring(self.source, start=loc.start.cnum, end=loc.end.cnum)
 }
 
 ///|
@@ -284,16 +280,14 @@ fn ScriptSetupSource::extract_call_args(
 ) -> String raise CompilerError {
   let call_source = ScriptSetupSource::new(source, self.filename)
   let open_index = call_source.skip_inline_gap(name.length())
-  if open_index >= call_source.chars.length() || call_source.chars[open_index] != '(' {
+  if open_index >= call_source.chars.length() ||
+    call_source.chars[open_index] != '(' {
     raise CompilerError::InvalidScriptSetup(
       "expected \{name}() call in \{self.filename}",
     )
   }
   let close_index = call_source.find_matching_delimiter(
-    open_index,
-    '(',
-    ')',
-    "macro call",
+    open_index, '(', ')', "macro call",
   )
   String::unsafe_substring(source, start=open_index + 1, end=close_index)
   .trim()

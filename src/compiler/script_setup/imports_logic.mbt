@@ -48,10 +48,7 @@ fn ScriptSetupSource::parse_import_statement(
     )
   }
   let close_brace = self.find_matching_delimiter(
-    open_brace,
-    '{',
-    '}',
-    "import block",
+    open_brace, '{', '}', "import block",
   )
   let trailing_start = self.skip_inline_gap(close_brace + 1)
   if trailing_start < self.chars.length() {

@@ -136,9 +136,7 @@ fn ToolingIndexBuilder::build(self : ToolingIndexBuilder) -> ToolingIndex {
     }
   }
   let resolved_template_refs = resolve_tooling_template_refs(
-    doc,
-    template,
-    filename,
+    doc, template, filename,
   )
   let script_span = self.document.find_block_content_span(
     doc.blocks,
@@ -148,9 +146,19 @@ fn ToolingIndexBuilder::build(self : ToolingIndexBuilder) -> ToolingIndex {
     doc.blocks,
     @compiler_common.Template,
   )
-  self.collect_contract_index(script_span, "props", doc.props_binding, doc.props)
+  self.collect_contract_index(
+    script_span,
+    "props",
+    doc.props_binding,
+    doc.props,
+  )
   self.collect_contract_index(script_span, "emit", doc.emits_binding, doc.emits)
-  self.collect_contract_index(script_span, "slots", doc.slots_binding, doc.slots)
+  self.collect_contract_index(
+    script_span,
+    "slots",
+    doc.slots_binding,
+    doc.slots,
+  )
   self.collect_contract_index(
     script_span,
     "expose",
@@ -179,10 +187,9 @@ fn ToolingIndexBuilder::collect_contract_index(
     Some(content_span) =>
       match binding_name {
         Some(binding) => {
-          let binding_span = self.document.find_binding_definition_span(
-            content_span,
-            binding,
-          ).unwrap_or(content_span)
+          let binding_span = self.document
+            .find_binding_definition_span(content_span, binding)
+            .unwrap_or(content_span)
           self.bindings.push({
             contract_kind: canonical_name,
             binding_name: binding,
@@ -192,11 +199,13 @@ fn ToolingIndexBuilder::collect_contract_index(
             access_mode: Direct,
           })
           for field in fields {
-            let span = self.document.find_contract_field_definition_span(
-              content_span,
-              binding,
-              field.name,
-            ).unwrap_or(binding_span)
+            let span = self.document
+              .find_contract_field_definition_span(
+                content_span,
+                binding,
+                field.name,
+              )
+              .unwrap_or(binding_span)
             self.members.push({
               contract_kind: canonical_name,
               binding_name: binding,
@@ -222,10 +231,9 @@ fn ToolingIndexBuilder::collect_template_ref_index(
   match block_span {
     Some(content_span) =>
       for resolved_ref in resolved_template_refs {
-        let binding_span = self.document.find_binding_definition_span(
-          content_span,
-          resolved_ref.binding_name,
-        ).unwrap_or(content_span)
+        let binding_span = self.document
+          .find_binding_definition_span(content_span, resolved_ref.binding_name)
+          .unwrap_or(content_span)
         self.bindings.push({
           contract_kind: "template ref",
           binding_name: resolved_ref.binding_name,
@@ -268,7 +276,8 @@ fn ToolingIndexBuilder::collect_contract_refs(
         }
       }
       for candidate in candidates {
-        for ref_ in self.document.find_member_refs(span, candidate.0, candidate.1) {
+        for
+          ref_ in self.document.find_member_refs(span, candidate.0, candidate.1) {
           if overlaps_definition(ref_, self.bindings, self.members) {
             continue
           }
@@ -315,7 +324,8 @@ fn ToolingIndexBuilder::collect_semantic_diagnostics(
   for ref_ in self.refs {
     match find_binding(self.bindings, ref_.contract_kind, ref_.binding_name) {
       Some(binding) =>
-        match find_member(self.members, binding.binding_name, ref_.member_name) {
+        match
+          find_member(self.members, binding.binding_name, ref_.member_name) {
           Some(_) => ()
           None if binding.access_mode == ResolveTemplateRef &&
             binding.fields.is_empty() => ()

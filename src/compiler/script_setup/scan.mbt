@@ -1,3 +1,4 @@
+///|
 fn ScriptSetupSource::parse_module_with_contracts(
   self : ScriptSetupSource,
 ) -> (ScriptSetupModule, Array[ScriptSetupContractType]) raise CompilerError {
