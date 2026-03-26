@@ -15,9 +15,9 @@ pub fn component_ssr_meta(
   name : String,
   props_json : String,
   children : Array[@luna_core.StaticDomNode],
-  meta_attrs : Array[(String, @luna_core.AttrValue)],
+  meta_attrs : Array[(String, @luna_core.Attr[Unit, String])],
 ) -> @luna_core.StaticDomNode {
-  let attrs : Array[(String, @luna_core.AttrValue)] = [
+  let attrs : Array[(String, @luna_core.Attr[Unit, String])] = [
     ("data-vm-component", @luna_core.attr_static(name)),
     ("data-vm-props", @luna_core.attr_static(props_json)),
   ]
@@ -43,7 +43,7 @@ pub fn island_ssr_meta(
   props_json : String,
   children : Array[@luna_core.StaticDomNode],
   mode : @vm.HydrationMode,
-  meta_attrs : Array[(String, @luna_core.AttrValue)],
+  meta_attrs : Array[(String, @luna_core.Attr[Unit, String])],
 ) -> @luna_core.StaticDomNode {
   match mode {
     Only => island_only_ssr(name, props_json, meta_attrs)
@@ -63,9 +63,9 @@ pub fn island_ssr_meta(
 fn island_only_ssr(
   name : String,
   props_json : String,
-  meta_attrs : Array[(String, @luna_core.AttrValue)],
+  meta_attrs : Array[(String, @luna_core.Attr[Unit, String])],
 ) -> @luna_core.StaticDomNode {
-  let attrs : Array[(String, @luna_core.AttrValue)] = [
+  let attrs : Array[(String, @luna_core.Attr[Unit, String])] = [
     ("data-vm-island", @luna_core.attr_static(name)),
     ("data-vm-client", @luna_core.attr_static("only")),
     ("data-vm-props", @luna_core.attr_static(props_json)),
@@ -81,9 +81,9 @@ fn island_defer_ssr(
   name : String,
   props_json : String,
   children : Array[@luna_core.StaticDomNode],
-  meta_attrs : Array[(String, @luna_core.AttrValue)],
+  meta_attrs : Array[(String, @luna_core.Attr[Unit, String])],
 ) -> @luna_core.StaticDomNode {
-  let attrs : Array[(String, @luna_core.AttrValue)] = [
+  let attrs : Array[(String, @luna_core.Attr[Unit, String])] = [
     ("data-vm-component", @luna_core.attr_static(name)),
     ("data-vm-props", @luna_core.attr_static(props_json)),
   ]
