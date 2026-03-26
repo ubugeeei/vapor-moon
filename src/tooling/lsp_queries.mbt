@@ -117,7 +117,8 @@ fn resolved_template_ref_completion_context(
     Some(index) => index
     None => return None
   }
-  let arg_span = match trim_whitespace_span(chars, open_paren + 1, close_paren) {
+  let arg_span = match
+    trim_whitespace_span(chars, open_paren + 1, close_paren) {
     Some(span) => span
     None => return None
   }
@@ -151,10 +152,7 @@ fn resolved_template_ref_completion_context(
 }
 
 ///|
-fn matching_open_paren_backward(
-  chars : Array[Char],
-  close_paren : Int,
-) -> Int? {
+fn matching_open_paren_backward(chars : Array[Char], close_paren : Int) -> Int? {
   let mut depth = 0
   let mut cursor = close_paren + 1
   while cursor > 0 {

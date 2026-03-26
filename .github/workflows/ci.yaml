@@ -32,10 +32,18 @@ jobs:
         run: |
           curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
       - name: Moon update
         run: moon update
       - name: Moon check
         run: moon check --target js 2> >(grep -v 'WARN Duplicate alias' >&2)
+      - name: Runtime JS tests
+        run: |
+          moon test --target js src/runtime
+          moon test --target js src/runtime/dom
+          moon test --target js src/runtime/server
 
   e2e:
     runs-on: ubuntu-latest

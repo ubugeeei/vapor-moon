@@ -76,12 +76,7 @@ pub fn parse_sfc(
             expose_binding = info.expose_binding
             expose = info.expose
             validate_generic_usage(
-              generics,
-              props,
-              emits,
-              slots,
-              expose,
-              filename,
+              generics, props, emits, slots, expose, filename,
             )
           }
         }

@@ -255,3 +255,57 @@ test "snapshot media and defer compile" {
     ),
   )
 }
+
+///|
+test "client none compiles as a plain component shell" {
+  let source =
+    #|<template>
+    #|  <main>
+    #|    <SearchPanel client:none />
+    #|  </main>
+    #|</template>
+  let output = compile(source, filename="examples/client_none.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+
+  assert_true(
+    output.client_code.contains("@dom.component(\"SearchPanel\", [], [])"),
+  )
+  assert_true(
+    output.server_code.contains(
+      "@vm_server.component_ssr(\"SearchPanel\", @hlp.props_to_json([]), [])",
+    ),
+  )
+  assert_false(output.client_code.contains("HydrationMode"))
+  assert_false(output.server_code.contains("HydrationMode"))
+  assert_eq(output.island_components, [])
+}
+
+///|
+test "load idle and only island modes compile distinctly" {
+  let source =
+    #|<template>
+    #|  <main>
+    #|    <LoadPanel client:load />
+    #|    <IdlePanel client:idle />
+    #|    <OnlyPanel client:only />
+    #|  </main>
+    #|</template>
+  let output = compile(source, filename="examples/island_modes.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+
+  assert_true(output.client_code.contains("@hlp.HydrationMode::Load"))
+  assert_true(output.client_code.contains("@hlp.HydrationMode::Idle"))
+  assert_true(output.client_code.contains("@hlp.HydrationMode::Only"))
+  assert_true(output.server_code.contains("@hlp.HydrationMode::Load"))
+  assert_true(output.server_code.contains("@hlp.HydrationMode::Idle"))
+  assert_true(output.server_code.contains("@hlp.HydrationMode::Only"))
+  assert_eq(output.island_components, ["LoadPanel", "IdlePanel", "OnlyPanel"])
+}

@@ -13,15 +13,85 @@ extern "js" fn fake_element(
   label : String,
   parent : @js.Any?,
 ) -> @js_dom.Element =
-  #| (doc, label, parent) => ({
+  #| (doc, label, parent) => {
+  #|   const parentNode =
+  #|     parent && typeof parent === "object" && "$tag" in parent
+  #|       ? (parent.$tag === 1 ? parent._0 : null)
+  #|       : (parent ?? null);
+  #|   return ({
   #|   label,
   #|   ownerDocument: doc,
-  #|   parentNode: parent ?? null,
+  #|   parentNode,
   #|   listeners: Object.create(null),
   #|   addEventListener(name, handler, options = false) {
   #|     (this.listeners[name] ??= []).push({ handler, options });
   #|   },
-  #| })
+  #|   });
+  #| }
+
+///|
+extern "js" fn install_fake_dom() -> Unit =
+  #| () => {
+  #|   const makeNode = (nodeType, label, ownerDocument) => ({
+  #|     nodeType,
+  #|     label,
+  #|     tagName: label,
+  #|     ownerDocument,
+  #|     parentNode: null,
+  #|     children: [],
+  #|     attributes: Object.create(null),
+  #|     listeners: Object.create(null),
+  #|     className: "",
+  #|     textContent: "",
+  #|     appendChild(child) {
+  #|       child.parentNode = this;
+  #|       this.children.push(child);
+  #|       return child;
+  #|     },
+  #|     addEventListener(name, handler, options = false) {
+  #|       (this.listeners[name] ??= []).push({ handler, options });
+  #|     },
+  #|     setAttribute(name, value) {
+  #|       const text = String(value);
+  #|       this.attributes[name] = text;
+  #|       if (name === "class") {
+  #|         this.className = text;
+  #|       }
+  #|     },
+  #|     removeAttribute(name) {
+  #|       delete this.attributes[name];
+  #|     },
+  #|     setClassName(value) {
+  #|       const text = String(value);
+  #|       this.className = text;
+  #|       this.attributes.class = text;
+  #|     },
+  #|     setTextContent(value) {
+  #|       this.textContent = String(value);
+  #|     },
+  #|   });
+  #|   const doc = {
+  #|     listeners: Object.create(null),
+  #|     addEventListener(name, handler, options = false) {
+  #|       (this.listeners[name] ??= []).push({ handler, options });
+  #|     },
+  #|     createElement(tag) {
+  #|       return makeNode(1, tag, doc);
+  #|     },
+  #|     createTextNode(content) {
+  #|       const node = makeNode(3, "#text", doc);
+  #|       node.textContent = String(content);
+  #|       return node;
+  #|     },
+  #|     createDocumentFragment() {
+  #|       return makeNode(11, "#fragment", doc);
+  #|     },
+  #|   };
+  #|   globalThis.document = doc;
+  #|   delete globalThis.__vaporMoonEventDelegator;
+  #|   delete globalThis.__vaporMoonTemplateRefs;
+  #|   delete globalThis.__vaporMoonBoundTemplateRefs;
+  #| }
 
 ///|
 extern "js" fn dispatch_delegated_event(
@@ -125,6 +195,34 @@ extern "js" fn stop_event(event : @js.Any) -> Unit =
 ///|
 extern "js" fn event_default_prevented(event : @js.Any) -> Bool =
   #| (event) => Boolean(event.defaultPrevented)
+
+///|
+extern "js" fn node_tag(node : @js.Any) -> String =
+  #| (node) => node.tagName ?? node.label ?? ""
+
+///|
+extern "js" fn node_attr(node : @js.Any, name : String) -> String =
+  #| (node, name) => String(node.attributes?.[name] ?? (name === "class" ? node.className : "") ?? "")
+
+///|
+extern "js" fn node_has_attr(node : @js.Any, name : String) -> Bool =
+  #| (node, name) => Object.prototype.hasOwnProperty.call(node.attributes ?? {}, name)
+
+///|
+extern "js" fn node_prop_string(node : @js.Any, name : String) -> String =
+  #| (node, name) => String(node?.[name] ?? "")
+
+///|
+extern "js" fn node_prop_bool(node : @js.Any, name : String) -> Bool =
+  #| (node, name) => Boolean(node?.[name])
+
+///|
+extern "js" fn node_child_count(node : @js.Any) -> Int =
+  #| (node) => node.children?.length ?? 0
+
+///|
+extern "js" fn node_child_text(node : @js.Any, index : Int) -> String =
+  #| (node, index) => String(node.children?.[index]?.textContent ?? "")
 
 ///|
 test "delegated handlers bubble through parent chain with currentTarget" {
@@ -311,4 +409,81 @@ test "listener option modifiers bind direct listeners" {
   dispatch_direct_event(elem.as_any(), "click", elem.as_any())
 
   assert_eq(calls.length(), 1)
+}
+
+///|
+test "component dom meta renders wrapper attrs and children" {
+  install_fake_dom()
+  let node = component_dom_meta(
+    "Panel",
+    [("title", fn() { "hello" })],
+    [text("slot")],
+    [("data-extra", attr_static("yes"))],
+  )
+  let elem = node.to_dom()
+
+  assert_eq(node_tag(elem.as_any()), "vm-component")
+  assert_eq(node_attr(elem.as_any(), "data-vm-component"), "Panel")
+  assert_eq(node_attr(elem.as_any(), "data-prop-title"), "hello")
+  assert_eq(node_attr(elem.as_any(), "data-extra"), "yes")
+  assert_eq(node_child_count(elem.as_any()), 1)
+  assert_eq(node_child_text(elem.as_any(), 0), "slot")
+}
+
+///|
+test "island dom meta renders hydration metadata and children" {
+  install_fake_dom()
+  let node = island_dom_meta(
+    "Hero Banner",
+    @vm.HydrationMode::Media("(max-width: 768px)"),
+    [("count", fn() { "2" })],
+    [text("fallback")],
+    [("data-extra", attr_static("yes"))],
+  )
+  let elem = node.to_dom()
+
+  assert_eq(node_tag(elem.as_any()), "vm-island")
+  assert_eq(node_attr(elem.as_any(), "data-vm-island"), "Hero Banner")
+  assert_eq(
+    node_attr(elem.as_any(), "data-vm-client"),
+    "media:(max-width: 768px)",
+  )
+  assert_eq(
+    node_attr(elem.as_any(), "data-vm-url"),
+    @vm.client_module_path("Hero Banner"),
+  )
+  assert_eq(node_attr(elem.as_any(), "data-prop-count"), "2")
+  assert_eq(node_attr(elem.as_any(), "data-extra"), "yes")
+  assert_eq(node_child_text(elem.as_any(), 0), "fallback")
+}
+
+///|
+test "apply_attr handles special attribute names and refs" {
+  install_fake_dom()
+  let elem = element("input")
+  let refs : Array[String] = []
+
+  apply_attr(elem, "class", attr_static("field"))
+  apply_attr(elem, "value", attr_static("hello"))
+  apply_attr(elem, "checked", attr_static("true"))
+  apply_attr(elem, "disabled", attr_static("true"))
+  apply_attr(elem, "__innerHTML", attr_static("<b>ok</b>"))
+  apply_attr(
+    elem,
+    "__ref",
+    attr_handler(fn(target) { refs.push(node_tag(target)) }),
+  )
+
+  assert_eq(node_attr(elem.as_any(), "class"), "field")
+  assert_eq(node_prop_string(elem.as_any(), "value"), "hello")
+  assert_true(node_prop_bool(elem.as_any(), "checked"))
+  assert_true(node_has_attr(elem.as_any(), "disabled"))
+  assert_eq(node_prop_string(elem.as_any(), "innerHTML"), "<b>ok</b>")
+  assert_eq(refs, ["input"])
+
+  apply_attr(elem, "disabled", attr_static("false"))
+  apply_attr(elem, "checked", attr_static("false"))
+
+  assert_false(node_has_attr(elem.as_any(), "disabled"))
+  assert_false(node_prop_bool(elem.as_any(), "checked"))
 }

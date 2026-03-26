@@ -9,10 +9,6 @@ import {
   "moonbitlang/parser/syntax" @mbt_syntax,
 }
 
-import {
-  "moonbitlang/core/bench" @bench,
-} for "test"
-
 options(
   "supported-targets": "all",
 )
