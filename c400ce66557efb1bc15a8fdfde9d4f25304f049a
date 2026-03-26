@@ -1,0 +1,25 @@
+version 1
+key hub/work-item/18/meta
+kind work-item
+clock mizchi=1
+timestamp 1774521069
+node mizchi
+deleted 0
+
+work-item 18
+title feat: watch mode for incremental recompilation
+author mizchi
+created 1774520855
+updated 1774520855
+state open
+
+Add a \`watch <directory>\` CLI command that monitors .mbtv files and recompiles on change.
+
+The incremental compilation infrastructure (\`IncrementalCompiler\` using mizchi/ripple) is already in place — cached compile returns in ~0.3µs for unchanged files. A file watcher would complete the development loop.
+
+## Needed
+
+- Directory scanning for .mbtv files
+- Polling-based change detection (no native fsevents in MoonBit)
+- Output compiled files (.client.mbt, .server.mbt, .css)
+- Console output showing what changed
