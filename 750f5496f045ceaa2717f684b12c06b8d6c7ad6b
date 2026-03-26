@@ -1,0 +1,16 @@
+version 1
+key hub/work-item/6/meta
+kind work-item
+clock mizchi=1
+timestamp 1774521069
+node mizchi
+deleted 0
+
+work-item 6
+title feat: v-else / v-else-if support
+author mizchi
+created 1774520777
+updated 1774520786
+state closed
+
+Add v-else and v-else-if directive support. Currently only v-if is supported.
