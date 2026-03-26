@@ -36,8 +36,8 @@ pub fn pascal_case(name : String) -> String {
       continue
     }
     let first = part[0].to_int()
-    let upper = if first >= 0x61 && first <= 0x7A {
-      (first - 0x61 + 0x41).unsafe_to_char()
+    let upper = if first >= 'a'.to_int() && first <= 'z'.to_int() {
+      (first - 'a'.to_int() + 'A'.to_int()).unsafe_to_char()
     } else {
       first.unsafe_to_char()
     }

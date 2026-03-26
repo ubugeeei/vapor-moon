@@ -116,10 +116,10 @@ fn is_identifier_literal(source : String) -> Bool {
   }
   let first = source[0].to_int()
   if not(
-      (first >= 0x61 && first <= 0x7A) ||
-      (first >= 0x41 && first <= 0x5A) ||
-      first == 0x5F ||
-      first == 0x24,
+      (first >= 'a'.to_int() && first <= 'z'.to_int()) ||
+      (first >= 'A'.to_int() && first <= 'Z'.to_int()) ||
+      first == '_'.to_int() ||
+      first == '$'.to_int(),
     ) {
     return false
   }
@@ -133,9 +133,9 @@ fn is_identifier_literal(source : String) -> Bool {
 
 ///|
 fn is_identifier_charcode(c : Int) -> Bool {
-  (c >= 0x61 && c <= 0x7A) ||
-  (c >= 0x41 && c <= 0x5A) ||
-  (c >= 0x30 && c <= 0x39) ||
-  c == 0x5F ||
-  c == 0x24
+  (c >= 'a'.to_int() && c <= 'z'.to_int()) ||
+  (c >= 'A'.to_int() && c <= 'Z'.to_int()) ||
+  (c >= '0'.to_int() && c <= '9'.to_int()) ||
+  c == '_'.to_int() ||
+  c == '$'.to_int()
 }
