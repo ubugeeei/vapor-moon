@@ -1,8 +1,8 @@
 version 1
 key hub/work-item/17/meta
 kind work-item
-clock mizchi=1
-timestamp 1774521069
+clock mizchi=2
+timestamp 1774521255
 node mizchi
 deleted 0
 
@@ -10,17 +10,10 @@ work-item 17
 title feat: Transition / TransitionGroup built-in components
 author mizchi
 created 1774520854
-updated 1774520854
+updated 1774521255
 state open
+label medium
 
-Vue 3's \`<Transition>\` and \`<TransitionGroup>\` for enter/leave animations are not implemented.
+Enter/leave animations for conditional and list rendering. Could integrate with CSS transitions or MoonBit animation APIs.
 
-```html
-<template>
-  <Transition name='fade'>
-    <div v-if='show'>content</div>
-  </Transition>
-</template>
-```
-
-Could integrate with CSS transitions/animations or MoonBit-native animation APIs.
+Priority: Medium
