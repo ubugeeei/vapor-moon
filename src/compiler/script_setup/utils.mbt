@@ -1,18 +1,21 @@
 ///|
-fn skip_inline_gap(source : String, chars : Array[Char], start : Int) -> Int {
+fn ScriptSetupSource::skip_inline_gap(
+  self : ScriptSetupSource,
+  start : Int,
+) -> Int {
   let mut cursor = start
-  while cursor < chars.length() {
-    let current = chars[cursor]
+  while cursor < self.chars.length() {
+    let current = self.chars[cursor]
     if current == ' ' || current == '\n' || current == '\t' || current == '\r' {
       cursor += 1
       continue
     }
-    if starts_with_local(source, cursor, "//") {
-      cursor = skip_line_comment(chars, cursor)
+    if self.starts_with(cursor, "//") {
+      cursor = self.skip_line_comment(cursor)
       continue
     }
-    if starts_with_local(source, cursor, "/*") {
-      cursor = skip_block_comment(chars, cursor)
+    if self.starts_with(cursor, "/*") {
+      cursor = self.skip_block_comment(cursor)
       continue
     }
     return cursor
@@ -21,12 +24,16 @@ fn skip_inline_gap(source : String, chars : Array[Char], start : Int) -> Int {
 }
 
 ///|
-fn starts_with_local(source : String, start : Int, expected : String) -> Bool {
-  if start + expected.length() > source.length() {
+fn ScriptSetupSource::starts_with(
+  self : ScriptSetupSource,
+  start : Int,
+  expected : String,
+) -> Bool {
+  if start + expected.length() > self.source.length() {
     return false
   }
   for index in 0..<expected.length() {
-    if source[start + index] != expected[index] {
+    if self.source[start + index] != expected[index] {
       return false
     }
   }
@@ -34,57 +41,70 @@ fn starts_with_local(source : String, start : Int, expected : String) -> Bool {
 }
 
 ///|
-fn skip_line_comment(chars : Array[Char], start : Int) -> Int {
+fn ScriptSetupSource::skip_line_comment(
+  self : ScriptSetupSource,
+  start : Int,
+) -> Int {
   let mut cursor = start + 2
-  while cursor < chars.length() {
-    if chars[cursor] == '\n' {
+  while cursor < self.chars.length() {
+    if self.chars[cursor] == '\n' {
       return cursor + 1
     }
     cursor += 1
   }
-  chars.length()
+  self.chars.length()
 }
 
 ///|
-fn skip_block_comment(chars : Array[Char], start : Int) -> Int {
+fn ScriptSetupSource::skip_block_comment(
+  self : ScriptSetupSource,
+  start : Int,
+) -> Int {
   let mut cursor = start + 2
-  while cursor + 1 < chars.length() {
-    if chars[cursor] == '*' && chars[cursor + 1] == '/' {
+  while cursor + 1 < self.chars.length() {
+    if self.chars[cursor] == '*' && self.chars[cursor + 1] == '/' {
       return cursor + 2
     }
     cursor += 1
   }
-  chars.length()
+  self.chars.length()
 }
 
 ///|
-fn skip_quoted(chars : Array[Char], start : Int, marker : Char) -> Int {
+fn ScriptSetupSource::skip_quoted(
+  self : ScriptSetupSource,
+  start : Int,
+  marker : Char,
+) -> Int {
   let mut cursor = start + 1
-  while cursor < chars.length() {
-    if chars[cursor] == '\\' {
+  while cursor < self.chars.length() {
+    if self.chars[cursor] == '\\' {
       cursor += 2
       continue
     }
-    if chars[cursor] == marker {
+    if self.chars[cursor] == marker {
       return cursor + 1
     }
     cursor += 1
   }
-  chars.length()
+  self.chars.length()
 }
 
 ///|
-fn starts_multiline_string_line(chars : Array[Char], start : Int) -> Bool {
+fn ScriptSetupSource::starts_multiline_string_line(
+  self : ScriptSetupSource,
+  start : Int,
+) -> Bool {
   if not(
-      start + 1 < chars.length() &&
-      chars[start] == '#' &&
-      chars[start + 1] == '|',
+      start + 1 < self.chars.length() &&
+      self.chars[start] == '#' &&
+      self.chars[start + 1] == '|',
     ) {
     return false
   }
   let mut cursor = start
   while cursor > 0 {
-    let previous = chars[cursor - 1]
+    let previous = self.chars[cursor - 1]
     if previous == '\n' || previous == '\r' {
       return true
     }
@@ -98,15 +118,18 @@ fn starts_multiline_string_line(chars : Array[Char], start : Int) -> Bool {
 }
 
 ///|
-fn skip_multiline_string_line(chars : Array[Char], start : Int) -> Int {
+fn ScriptSetupSource::skip_multiline_string_line(
+  self : ScriptSetupSource,
+  start : Int,
+) -> Int {
   let mut cursor = start + 2
-  while cursor < chars.length() {
-    if chars[cursor] == '\n' {
+  while cursor < self.chars.length() {
+    if self.chars[cursor] == '\n' {
       return cursor + 1
     }
     cursor += 1
   }
-  chars.length()
+  self.chars.length()
 }
 
 ///|

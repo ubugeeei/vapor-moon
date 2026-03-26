@@ -26,89 +26,122 @@ pub struct ToolingAnalysis {
 } derive(Eq, Show)
 
 ///|
+/// Analyzer scoped to one source document.
+priv struct ToolingAnalyzer {
+  source : String
+  filename : String
+}
+
+///|
 /// Run a best-effort document analysis that never raises parser/compiler errors.
 /// Failures are converted into `diagnostics` so editor features can degrade gently.
 pub fn analyze(
   source : String,
   filename? : String = "Component.mbtv",
 ) -> ToolingAnalysis {
-  match try_analyze(source, filename) {
+  ToolingAnalyzer::new(source, filename).analyze()
+}
+
+///|
+/// Create an analyzer scoped to one source document.
+fn ToolingAnalyzer::new(source : String, filename : String) -> ToolingAnalyzer {
+  { source, filename }
+}
+
+///|
+/// Run a best-effort document analysis that never raises parser/compiler errors.
+fn ToolingAnalyzer::analyze(self : ToolingAnalyzer) -> ToolingAnalysis {
+  match self.try_analyze() {
     Some(analysis) => analysis
     None =>
-      {
-        symbols: [],
-        expressions: [],
-        diagnostics: ["failed to analyze " + filename],
-        island_components: [],
-        extension: ".mbtv",
-        props_binding: None,
-        props: [],
-        emits_binding: None,
-        emits: [],
-        expose_binding: None,
-        expose: [],
-      }
+      ToolingAnalyzer::failed_analysis("failed to analyze " + self.filename)
   }
 }
 
 ///|
 /// Internal analysis pipeline that preserves partial results when parsing fails.
-fn try_analyze(source : String, filename : String) -> ToolingAnalysis? {
-  let doc = @compiler.parse_sfc(source, filename~) catch {
-    err =>
-      return Some({
-        symbols: [],
-        expressions: [],
-        diagnostics: [err.to_string()],
-        island_components: [],
-        extension: ".mbtv",
-        props_binding: None,
-        props: [],
-        emits_binding: None,
-        emits: [],
-        expose_binding: None,
-        expose: [],
-      })
+fn ToolingAnalyzer::try_analyze(self : ToolingAnalyzer) -> ToolingAnalysis? {
+  let doc = @compiler.parse_sfc(self.source, filename=self.filename) catch {
+    err => return Some(ToolingAnalyzer::failed_analysis(err.to_string()))
   }
   let template = @compiler.parse_template(doc.template) catch {
     err =>
-      return Some({
-        symbols: block_symbols(doc.blocks),
-        expressions: [],
-        diagnostics: [err.to_string()],
-        island_components: [],
-        extension: doc.extension,
-        props_binding: doc.props_binding,
-        props: macro_names(doc.props),
-        emits_binding: doc.emits_binding,
-        emits: macro_names(doc.emits),
-        expose_binding: doc.expose_binding,
-        expose: macro_names(doc.expose),
-      })
+      return Some(
+        ToolingAnalyzer::analysis_from_template_error(doc, err.to_string()),
+      )
   }
-  let expressions : Array[String] = []
-  let island_components : Array[String] = []
-  for node in template {
-    collect_template_metadata(node, expressions, island_components)
+  Some(self.analysis_from_doc(doc, template))
+}
+
+///|
+/// Default failure payload used when even a partial analysis cannot be produced.
+fn ToolingAnalyzer::failed_analysis(message : String) -> ToolingAnalysis {
+  {
+    symbols: [],
+    expressions: [],
+    diagnostics: [message],
+    island_components: [],
+    extension: ".mbtv",
+    props_binding: None,
+    props: [],
+    emits_binding: None,
+    emits: [],
+    expose_binding: None,
+    expose: [],
   }
-  Some({
-    symbols: block_symbols(doc.blocks) + macro_symbols(doc),
+}
+
+///|
+/// Build the degraded analysis used when template parsing fails after SFC parsing.
+fn ToolingAnalyzer::analysis_from_template_error(
+  doc : @compiler.SfcDocument,
+  message : String,
+) -> ToolingAnalysis {
+  {
+    symbols: ToolingAnalyzer::block_symbols(doc.blocks) +
+    ToolingAnalyzer::macro_symbols(doc),
+    expressions: [],
+    diagnostics: [message],
+    island_components: [],
+    extension: doc.extension,
+    props_binding: doc.props_binding,
+    props: ToolingAnalyzer::macro_names(doc.props),
+    emits_binding: doc.emits_binding,
+    emits: ToolingAnalyzer::macro_names(doc.emits),
+    expose_binding: doc.expose_binding,
+    expose: ToolingAnalyzer::macro_names(doc.expose),
+  }
+}
+
+///|
+/// Build the full semantic summary once both SFC and template parsing succeed.
+fn ToolingAnalyzer::analysis_from_doc(
+  self : ToolingAnalyzer,
+  doc : @compiler.SfcDocument,
+  template : Array[@compiler.TemplateNode],
+) -> ToolingAnalysis {
+  let (expressions, island_components) = self.template_metadata(template)
+  {
+    symbols: ToolingAnalyzer::block_symbols(doc.blocks) +
+    ToolingAnalyzer::macro_symbols(doc),
     expressions,
     diagnostics: [],
     island_components,
     extension: doc.extension,
     props_binding: doc.props_binding,
-    props: macro_names(doc.props),
+    props: ToolingAnalyzer::macro_names(doc.props),
     emits_binding: doc.emits_binding,
-    emits: macro_names(doc.emits),
+    emits: ToolingAnalyzer::macro_names(doc.emits),
     expose_binding: doc.expose_binding,
-    expose: macro_names(doc.expose),
-  })
+    expose: ToolingAnalyzer::macro_names(doc.expose),
+  }
 }
 
 ///|
 /// Convert discovered SFC blocks into editor outline symbols.
-fn block_symbols(blocks : Array[@compiler.SfcBlock]) -> Array[ToolingSymbol] {
+fn ToolingAnalyzer::block_symbols(
+  blocks : Array[@compiler.SfcBlock],
+) -> Array[ToolingSymbol] {
   let symbols : Array[ToolingSymbol] = []
   let mut style_index = 1
   for block in blocks {
@@ -129,7 +162,9 @@ fn block_symbols(blocks : Array[@compiler.SfcBlock]) -> Array[ToolingSymbol] {
 
 ///|
 /// Surface macro bindings such as `defineProps()` as synthetic symbols.
-fn macro_symbols(doc : @compiler.SfcDocument) -> Array[ToolingSymbol] {
+fn ToolingAnalyzer::macro_symbols(
+  doc : @compiler.SfcDocument,
+) -> Array[ToolingSymbol] {
   let symbols : Array[ToolingSymbol] = []
   match doc.props_binding {
     Some(name) =>
@@ -163,7 +198,9 @@ fn macro_symbols(doc : @compiler.SfcDocument) -> Array[ToolingSymbol] {
 
 ///|
 /// Extract field names from compiler macro metadata.
-fn macro_names(fields : Array[@compiler.MacroField]) -> Array[String] {
+fn ToolingAnalyzer::macro_names(
+  fields : Array[@compiler.MacroField],
+) -> Array[String] {
   let result : Array[String] = []
   for field in fields {
     result.push(field.name)
@@ -173,7 +210,22 @@ fn macro_names(fields : Array[@compiler.MacroField]) -> Array[String] {
 
 ///|
 /// Walk the template tree and collect expressions plus hydrated component tags.
-fn collect_template_metadata(
+fn ToolingAnalyzer::template_metadata(
+  self : ToolingAnalyzer,
+  template : Array[@compiler.TemplateNode],
+) -> (Array[String], Array[String]) {
+  let expressions : Array[String] = []
+  let island_components : Array[String] = []
+  for node in template {
+    self.collect_template_metadata(node, expressions, island_components)
+  }
+  (expressions, island_components)
+}
+
+///|
+/// Walk one template subtree and collect expressions plus hydrated component tags.
+fn ToolingAnalyzer::collect_template_metadata(
+  self : ToolingAnalyzer,
   node : @compiler.TemplateNode,
   expressions : Array[String],
   island_components : Array[String],
@@ -207,7 +259,7 @@ fn collect_template_metadata(
         @compiler_common.None => ()
       }
       for child in element.children {
-        collect_template_metadata(child, expressions, island_components)
+        self.collect_template_metadata(child, expressions, island_components)
       }
     }
     @compiler_common.Conditional(branches) =>
@@ -216,7 +268,7 @@ fn collect_template_metadata(
           Some(expr) => expressions.push(expr)
           None => ()
         }
-        collect_template_metadata(
+        self.collect_template_metadata(
           @compiler_common.Element(branch.element),
           expressions,
           island_components,
@@ -224,7 +276,7 @@ fn collect_template_metadata(
       }
     @compiler_common.Match(node) =>
       for branch in node.branches {
-        collect_template_metadata(
+        self.collect_template_metadata(
           @compiler_common.Element(branch.element),
           expressions,
           island_components,

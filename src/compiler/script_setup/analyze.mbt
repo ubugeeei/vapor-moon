@@ -2,14 +2,64 @@
 /// Extract compiler macros from `<script setup>` and lower only runtime-bound helpers.
 
 ///|
+priv struct ScriptSetupContractAnalysis {
+  props_declaration : String?
+  props_binding : String?
+  props : Array[MacroField]
+  prop_defaults : Array[PropDefault]
+  emits_binding : String?
+  emits : Array[MacroField]
+  slots_binding : String?
+  slots : Array[MacroField]
+  expose_binding : String?
+  expose : Array[MacroField]
+}
+
+///|
 pub fn analyze_script_setup(
   source : String,
   filename : String,
 ) -> ScriptSetupInfo raise CompilerError {
-  let (ir, contract_types) = parse_script_setup_module_with_contracts(
-    source, filename,
-  )
-  let template_refs = collect_script_setup_template_refs(ir)
+  let source = ScriptSetupSource::new(source, filename)
+  let (ir, contract_types) = source.parse_module_with_contracts()
+  let resolver = ScriptSetupContractResolver::new(filename, contract_types)
+  let contracts = ir.analyze_contracts(resolver)
+  let lowered = ir.lowered()
+  {
+    source: ir.render(false),
+    transformed: lowered.render(false),
+    import_entries: ir.import_entries(),
+    template_refs: ir.template_refs(),
+    props_declaration: contracts.props_declaration,
+    props_binding: contracts.props_binding,
+    props: contracts.props,
+    prop_defaults: contracts.prop_defaults,
+    emits_binding: contracts.emits_binding,
+    emits: contracts.emits,
+    slots_binding: contracts.slots_binding,
+    slots: contracts.slots,
+    expose_binding: contracts.expose_binding,
+    expose: contracts.expose,
+  }
+}
+
+///|
+pub fn analyze_script_extern(
+  source : String,
+  filename : String,
+) -> ScriptExternInfo raise CompilerError {
+  let source = ScriptSetupSource::new(source, filename)
+  let (ir, _) = source.parse_module_with_contracts()
+  ir.validate_script_extern(filename)
+  let transformed = ir.render(false)
+  { source: transformed, transformed, import_entries: ir.import_entries() }
+}
+
+///|
+fn ScriptSetupModule::analyze_contracts(
+  self : ScriptSetupModule,
+  resolver : ScriptSetupContractResolver,
+) -> ScriptSetupContractAnalysis raise CompilerError {
   let mut props_declaration : String? = None
   let mut props_binding : String? = None
   let mut emits_binding : String? = None
@@ -21,7 +71,7 @@ pub fn analyze_script_setup(
   let mut slots : Array[MacroField] = []
   let mut expose : Array[MacroField] = []
 
-  for statement in ir.statements {
+  for statement in self.statements {
     match statement {
       LetStatement(let_stmt) =>
         match let_stmt.expr {
@@ -31,22 +81,19 @@ pub fn analyze_script_setup(
                 match props_binding {
                   Some(_) =>
                     raise CompilerError::InvalidScriptSetup(
-                      "duplicate defineProps() in \{filename}",
+                      "duplicate defineProps() in \{resolver.filename}",
                     )
                   None => {
                     props_declaration = Some(let_stmt.declaration)
                     props_binding = let_stmt.binding
-                    props = resolve_macro_fields(
+                    props = resolver.resolve_macro_fields(
                       macro_,
                       let_stmt.annotation,
-                      contract_types,
-                      filename,
                     )
-                    prop_defaults = resolve_prop_defaults(
+                    prop_defaults = resolver.resolve_prop_defaults(
                       macro_,
                       props,
                       Some(let_stmt.declaration),
-                      filename,
                     )
                   }
                 }
@@ -54,15 +101,13 @@ pub fn analyze_script_setup(
                 match emits_binding {
                   Some(_) =>
                     raise CompilerError::InvalidScriptSetup(
-                      "duplicate defineEmits() in \{filename}",
+                      "duplicate defineEmits() in \{resolver.filename}",
                     )
                   None => {
                     emits_binding = let_stmt.binding
-                    emits = resolve_macro_fields(
+                    emits = resolver.resolve_macro_fields(
                       macro_,
                       let_stmt.annotation,
-                      contract_types,
-                      filename,
                     )
                   }
                 }
@@ -70,15 +115,13 @@ pub fn analyze_script_setup(
                 match slots_binding {
                   Some(_) =>
                     raise CompilerError::InvalidScriptSetup(
-                      "duplicate defineSlots() in \{filename}",
+                      "duplicate defineSlots() in \{resolver.filename}",
                     )
                   None => {
                     slots_binding = let_stmt.binding
-                    slots = resolve_macro_fields(
+                    slots = resolver.resolve_macro_fields(
                       macro_,
                       let_stmt.annotation,
-                      contract_types,
-                      filename,
                     )
                   }
                 }
@@ -86,15 +129,13 @@ pub fn analyze_script_setup(
                 match expose_binding {
                   Some(_) =>
                     raise CompilerError::InvalidScriptSetup(
-                      "duplicate defineExpose() in \{filename}",
+                      "duplicate defineExpose() in \{resolver.filename}",
                     )
                   None => {
                     expose_binding = let_stmt.binding
-                    expose = resolve_macro_fields(
+                    expose = resolver.resolve_macro_fields(
                       macro_,
                       let_stmt.annotation,
-                      contract_types,
-                      filename,
                     )
                   }
                 }
@@ -109,60 +150,39 @@ pub fn analyze_script_setup(
               "defineProps" =>
                 if props_binding is Some(_) || not(props.is_empty()) {
                   raise CompilerError::InvalidScriptSetup(
-                    "duplicate defineProps() in \{filename}",
+                    "duplicate defineProps() in \{resolver.filename}",
                   )
                 } else {
-                  props = resolve_macro_fields(
-                    macro_,
-                    None,
-                    contract_types,
-                    filename,
-                  )
-                  prop_defaults = resolve_prop_defaults(
+                  props = resolver.resolve_macro_fields(macro_, None)
+                  prop_defaults = resolver.resolve_prop_defaults(
                     macro_,
                     props,
                     None,
-                    filename,
                   )
                 }
               "defineEmits" =>
                 if emits_binding is Some(_) || not(emits.is_empty()) {
                   raise CompilerError::InvalidScriptSetup(
-                    "duplicate defineEmits() in \{filename}",
+                    "duplicate defineEmits() in \{resolver.filename}",
                   )
                 } else {
-                  emits = resolve_macro_fields(
-                    macro_,
-                    None,
-                    contract_types,
-                    filename,
-                  )
+                  emits = resolver.resolve_macro_fields(macro_, None)
                 }
               "defineSlots" =>
                 if slots_binding is Some(_) || not(slots.is_empty()) {
                   raise CompilerError::InvalidScriptSetup(
-                    "duplicate defineSlots() in \{filename}",
+                    "duplicate defineSlots() in \{resolver.filename}",
                   )
                 } else {
-                  slots = resolve_macro_fields(
-                    macro_,
-                    None,
-                    contract_types,
-                    filename,
-                  )
+                  slots = resolver.resolve_macro_fields(macro_, None)
                 }
               "defineExpose" =>
                 if expose_binding is Some(_) || not(expose.is_empty()) {
                   raise CompilerError::InvalidScriptSetup(
-                    "duplicate defineExpose() in \{filename}",
+                    "duplicate defineExpose() in \{resolver.filename}",
                   )
                 } else {
-                  expose = resolve_macro_fields(
-                    macro_,
-                    None,
-                    contract_types,
-                    filename,
-                  )
+                  expose = resolver.resolve_macro_fields(macro_, None)
                 }
               _ => ()
             }
@@ -172,13 +192,7 @@ pub fn analyze_script_setup(
     }
   }
 
-  let lowered = lower_script_setup_module(ir)
-
   {
-    source: render_script_setup_module(ir, false),
-    transformed: render_script_setup_module(lowered, false),
-    import_entries: collect_script_setup_import_entries(ir),
-    template_refs,
     props_declaration,
     props_binding,
     props,
@@ -193,41 +207,25 @@ pub fn analyze_script_setup(
 }
 
 ///|
-pub fn analyze_script_extern(
-  source : String,
-  filename : String,
-) -> ScriptExternInfo raise CompilerError {
-  let (ir, _) = parse_script_setup_module_with_contracts(source, filename)
-  validate_script_extern_module(ir, filename)
-  let transformed = render_script_setup_module(ir, false)
-  {
-    source: transformed,
-    transformed,
-    import_entries: collect_script_setup_import_entries(ir),
-  }
-}
-
-///|
-fn validate_script_extern_module(
-  ir : ScriptSetupModule,
+fn ScriptSetupModule::validate_script_extern(
+  self : ScriptSetupModule,
   filename : String,
 ) -> Unit raise CompilerError {
-  for statement in ir.statements {
+  for statement in self.statements {
     match statement {
-      LetStatement(let_stmt) =>
-        validate_script_extern_expr(let_stmt.expr, filename)
-      ExpressionStatement(expr) => validate_script_extern_expr(expr, filename)
+      LetStatement(let_stmt) => let_stmt.expr.validate_script_extern(filename)
+      ExpressionStatement(expr) => expr.validate_script_extern(filename)
       ImportStatement(_) | RawStatement(_) => ()
     }
   }
 }
 
 ///|
-fn validate_script_extern_expr(
-  expr : ScriptSetupExpression,
+fn ScriptSetupExpression::validate_script_extern(
+  self : ScriptSetupExpression,
   filename : String,
 ) -> Unit raise CompilerError {
-  match expr {
+  match self {
     MacroExpr(macro_) =>
       match macro_.name {
         "defineProps"
@@ -255,20 +253,17 @@ fn script_extern_setup_only_message(name : String, filename : String) -> String 
 }
 
 ///|
-fn lower_script_setup_module(ir : ScriptSetupModule) -> ScriptSetupModule {
+fn ScriptSetupModule::lowered(self : ScriptSetupModule) -> ScriptSetupModule {
   let statements : Array[ScriptSetupStatement] = []
   let mut use_id_index = 0
-  for statement in ir.statements {
+  for statement in self.statements {
     match statement {
       ImportStatement(_) => ()
       LetStatement(let_stmt) =>
         match let_stmt.expr {
           MacroExpr(macro_) if is_interface_macro(macro_.name) => ()
           _ => {
-            let (expr, next_index) = lower_script_setup_expr(
-              let_stmt.expr,
-              use_id_index,
-            )
+            let (expr, next_index) = let_stmt.expr.lower(use_id_index)
             use_id_index = next_index
             statements.push(LetStatement({ ..let_stmt, expr, }))
           }
@@ -277,9 +272,7 @@ fn lower_script_setup_module(ir : ScriptSetupModule) -> ScriptSetupModule {
         match expr {
           MacroExpr(macro_) if is_interface_macro(macro_.name) => ()
           _ => {
-            let (lowered, next_index) = lower_script_setup_expr(
-              expr, use_id_index,
-            )
+            let (lowered, next_index) = expr.lower(use_id_index)
             use_id_index = next_index
             statements.push(ExpressionStatement(lowered))
           }
@@ -291,12 +284,12 @@ fn lower_script_setup_module(ir : ScriptSetupModule) -> ScriptSetupModule {
 }
 
 ///|
-fn lower_script_setup_expr(
-  expr : ScriptSetupExpression,
+fn ScriptSetupExpression::lower(
+  self : ScriptSetupExpression,
   use_id_index : Int,
 ) -> (ScriptSetupExpression, Int) {
-  match expr {
-    RawExpr(_) => (expr, use_id_index)
+  match self {
+    RawExpr(_) => (self, use_id_index)
     MacroExpr(macro_) =>
       match macro_.name {
         "useId" =>
@@ -308,7 +301,7 @@ fn lower_script_setup_expr(
           )
         "useTemplateRef" =>
           (RawExpr("@hlp.use_template_ref(" + macro_.args + ")"), use_id_index)
-        _ => (expr, use_id_index)
+        _ => (self, use_id_index)
       }
   }
 }
@@ -322,9 +315,9 @@ fn is_interface_macro(name : String) -> Bool {
 }
 
 ///|
-fn collect_script_setup_import_entries(ir : ScriptSetupModule) -> Array[String] {
+fn ScriptSetupModule::import_entries(self : ScriptSetupModule) -> Array[String] {
   let entries : Array[String] = []
-  for statement in ir.statements {
+  for statement in self.statements {
     match statement {
       ImportStatement(parts) =>
         for entry in parts {
@@ -339,15 +332,15 @@ fn collect_script_setup_import_entries(ir : ScriptSetupModule) -> Array[String] 
 }
 
 ///|
-fn collect_script_setup_template_refs(
-  ir : ScriptSetupModule,
+fn ScriptSetupModule::template_refs(
+  self : ScriptSetupModule,
 ) -> Array[ScriptSetupTemplateRef] {
   let refs : Array[ScriptSetupTemplateRef] = []
-  for statement in ir.statements {
+  for statement in self.statements {
     match statement {
       LetStatement(let_stmt) =>
-        collect_template_ref_expr(let_stmt.binding, let_stmt.expr, refs)
-      ExpressionStatement(expr) => collect_template_ref_expr(None, expr, refs)
+        let_stmt.expr.collect_template_refs(let_stmt.binding, refs)
+      ExpressionStatement(expr) => expr.collect_template_refs(None, refs)
       ImportStatement(_) | RawStatement(_) => ()
     }
   }
@@ -355,12 +348,12 @@ fn collect_script_setup_template_refs(
 }
 
 ///|
-fn collect_template_ref_expr(
+fn ScriptSetupExpression::collect_template_refs(
+  self : ScriptSetupExpression,
   binding_name : String?,
-  expr : ScriptSetupExpression,
   refs : Array[ScriptSetupTemplateRef],
 ) -> Unit {
-  match expr {
+  match self {
     MacroExpr(macro_) if macro_.name == "useTemplateRef" =>
       refs.push({
         binding_name,

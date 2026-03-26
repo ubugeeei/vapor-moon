@@ -12,8 +12,8 @@ fn find_block_span(
 }
 
 ///|
-fn find_block_content_span(
-  source : String,
+fn ToolingDocument::find_block_content_span(
+  self : ToolingDocument,
   blocks : Array[@compiler.SfcBlock],
   kind : @compiler.BlockKind,
 ) -> @compiler.SourceSpan? {
@@ -24,47 +24,45 @@ fn find_block_content_span(
     if block.content.length() == 0 {
       return Some(block.span)
     }
-    return find_substring_in_span(source, block.content, block.span).map(fn(
-      start,
-    ) {
-      { start, end: start + block.content.length() }
-    })
+    return self
+      .find_substring_in_span(block.content, block.span)
+      .map(fn(start) { { start, end: start + block.content.length() } })
   }
   None
 }
 
 ///|
-fn find_binding_definition_span(
-  source : String,
+fn ToolingDocument::find_binding_definition_span(
+  self : ToolingDocument,
   search_span : @compiler.SourceSpan,
   binding : String,
 ) -> @compiler.SourceSpan? {
-  match find_substring_in_span(source, "let " + binding, search_span) {
+  match self.find_substring_in_span("let " + binding, search_span) {
     Some(start) => Some({ start: start + 4, end: start + 4 + binding.length() })
-    None => find_token_in_span(source, binding, search_span, search_span.start)
+    None => self.find_token_in_span(binding, search_span, search_span.start)
   }
 }
 
 ///|
-fn find_field_definition_span(
-  source : String,
+fn ToolingDocument::find_field_definition_span(
+  self : ToolingDocument,
   search_span : @compiler.SourceSpan,
   name : String,
 ) -> @compiler.SourceSpan? {
-  match find_substring_in_span(source, "\"" + name + "\"", search_span) {
+  match self.find_substring_in_span("\"" + name + "\"", search_span) {
     Some(start) => Some({ start: start + 1, end: start + 1 + name.length() })
     None =>
-      match find_substring_in_span(source, "'" + name + "'", search_span) {
+      match self.find_substring_in_span("'" + name + "'", search_span) {
         Some(start) =>
           Some({ start: start + 1, end: start + 1 + name.length() })
-        None => find_token_in_span(source, name, search_span, search_span.start)
+        None => self.find_token_in_span(name, search_span, search_span.start)
       }
   }
 }
 
 ///|
-fn find_member_refs(
-  source : String,
+fn ToolingDocument::find_member_refs(
+  self : ToolingDocument,
   search_span : @compiler.SourceSpan,
   contract_kind : String,
   binding_name : String,
@@ -72,16 +70,16 @@ fn find_member_refs(
   let refs : Array[ToolingMemberRef] = []
   let mut cursor = search_span.start
   while true {
-    match find_token_in_span(source, binding_name, search_span, cursor) {
+    match self.find_token_in_span(binding_name, search_span, cursor) {
       Some(binding_span) => {
-        let member_span = member_span_after_binding(source, binding_span)
+        let member_span = self.member_span_after_binding(binding_span)
         cursor = binding_span.end
         match member_span {
           Some(member_span) =>
             refs.push({
               contract_kind,
               binding_name,
-              member_name: span_text(source, member_span),
+              member_name: self.span_text(member_span),
               binding_span,
               member_span,
             })
@@ -95,8 +93,8 @@ fn find_member_refs(
 }
 
 ///|
-fn find_resolved_template_ref_member_refs(
-  source : String,
+fn ToolingDocument::find_resolved_template_ref_member_refs(
+  self : ToolingDocument,
   search_span : @compiler.SourceSpan,
   binding_name : String,
 ) -> Array[ToolingMemberRef] {
@@ -104,19 +102,18 @@ fn find_resolved_template_ref_member_refs(
   let mut cursor = search_span.start
   while true {
     match
-      find_substring_in_span_from(
-        source, "resolve_template_ref", search_span, cursor,
+      self.find_substring_in_span_from(
+        "resolve_template_ref", search_span, cursor,
       ) {
       Some(start) => {
         cursor = start + "resolve_template_ref".length()
-        match
-          parse_resolved_template_ref_member_ref(source, search_span, start) {
+        match self.parse_resolved_template_ref_member_ref(search_span, start) {
           Some((resolved_binding_name, binding_span, member_span)) =>
             if resolved_binding_name == binding_name {
               refs.push({
                 contract_kind: "template ref",
                 binding_name,
-                member_name: span_text(source, member_span),
+                member_name: self.span_text(member_span),
                 binding_span,
                 member_span,
               })
@@ -131,12 +128,12 @@ fn find_resolved_template_ref_member_refs(
 }
 
 ///|
-fn parse_resolved_template_ref_member_ref(
-  source : String,
+fn ToolingDocument::parse_resolved_template_ref_member_ref(
+  self : ToolingDocument,
   search_span : @compiler.SourceSpan,
   start : Int,
 ) -> (String, @compiler.SourceSpan, @compiler.SourceSpan)? {
-  let chars = source.to_array()
+  let chars = self.chars
   let mut cursor = start + "resolve_template_ref".length()
   while cursor < search_span.end &&
         (chars[cursor] == ' ' || chars[cursor] == '\t') {
@@ -147,17 +144,17 @@ fn parse_resolved_template_ref_member_ref(
   }
   let open_paren = cursor
   let close_paren = match
-    find_matching_paren_forward(chars, open_paren, search_span.end) {
+    self.find_matching_paren_forward(open_paren, search_span.end) {
     Some(index) => index
     None => return None
   }
   let binding_span = match
-    trim_span_whitespace(chars, open_paren + 1, close_paren) {
+    self.trim_span_whitespace(open_paren + 1, close_paren) {
     Some(span) => span
     None => return None
   }
-  let binding_name = span_text(source, binding_span)
-  if not(is_identifier_literal_scan(binding_name)) {
+  let binding_name = self.span_text(binding_span)
+  if not(ToolingDocument::identifier_literal(binding_name)) {
     return None
   }
   cursor = close_paren + 1
@@ -184,11 +181,36 @@ fn parse_resolved_template_ref_member_ref(
 }
 
 ///|
-fn find_matching_paren_forward(
-  chars : Array[Char],
+fn ToolingDocument::matching_open_paren_backward(
+  self : ToolingDocument,
+  close_paren : Int,
+) -> Int? {
+  let chars = self.chars
+  let mut depth = 0
+  let mut cursor = close_paren + 1
+  while cursor > 0 {
+    cursor -= 1
+    match chars[cursor] {
+      ')' => depth += 1
+      '(' => {
+        depth -= 1
+        if depth == 0 {
+          return Some(cursor)
+        }
+      }
+      _ => ()
+    }
+  }
+  None
+}
+
+///|
+fn ToolingDocument::find_matching_paren_forward(
+  self : ToolingDocument,
   open_paren : Int,
   limit : Int,
 ) -> Int? {
+  let chars = self.chars
   let mut depth = 0
   let mut cursor = open_paren
   while cursor < limit {
@@ -208,11 +230,12 @@ fn find_matching_paren_forward(
 }
 
 ///|
-fn trim_span_whitespace(
-  chars : Array[Char],
+fn ToolingDocument::trim_span_whitespace(
+  self : ToolingDocument,
   start : Int,
   end_ : Int,
 ) -> @compiler.SourceSpan? {
+  let chars = self.chars
   let mut trimmed_start = start
   while trimmed_start < end_ &&
         (chars[trimmed_start] == ' ' || chars[trimmed_start] == '\t') {
@@ -231,7 +254,7 @@ fn trim_span_whitespace(
 }
 
 ///|
-fn is_identifier_literal_scan(source : String) -> Bool {
+fn ToolingDocument::identifier_literal(source : String) -> Bool {
   if source.length() == 0 {
     return false
   }
@@ -244,11 +267,11 @@ fn is_identifier_literal_scan(source : String) -> Bool {
 }
 
 ///|
-fn member_span_after_binding(
-  source : String,
+fn ToolingDocument::member_span_after_binding(
+  self : ToolingDocument,
   binding_span : @compiler.SourceSpan,
 ) -> @compiler.SourceSpan? {
-  let chars = source.to_array()
+  let chars = self.chars
   let mut cursor = binding_span.end
   while cursor < chars.length() &&
         (chars[cursor] == ' ' || chars[cursor] == '\t') {
@@ -359,12 +382,12 @@ fn uppercase_first(source : String) -> String {
 }
 
 ///|
-fn find_substring_in_span(
-  source : String,
+fn ToolingDocument::find_substring_in_span(
+  self : ToolingDocument,
   needle : String,
   span : @compiler.SourceSpan,
 ) -> Int? {
-  let source_chars = source.to_array()
+  let source_chars = self.chars
   let needle_chars = needle.to_array()
   if needle_chars.length() == 0 || span.start >= source_chars.length() {
     return None
@@ -391,13 +414,13 @@ fn find_substring_in_span(
 }
 
 ///|
-fn find_substring_in_span_from(
-  source : String,
+fn ToolingDocument::find_substring_in_span_from(
+  self : ToolingDocument,
   needle : String,
   span : @compiler.SourceSpan,
   start_offset : Int,
 ) -> Int? {
-  let source_chars = source.to_array()
+  let source_chars = self.chars
   let needle_chars = needle.to_array()
   if needle_chars.length() == 0 || span.start >= source_chars.length() {
     return None
@@ -428,13 +451,13 @@ fn find_substring_in_span_from(
 }
 
 ///|
-fn find_token_in_span(
-  source : String,
+fn ToolingDocument::find_token_in_span(
+  self : ToolingDocument,
   token : String,
   span : @compiler.SourceSpan,
   start_offset : Int,
 ) -> @compiler.SourceSpan? {
-  let chars = source.to_array()
+  let chars = self.chars
   let token_chars = token.to_array()
   let last = min_int(
     span.end - token_chars.length(),

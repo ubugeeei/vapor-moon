@@ -42,7 +42,17 @@ priv struct ToolingMemberRef {
 ///|
 /// Full semantic index derived from a single `.mbtv` source document.
 priv struct ToolingIndex {
-  source : String
+  document : ToolingDocument
+  diagnostics : Array[ToolingDiagnostic]
+  bindings : Array[ToolingBindingDef]
+  members : Array[ToolingMemberDef]
+  refs : Array[ToolingMemberRef]
+}
+
+///|
+/// Mutable builder that accumulates definitions, references, and diagnostics.
+priv struct ToolingIndexBuilder {
+  document : ToolingDocument
   diagnostics : Array[ToolingDiagnostic]
   bindings : Array[ToolingBindingDef]
   members : Array[ToolingMemberDef]
@@ -68,28 +78,57 @@ priv struct ToolingResolvedTemplateRef {
 ///|
 /// Build the semantic index consumed by editor queries and diagnostics.
 fn build_tooling_index(source : String, filename : String) -> ToolingIndex {
-  let diagnostics : Array[ToolingDiagnostic] = []
-  let bindings : Array[ToolingBindingDef] = []
-  let members : Array[ToolingMemberDef] = []
-  let refs : Array[ToolingMemberRef] = []
+  ToolingIndexBuilder::new(source, filename).build()
+}
+
+///|
+/// Create a fresh builder scoped to one source document.
+fn ToolingIndexBuilder::new(
+  source : String,
+  filename : String,
+) -> ToolingIndexBuilder {
+  {
+    document: ToolingDocument::new(source, filename),
+    diagnostics: [],
+    bindings: [],
+    members: [],
+    refs: [],
+  }
+}
+
+///|
+/// Finalize the accumulated state into an immutable query index.
+fn ToolingIndexBuilder::finish(self : ToolingIndexBuilder) -> ToolingIndex {
+  {
+    document: self.document,
+    diagnostics: self.diagnostics,
+    bindings: self.bindings,
+    members: self.members,
+    refs: self.refs,
+  }
+}
+
+///|
+/// Build the semantic index consumed by editor queries and diagnostics.
+fn ToolingIndexBuilder::build(self : ToolingIndexBuilder) -> ToolingIndex {
+  let source = self.document.source
+  let filename = self.document.filename
   let doc = @compiler.parse_sfc(source, filename~) catch {
     err => {
-      diagnostics.push({
+      self.diagnostics.push({
         severity: "error",
         message: err.to_string(),
-        location: location_from_span(source, filename, { start: 0, end: 0 }),
+        location: self.document.location_from_span({ start: 0, end: 0 }),
       })
-      return { source, diagnostics, bindings, members, refs }
+      return self.finish()
     }
   }
   let template = @compiler.parse_template(doc.template) catch {
     err => {
-      diagnostics.push({
+      self.diagnostics.push({
         severity: "error",
         message: err.to_string(),
-        location: location_from_span(
-          source,
-          filename,
+        location: self.document.location_from_span(
           find_block_span(doc.blocks, @compiler_common.Template),
         ),
       })
@@ -99,84 +138,59 @@ fn build_tooling_index(source : String, filename : String) -> ToolingIndex {
   let resolved_template_refs = resolve_tooling_template_refs(
     doc, template, filename,
   )
-  let script_span = find_block_content_span(
-    source,
+  let script_span = self.document.find_block_content_span(
     doc.blocks,
     @compiler_common.ScriptSetup,
   )
-  let template_span = find_block_content_span(
-    source,
+  let template_span = self.document.find_block_content_span(
     doc.blocks,
     @compiler_common.Template,
   )
-  collect_contract_index(
-    source,
+  self.collect_contract_index(
     script_span,
     "props",
     doc.props_binding,
     doc.props,
-    bindings,
-    members,
   )
-  collect_contract_index(
-    source,
-    script_span,
-    "emit",
-    doc.emits_binding,
-    doc.emits,
-    bindings,
-    members,
-  )
-  collect_contract_index(
-    source,
+  self.collect_contract_index(script_span, "emit", doc.emits_binding, doc.emits)
+  self.collect_contract_index(
     script_span,
     "slots",
     doc.slots_binding,
     doc.slots,
-    bindings,
-    members,
   )
-  collect_contract_index(
-    source,
+  self.collect_contract_index(
     script_span,
     "expose",
     doc.expose_binding,
     doc.expose,
-    bindings,
-    members,
   )
-  collect_template_ref_index(
-    source, script_span, resolved_template_refs, bindings, members,
-  )
-  collect_contract_refs(source, script_span, bindings, members, refs)
-  collect_contract_refs(source, template_span, bindings, members, refs)
-  collect_template_ref_refs(source, script_span, bindings, members, refs)
-  collect_template_ref_refs(source, template_span, bindings, members, refs)
-  collect_semantic_diagnostics(
-    source, filename, bindings, members, refs, diagnostics,
-  )
-  { source, diagnostics, bindings, members, refs }
+  self.collect_template_ref_index(script_span, resolved_template_refs)
+  self.collect_contract_refs(script_span)
+  self.collect_contract_refs(template_span)
+  self.collect_template_ref_refs(script_span)
+  self.collect_template_ref_refs(template_span)
+  self.collect_semantic_diagnostics()
+  self.finish()
 }
 
 ///|
 /// Register one macro contract binding and all of its declared fields.
-fn collect_contract_index(
-  source : String,
+fn ToolingIndexBuilder::collect_contract_index(
+  self : ToolingIndexBuilder,
   block_span : @compiler.SourceSpan?,
   canonical_name : String,
   binding_name : String?,
   fields : Array[@compiler.MacroField],
-  bindings : Array[ToolingBindingDef],
-  members : Array[ToolingMemberDef],
 ) -> Unit {
   match block_span {
     Some(content_span) =>
       match binding_name {
         Some(binding) => {
-          let binding_span = find_binding_definition_span(
-            source, content_span, binding,
-          ).unwrap_or(content_span)
-          bindings.push({
+          let binding_span = self.document
+            .find_binding_definition_span(content_span, binding)
+            .unwrap_or(content_span)
+          self.bindings.push({
             contract_kind: canonical_name,
             binding_name: binding,
             span: binding_span,
@@ -185,13 +199,14 @@ fn collect_contract_index(
             access_mode: Direct,
           })
           for field in fields {
-            let span = find_contract_field_definition_span(
-              source,
-              content_span,
-              binding,
-              field.name,
-            ).unwrap_or(binding_span)
-            members.push({
+            let span = self.document
+              .find_contract_field_definition_span(
+                content_span,
+                binding,
+                field.name,
+              )
+              .unwrap_or(binding_span)
+            self.members.push({
               contract_kind: canonical_name,
               binding_name: binding,
               name: field.name,
@@ -208,22 +223,18 @@ fn collect_contract_index(
 
 ///|
 /// Register `use_template_ref()` bindings together with their inferred member sets.
-fn collect_template_ref_index(
-  source : String,
+fn ToolingIndexBuilder::collect_template_ref_index(
+  self : ToolingIndexBuilder,
   block_span : @compiler.SourceSpan?,
   resolved_template_refs : Array[ToolingResolvedTemplateRef],
-  bindings : Array[ToolingBindingDef],
-  members : Array[ToolingMemberDef],
 ) -> Unit {
   match block_span {
     Some(content_span) =>
       for resolved_ref in resolved_template_refs {
-        let binding_span = find_binding_definition_span(
-          source,
-          content_span,
-          resolved_ref.binding_name,
-        ).unwrap_or(content_span)
-        bindings.push({
+        let binding_span = self.document
+          .find_binding_definition_span(content_span, resolved_ref.binding_name)
+          .unwrap_or(content_span)
+        self.bindings.push({
           contract_kind: "template ref",
           binding_name: resolved_ref.binding_name,
           span: binding_span,
@@ -232,7 +243,7 @@ fn collect_template_ref_index(
           access_mode: ResolveTemplateRef,
         })
         for field in resolved_ref.fields {
-          members.push({
+          self.members.push({
             contract_kind: "template ref",
             binding_name: resolved_ref.binding_name,
             name: field.name,
@@ -247,17 +258,14 @@ fn collect_template_ref_index(
 
 ///|
 /// Scan source spans for member accesses against direct macro bindings.
-fn collect_contract_refs(
-  source : String,
+fn ToolingIndexBuilder::collect_contract_refs(
+  self : ToolingIndexBuilder,
   block_span : @compiler.SourceSpan?,
-  bindings : Array[ToolingBindingDef],
-  members : Array[ToolingMemberDef],
-  refs : Array[ToolingMemberRef],
 ) -> Unit {
   match block_span {
     Some(span) => {
       let candidates : Array[(String, String)] = []
-      for binding in bindings {
+      for binding in self.bindings {
         if binding.access_mode != Direct {
           continue
         }
@@ -268,11 +276,12 @@ fn collect_contract_refs(
         }
       }
       for candidate in candidates {
-        for ref_ in find_member_refs(source, span, candidate.0, candidate.1) {
-          if overlaps_definition(ref_, bindings, members) {
+        for
+          ref_ in self.document.find_member_refs(span, candidate.0, candidate.1) {
+          if overlaps_definition(ref_, self.bindings, self.members) {
             continue
           }
-          refs.push(ref_)
+          self.refs.push(ref_)
         }
       }
     }
@@ -282,29 +291,25 @@ fn collect_contract_refs(
 
 ///|
 /// Scan source spans for member accesses behind `resolve_template_ref(...)`.
-fn collect_template_ref_refs(
-  source : String,
+fn ToolingIndexBuilder::collect_template_ref_refs(
+  self : ToolingIndexBuilder,
   block_span : @compiler.SourceSpan?,
-  bindings : Array[ToolingBindingDef],
-  members : Array[ToolingMemberDef],
-  refs : Array[ToolingMemberRef],
 ) -> Unit {
   match block_span {
     Some(span) =>
-      for binding in bindings {
+      for binding in self.bindings {
         if binding.access_mode != ResolveTemplateRef {
           continue
         }
         for
-          ref_ in find_resolved_template_ref_member_refs(
-            source,
+          ref_ in self.document.find_resolved_template_ref_member_refs(
             span,
             binding.binding_name,
           ) {
-          if overlaps_definition(ref_, bindings, members) {
+          if overlaps_definition(ref_, self.bindings, self.members) {
             continue
           }
-          refs.push(ref_)
+          self.refs.push(ref_)
         }
       }
     None => ()
@@ -313,30 +318,26 @@ fn collect_template_ref_refs(
 
 ///|
 /// Emit semantic diagnostics such as unknown members or mismatched bindings.
-fn collect_semantic_diagnostics(
-  source : String,
-  filename : String,
-  bindings : Array[ToolingBindingDef],
-  members : Array[ToolingMemberDef],
-  refs : Array[ToolingMemberRef],
-  diagnostics : Array[ToolingDiagnostic],
+fn ToolingIndexBuilder::collect_semantic_diagnostics(
+  self : ToolingIndexBuilder,
 ) -> Unit {
-  for ref_ in refs {
-    match find_binding(bindings, ref_.contract_kind, ref_.binding_name) {
+  for ref_ in self.refs {
+    match find_binding(self.bindings, ref_.contract_kind, ref_.binding_name) {
       Some(binding) =>
-        match find_member(members, binding.binding_name, ref_.member_name) {
+        match
+          find_member(self.members, binding.binding_name, ref_.member_name) {
           Some(_) => ()
           None if binding.access_mode == ResolveTemplateRef &&
             binding.fields.is_empty() => ()
           None =>
-            diagnostics.push({
+            self.diagnostics.push({
               severity: "error",
               message: unknown_member_message(ref_),
-              location: location_from_span(source, filename, ref_.member_span),
+              location: self.document.location_from_span(ref_.member_span),
             })
         }
       None => {
-        let actual = find_binding_by_kind(bindings, ref_.contract_kind)
+        let actual = find_binding_by_kind(self.bindings, ref_.contract_kind)
         let message = match actual {
           Some(binding) =>
             "`" +
@@ -355,10 +356,10 @@ fn collect_semantic_diagnostics(
             ref_.binding_name +
             "`"
         }
-        diagnostics.push({
+        self.diagnostics.push({
           severity: "error",
           message,
-          location: location_from_span(source, filename, ref_.binding_span),
+          location: self.document.location_from_span(ref_.binding_span),
         })
       }
     }

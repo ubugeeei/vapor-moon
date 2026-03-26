@@ -2,6 +2,12 @@
 /// Editor-facing hover/definition/completion queries built on top of `ToolingIndex`.
 
 ///|
+/// Shared query context for hover, definition, and completion requests.
+priv struct ToolingQuery {
+  index : ToolingIndex
+}
+
+///|
 /// Compute diagnostics for a document without spinning up the JSON-RPC server.
 pub fn diagnostics(
   source : String,
@@ -18,13 +24,7 @@ pub fn hover_at(
   character : Int,
   filename? : String = "Component.mbtv",
 ) -> ToolingHover? {
-  let index = build_tooling_index(source, filename)
-  let offset = position_to_offset(source, line, character)
-  match find_hover_target(index, offset) {
-    Some((contents, span)) =>
-      Some({ contents, location: location_from_span(source, filename, span) })
-    None => None
-  }
+  ToolingQuery::new(source, filename).hover(line, character)
 }
 
 ///|
@@ -35,13 +35,7 @@ pub fn definition_at(
   character : Int,
   filename? : String = "Component.mbtv",
 ) -> ToolingDefinition? {
-  let index = build_tooling_index(source, filename)
-  let offset = position_to_offset(source, line, character)
-  match find_definition_target(index, offset) {
-    Some((name, span)) =>
-      Some({ name, location: location_from_span(source, filename, span) })
-    None => None
-  }
+  ToolingQuery::new(source, filename).definition(line, character)
 }
 
 ///|
@@ -52,29 +46,76 @@ pub fn complete_at(
   character : Int,
   filename? : String = "Component.mbtv",
 ) -> Array[ToolingCompletionItem] {
-  let index = build_tooling_index(source, filename)
-  let offset = position_to_offset(source, line, character)
-  match resolved_template_ref_completion_items(index, offset) {
+  ToolingQuery::new(source, filename).complete(line, character)
+}
+
+///|
+/// Build a reusable query context for one source document.
+fn ToolingQuery::new(source : String, filename : String) -> ToolingQuery {
+  { index: build_tooling_index(source, filename) }
+}
+
+///|
+/// Resolve hover contents at a UTF-16 line/character position.
+fn ToolingQuery::hover(
+  self : ToolingQuery,
+  line : Int,
+  character : Int,
+) -> ToolingHover? {
+  let document = self.index.document
+  let offset = document.position_to_offset(line, character)
+  match self.find_hover_target(offset) {
+    Some((contents, span)) =>
+      Some({ contents, location: document.location_from_span(span) })
+    None => None
+  }
+}
+
+///|
+/// Resolve the definition target for the token at the given UTF-16 position.
+fn ToolingQuery::definition(
+  self : ToolingQuery,
+  line : Int,
+  character : Int,
+) -> ToolingDefinition? {
+  let document = self.index.document
+  let offset = document.position_to_offset(line, character)
+  match self.find_definition_target(offset) {
+    Some((name, span)) =>
+      Some({ name, location: document.location_from_span(span) })
+    None => None
+  }
+}
+
+///|
+/// Compute completion items using template-ref, member, and general directive contexts.
+fn ToolingQuery::complete(
+  self : ToolingQuery,
+  line : Int,
+  character : Int,
+) -> Array[ToolingCompletionItem] {
+  let offset = self.index.document.position_to_offset(line, character)
+  match self.resolved_template_ref_completion_items(offset) {
     Some(items) => items
     None =>
-      match member_completion_items(index, offset) {
+      match self.member_completion_items(offset) {
         Some(items) => items
-        None => general_completion_items(index, offset)
+        None => self.general_completion_items(offset)
       }
   }
 }
 
 ///|
 /// Complete members on `resolve_template_ref(ref).member` expressions.
-fn resolved_template_ref_completion_items(
-  index : ToolingIndex,
+fn ToolingQuery::resolved_template_ref_completion_items(
+  self : ToolingQuery,
   offset : Int,
 ) -> Array[ToolingCompletionItem]? {
-  let context = resolved_template_ref_completion_context(index.source, offset)
+  let context = self.resolved_template_ref_completion_context(offset)
   match context {
     Some((binding_name, prefix)) => {
       let items : Array[ToolingCompletionItem] = []
-      for binding in index.bindings {
+      for binding in self.index.bindings {
         if binding.access_mode != ResolveTemplateRef ||
           binding.binding_name != binding_name {
           continue
@@ -100,17 +141,18 @@ fn resolved_template_ref_completion_items(
 
 ///|
 /// Detect the completion context for `resolve_template_ref(binding).prefix`.
-fn resolved_template_ref_completion_context(
-  source : String,
+fn ToolingQuery::resolved_template_ref_completion_context(
+  self : ToolingQuery,
   offset : Int,
 ) -> (String, String)? {
-  let chars = source.to_array()
+  let document = self.index.document
+  let chars = document.chars
   let limit = if offset < chars.length() { offset } else { chars.length() }
   let mut start = limit
   while start > 0 && is_identifier_char(chars[start - 1]) {
     start -= 1
   }
-  let prefix = String::unsafe_substring(source, start~, end=limit)
+  let prefix = String::unsafe_substring(document.source, start~, end=limit)
   if start == 0 || chars[start - 1] != '.' {
     return None
   }
@@ -122,21 +164,17 @@ fn resolved_template_ref_completion_context(
     return None
   }
   let close_paren = cursor - 1
-  let open_paren = match matching_open_paren_backward(chars, close_paren) {
+  let open_paren = match document.matching_open_paren_backward(close_paren) {
     Some(index) => index
     None => return None
   }
   let arg_span = match
-    trim_whitespace_span(chars, open_paren + 1, close_paren) {
+    document.trim_span_whitespace(open_paren + 1, close_paren) {
     Some(span) => span
     None => return None
   }
-  let binding_name = String::unsafe_substring(
-    source,
-    start=arg_span.0,
-    end=arg_span.1,
-  )
-  if not(is_identifier_literal(binding_name)) {
+  let binding_name = document.span_text(arg_span)
+  if not(ToolingDocument::identifier_literal(binding_name)) {
     return None
   }
   cursor = open_paren
@@ -153,7 +191,11 @@ fn resolved_template_ref_completion_context(
       break
     }
   }
-  let callee = String::unsafe_substring(source, start=name_start, end=name_end)
+  let callee = String::unsafe_substring(
+    document.source,
+    start=name_start,
+    end=name_end,
+  )
   if not(callee.has_suffix("resolve_template_ref")) {
     return None
   }
@@ -161,87 +203,32 @@ fn resolved_template_ref_completion_context(
 }
 
 ///|
-/// Find the opening parenthesis paired with a known closing parenthesis.
-fn matching_open_paren_backward(chars : Array[Char], close_paren : Int) -> Int? {
-  let mut depth = 0
-  let mut cursor = close_paren + 1
-  while cursor > 0 {
-    cursor -= 1
-    match chars[cursor] {
-      ')' => depth += 1
-      '(' => {
-        depth -= 1
-        if depth == 0 {
-          return Some(cursor)
-        }
-      }
-      _ => ()
-    }
-  }
-  None
-}
-
-///|
-/// Trim ASCII spaces and tabs from a source span.
-fn trim_whitespace_span(
-  chars : Array[Char],
-  start : Int,
-  end_ : Int,
-) -> (Int, Int)? {
-  let mut trimmed_start = start
-  while trimmed_start < end_ &&
-        (chars[trimmed_start] == ' ' || chars[trimmed_start] == '\t') {
-    trimmed_start += 1
-  }
-  let mut trimmed_end = end_
-  while trimmed_end > trimmed_start &&
-        (chars[trimmed_end - 1] == ' ' || chars[trimmed_end - 1] == '\t') {
-    trimmed_end -= 1
-  }
-  if trimmed_start >= trimmed_end {
-    None
-  } else {
-    Some((trimmed_start, trimmed_end))
-  }
-}
-
-///|
-/// Check whether a source fragment is a simple identifier token.
-fn is_identifier_literal(source : String) -> Bool {
-  if source.length() == 0 {
-    return false
-  }
-  for ch in source {
-    if not(is_identifier_char(ch)) {
-      return false
-    }
-  }
-  true
-}
-
-///|
 /// Find the best hover payload for a source offset.
-fn find_hover_target(
-  index : ToolingIndex,
+fn ToolingQuery::find_hover_target(
+  self : ToolingQuery,
   offset : Int,
 ) -> (String, @compiler.SourceSpan)? {
-  for entry in index.members {
+  for entry in self.index.members {
     if contains_offset(entry.span, offset) {
       return Some((member_hover_text(entry), entry.span))
     }
   }
-  for binding in index.bindings {
+  for binding in self.index.bindings {
     if contains_offset(binding.span, offset) {
       return Some((binding_hover_text(binding), binding.span))
     }
   }
-  for ref_ in index.refs {
+  for ref_ in self.index.refs {
     if contains_offset(ref_.member_span, offset) {
       match
-        find_binding(index.bindings, ref_.contract_kind, ref_.binding_name) {
+        find_binding(self.index.bindings, ref_.contract_kind, ref_.binding_name) {
         Some(binding) =>
           match
-            find_member(index.members, binding.binding_name, ref_.member_name) {
+            find_member(
+              self.index.members,
+              binding.binding_name,
+              ref_.member_name,
+            ) {
             Some(entry) =>
               return Some((member_hover_text(entry), ref_.member_span))
             None => ()
@@ -251,7 +238,7 @@ fn find_hover_target(
     }
     if contains_offset(ref_.binding_span, offset) {
       match
-        find_binding(index.bindings, ref_.contract_kind, ref_.binding_name) {
+        find_binding(self.index.bindings, ref_.contract_kind, ref_.binding_name) {
         Some(binding) =>
           return Some((binding_hover_text(binding), ref_.binding_span))
         None => ()
@@ -263,27 +250,31 @@ fn find_hover_target(
 
 ///|
 /// Resolve the declaration span referenced by a source offset.
-fn find_definition_target(
-  index : ToolingIndex,
+fn ToolingQuery::find_definition_target(
+  self : ToolingQuery,
   offset : Int,
 ) -> (String, @compiler.SourceSpan)? {
-  for entry in index.members {
+  for entry in self.index.members {
     if contains_offset(entry.span, offset) {
       return Some((entry.name, entry.span))
     }
   }
-  for binding in index.bindings {
+  for binding in self.index.bindings {
     if contains_offset(binding.span, offset) {
       return Some((binding.binding_name, binding.span))
     }
   }
-  for ref_ in index.refs {
+  for ref_ in self.index.refs {
     if contains_offset(ref_.member_span, offset) {
       match
-        find_binding(index.bindings, ref_.contract_kind, ref_.binding_name) {
+        find_binding(self.index.bindings, ref_.contract_kind, ref_.binding_name) {
         Some(binding) =>
           match
-            find_member(index.members, binding.binding_name, ref_.member_name) {
+            find_member(
+              self.index.members,
+              binding.binding_name,
+              ref_.member_name,
+            ) {
             Some(entry) => return Some((entry.name, entry.span))
             None => ()
           }
@@ -292,7 +283,7 @@ fn find_definition_target(
     }
     if contains_offset(ref_.binding_span, offset) {
       match
-        find_binding(index.bindings, ref_.contract_kind, ref_.binding_name) {
+        find_binding(self.index.bindings, ref_.contract_kind, ref_.binding_name) {
         Some(binding) => return Some((binding.binding_name, binding.span))
         None => ()
       }
@@ -303,15 +294,15 @@ fn find_definition_target(
 
 ///|
 /// Complete members on direct contract bindings such as `props.foo`.
-fn member_completion_items(
-  index : ToolingIndex,
+fn ToolingQuery::member_completion_items(
+  self : ToolingQuery,
   offset : Int,
 ) -> Array[ToolingCompletionItem]? {
-  let context = member_completion_context(index.source, offset)
+  let context = self.member_completion_context(offset)
   match context {
     Some((binding_name, prefix)) => {
       let items : Array[ToolingCompletionItem] = []
-      for binding in index.bindings {
+      for binding in self.index.bindings {
         if binding.access_mode != Direct || binding.binding_name != binding_name {
           continue
         }
@@ -335,11 +326,11 @@ fn member_completion_items(
 
 ///|
 /// Fallback completion path for directives, events, bindings, and macros.
-fn general_completion_items(
-  index : ToolingIndex,
+fn ToolingQuery::general_completion_items(
+  self : ToolingQuery,
   offset : Int,
 ) -> Array[ToolingCompletionItem] {
-  let prefix = current_token_prefix(index.source, offset)
+  let prefix = self.index.document.current_token_prefix(offset)
   if prefix.has_prefix("@") {
     return event_completion_items(prefix)
   }
@@ -368,17 +359,18 @@ fn general_completion_items(
 
 ///|
 /// Detect `binding.member` completion contexts at the given offset.
-fn member_completion_context(
-  source : String,
+fn ToolingQuery::member_completion_context(
+  self : ToolingQuery,
   offset : Int,
 ) -> (String, String)? {
-  let chars = source.to_array()
+  let document = self.index.document
+  let chars = document.chars
   let limit = if offset < chars.length() { offset } else { chars.length() }
   let mut start = limit
   while start > 0 && is_identifier_char(chars[start - 1]) {
     start -= 1
   }
-  let prefix = String::unsafe_substring(source, start~, end=limit)
+  let prefix = String::unsafe_substring(document.source, start~, end=limit)
   if start == 0 || chars[start - 1] != '.' {
     return None
   }
@@ -388,7 +380,7 @@ fn member_completion_context(
     binding_start -= 1
   }
   let binding_name = String::unsafe_substring(
-    source,
+    document.source,
     start=binding_start,
     end=binding_end,
   )
