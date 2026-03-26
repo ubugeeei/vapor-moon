@@ -13,14 +13,14 @@ test "snapshot component key ref compile" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|  "mizchi/js/browser/dom" @js_dom,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  let panel_ref : @vm.TemplateRef[@js_dom.HTMLElement] = @vm.use_template_ref("panel")
       #|  let panel_id = 42
-      #|  @vm_dom.componentMeta("Panel", [], [], [("data-vm-key", @vm_dom.dynAttr(fn() { panel_id.to_string() })), ("__ref", @vm_dom.on(fn(target) { @vm_dom.bindRef(panel_ref, target) }))])
+      #|  @v.componentMeta("Panel", [], [], [("data-vm-key", @v.dynAttr(fn() { panel_id.to_string() })), ("__ref", @v.on(fn(target) { @v.bindRef(panel_ref, target) }))])
       #|}
       #|
       #|pub fn declared_props() -> Array[String] {

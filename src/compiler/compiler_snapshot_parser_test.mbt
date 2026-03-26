@@ -14,15 +14,15 @@ test "snapshot script setup close tag literal compile" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  let closing = "</script>"
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.el("div")
-      #|      @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { closing.to_string() }))
-      #|      @vm_dom.into(__vm_el)
+      #|      let __vm_el = @v.el("div")
+      #|      @v.append(__vm_el.as_node(), @v.setText(fn() { closing.to_string() }))
+      #|      @v.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -102,15 +102,15 @@ test "snapshot style close tag literal compile" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.el("div")
-      #|      @vm_dom.setAttr(__vm_el, ("class", @vm_dom.attr("box")))
-      #|      @vm_dom.setAttr(__vm_el, ("data-vm-scope", @vm_dom.attr("vm-2407032203")))
-      #|      @vm_dom.into(__vm_el)
+      #|      let __vm_el = @v.el("div")
+      #|      @v.setAttr(__vm_el, ("class", @v.attr("box")))
+      #|      @v.setAttr(__vm_el, ("data-vm-scope", @v.attr("vm-2407032203")))
+      #|      @v.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -190,22 +190,22 @@ test "snapshot nested template element compile" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.el("section")
-      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.el("template")
-      #|                @vm_dom.append(__vm_el.as_node(), (fn() {
-      #|                                let __vm_el = @vm_dom.el("span")
-      #|                                @vm_dom.append(__vm_el.as_node(), @vm_dom.text("Inner"))
-      #|                                @vm_dom.into(__vm_el)
+      #|      let __vm_el = @v.el("section")
+      #|      @v.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @v.el("template")
+      #|                @v.append(__vm_el.as_node(), (fn() {
+      #|                                let __vm_el = @v.el("span")
+      #|                                @v.append(__vm_el.as_node(), @v.text("Inner"))
+      #|                                @v.into(__vm_el)
       #|                              })())
-      #|                @vm_dom.into(__vm_el)
+      #|                @v.into(__vm_el)
       #|              })())
-      #|      @vm_dom.into(__vm_el)
+      #|      @v.into(__vm_el)
       #|    })()
       #|}
       #|

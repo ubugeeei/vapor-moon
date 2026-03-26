@@ -8,7 +8,7 @@ pub fn emit_client_module(
   let sb = StringBuilder::new()
   let base_imports = [
     "\"mizchi/luna/dom\" @luna_dom,", "\"ubugeeei/vapor_moon/src/runtime\" @vm,",
-    "\"ubugeeei/vapor_moon/src/runtime/dom\" @vm_dom,",
+    "\"ubugeeei/vapor_moon/src/runtime/dom\" @v,",
   ]
   sb.write_string(
     emit_import_block(

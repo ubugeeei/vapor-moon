@@ -19,7 +19,7 @@ test "snapshot v-match string matching" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
@@ -27,21 +27,21 @@ test "snapshot v-match string matching" {
       #|  match status {
       #|      "loading" =>
       #|        (fn() {
-      #|                let __vm_el = @vm_dom.el("p")
-      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.text("Loading..."))
-      #|                @vm_dom.into(__vm_el)
+      #|                let __vm_el = @v.el("p")
+      #|                @v.append(__vm_el.as_node(), @v.text("Loading..."))
+      #|                @v.into(__vm_el)
       #|              })()
       #|      "error" =>
       #|        (fn() {
-      #|                let __vm_el = @vm_dom.el("p")
-      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.text("Error!"))
-      #|                @vm_dom.into(__vm_el)
+      #|                let __vm_el = @v.el("p")
+      #|                @v.append(__vm_el.as_node(), @v.text("Error!"))
+      #|                @v.into(__vm_el)
       #|              })()
       #|      _ =>
       #|        (fn() {
-      #|                let __vm_el = @vm_dom.el("p")
-      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.text("Unknown"))
-      #|                @vm_dom.into(__vm_el)
+      #|                let __vm_el = @v.el("p")
+      #|                @v.append(__vm_el.as_node(), @v.text("Unknown"))
+      #|                @v.into(__vm_el)
       #|              })()
       #|    }
       #|}
@@ -138,7 +138,7 @@ test "snapshot v-match enum pattern" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
@@ -146,15 +146,15 @@ test "snapshot v-match enum pattern" {
       #|  match result {
       #|      Ok(data) =>
       #|        (fn() {
-      #|                let __vm_el = @vm_dom.el("p")
-      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { data.to_string() }))
-      #|                @vm_dom.into(__vm_el)
+      #|                let __vm_el = @v.el("p")
+      #|                @v.append(__vm_el.as_node(), @v.setText(fn() { data.to_string() }))
+      #|                @v.into(__vm_el)
       #|              })()
       #|      Err(msg) =>
       #|        (fn() {
-      #|                let __vm_el = @vm_dom.el("p")
-      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { msg.to_string() }))
-      #|                @vm_dom.into(__vm_el)
+      #|                let __vm_el = @v.el("p")
+      #|                @v.append(__vm_el.as_node(), @v.setText(fn() { msg.to_string() }))
+      #|                @v.into(__vm_el)
       #|              })()
       #|    }
       #|}
@@ -247,7 +247,7 @@ test "snapshot v-match with wildcard default" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
@@ -255,15 +255,15 @@ test "snapshot v-match with wildcard default" {
       #|  match mode {
       #|      "dark" =>
       #|        (fn() {
-      #|                let __vm_el = @vm_dom.el("p")
-      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.text("Dark"))
-      #|                @vm_dom.into(__vm_el)
+      #|                let __vm_el = @v.el("p")
+      #|                @v.append(__vm_el.as_node(), @v.text("Dark"))
+      #|                @v.into(__vm_el)
       #|              })()
       #|      _ =>
       #|        (fn() {
-      #|                let __vm_el = @vm_dom.el("p")
-      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.text("Default"))
-      #|                @vm_dom.into(__vm_el)
+      #|                let __vm_el = @v.el("p")
+      #|                @v.append(__vm_el.as_node(), @v.text("Default"))
+      #|                @v.into(__vm_el)
       #|              })()
       #|    }
       #|}

@@ -10,7 +10,7 @@ test "snapshot composable counter compile" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|  "mizchi/luna/js/resource" @reactivity,
       #|}
       #|
@@ -36,30 +36,30 @@ test "snapshot composable counter compile" {
       #|  }
       #|  let counter = useCounter(2)
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.el("section")
-      #|      @vm_dom.setAttr(__vm_el, ("class", @vm_dom.attr("composable")))
-      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.el("button")
-      #|                @vm_dom.setAttr(__vm_el, ("click", @vm_dom.on(fn(_event) { counter.count.update(fn(n) { n + 1 }) })))
-      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.text("inc"))
-      #|                @vm_dom.into(__vm_el)
+      #|      let __vm_el = @v.el("section")
+      #|      @v.setAttr(__vm_el, ("class", @v.attr("composable")))
+      #|      @v.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @v.el("button")
+      #|                @v.setAttr(__vm_el, ("click", @v.on(fn(_event) { counter.count.update(fn(n) { n + 1 }) })))
+      #|                @v.append(__vm_el.as_node(), @v.text("inc"))
+      #|                @v.into(__vm_el)
       #|              })())
-      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.el("p")
-      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { counter.count.get().to_string() }))
-      #|                @vm_dom.into(__vm_el)
+      #|      @v.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @v.el("p")
+      #|                @v.append(__vm_el.as_node(), @v.setText(fn() { counter.count.get().to_string() }))
+      #|                @v.into(__vm_el)
       #|              })())
-      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.el("p")
-      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { counter.doubled().to_string() }))
-      #|                @vm_dom.into(__vm_el)
+      #|      @v.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @v.el("p")
+      #|                @v.append(__vm_el.as_node(), @v.setText(fn() { counter.doubled().to_string() }))
+      #|                @v.into(__vm_el)
       #|              })())
-      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.el("small")
-      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { counter.last_change.get().to_string() }))
-      #|                @vm_dom.into(__vm_el)
+      #|      @v.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @v.el("small")
+      #|                @v.append(__vm_el.as_node(), @v.setText(fn() { counter.last_change.get().to_string() }))
+      #|                @v.into(__vm_el)
       #|              })())
-      #|      @vm_dom.into(__vm_el)
+      #|      @v.into(__vm_el)
       #|    })()
       #|}
       #|

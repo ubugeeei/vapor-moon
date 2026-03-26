@@ -7,7 +7,7 @@ test "snapshot basic compile" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|  "mizchi/luna/js/resource" @reactivity,
       #|}
       #|
@@ -15,11 +15,11 @@ test "snapshot basic compile" {
       #|  let signal = @reactivity.signal,
       #|  let count = signal(0)
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.el("div")
-      #|      @vm_dom.setAttr(__vm_el, ("class", @vm_dom.attr("counter")))
-      #|      @vm_dom.setAttr(__vm_el, ("data-vm-scope", @vm_dom.attr("vm-4048536636")))
-      #|      @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { count.get().to_string() }))
-      #|      @vm_dom.into(__vm_el)
+      #|      let __vm_el = @v.el("div")
+      #|      @v.setAttr(__vm_el, ("class", @v.attr("counter")))
+      #|      @v.setAttr(__vm_el, ("data-vm-scope", @v.attr("vm-4048536636")))
+      #|      @v.append(__vm_el.as_node(), @v.setText(fn() { count.get().to_string() }))
+      #|      @v.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -95,7 +95,7 @@ test "snapshot macros compile" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|}
       #|
       #|pub struct MacrosProps {
@@ -125,11 +125,11 @@ test "snapshot macros compile" {
       #|    cancel : Unit
       #|  }
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.el("button")
-      #|      @vm_dom.setAttr(__vm_el, ("click", @vm_dom.on(fn(_event) { emit.save() })))
-      #|      @vm_dom.setAttr(__vm_el, ("class", @vm_dom.attr("primary")))
-      #|      @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { props.title.to_string() }))
-      #|      @vm_dom.into(__vm_el)
+      #|      let __vm_el = @v.el("button")
+      #|      @v.setAttr(__vm_el, ("click", @v.on(fn(_event) { emit.save() })))
+      #|      @v.setAttr(__vm_el, ("class", @v.attr("primary")))
+      #|      @v.append(__vm_el.as_node(), @v.setText(fn() { props.title.to_string() }))
+      #|      @v.into(__vm_el)
       #|    })()
       #|}
       #|

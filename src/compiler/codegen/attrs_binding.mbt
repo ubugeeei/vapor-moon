@@ -3,7 +3,7 @@ fn render_client_key_attr(element : TemplateElement) -> String? {
   match element.key_expr {
     Some(expr) =>
       Some(
-        "(\"data-vm-key\", @vm_dom.dynAttr(fn() { " + expr + ".to_string() }))",
+        "(\"data-vm-key\", @v.dynAttr(fn() { " + expr + ".to_string() }))",
       )
     None => None
   }
@@ -27,7 +27,7 @@ fn render_client_ref_attr(element : TemplateElement) -> String? {
   match element.ref_binding_name {
     Some(binding_name) =>
       Some(
-        "(\"__ref\", @vm_dom.on(fn(target) { @vm_dom.bindRef(" +
+        "(\"__ref\", @v.on(fn(target) { @v.bindRef(" +
         binding_name +
         ", target) }))",
       )
@@ -35,7 +35,7 @@ fn render_client_ref_attr(element : TemplateElement) -> String? {
       match element.ref_name {
         Some(expr) =>
           Some(
-            "(\"__ref\", @vm_dom.on(fn(target) { @vm_dom.bindRefName(" +
+            "(\"__ref\", @v.on(fn(target) { @v.bindRefName(" +
             expr +
             ", target) }))",
           )
@@ -89,10 +89,10 @@ fn render_client_html_attr(
   match element.html_expr {
     Some(expr) =>
       if static_mode {
-        Some("(\"__innerHTML\", @vm_dom.attr(" + expr + ".to_string()))")
+        Some("(\"__innerHTML\", @v.attr(" + expr + ".to_string()))")
       } else {
         Some(
-          "(\"__innerHTML\", @vm_dom.dynAttr(fn() { " +
+          "(\"__innerHTML\", @v.dynAttr(fn() { " +
           expr +
           ".to_string() }))",
         )
@@ -118,12 +118,12 @@ fn render_client_model_attrs(
       }
       let attr_name = if checked { "checked" } else { "value" }
       if static_mode {
-        parts.push("(\"" + attr_name + "\", @vm_dom.attr(" + value_expr + "))")
+        parts.push("(\"" + attr_name + "\", @v.attr(" + value_expr + "))")
       } else {
         parts.push(
           "(\"" +
           attr_name +
-          "\", @vm_dom.dynAttr(fn() { " +
+          "\", @v.dynAttr(fn() { " +
           value_expr +
           " }))",
         )
@@ -131,7 +131,7 @@ fn render_client_model_attrs(
       parts.push(
         "(\"" +
         event_name +
-        "\", @vm_dom.on(fn(_event) { " +
+        "\", @v.on(fn(_event) { " +
         render_model_write_expr(
           model.expression,
           render_model_read_expr(model, checked),

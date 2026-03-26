@@ -106,11 +106,11 @@ pub fn render_dom() -> @luna_dom.DomNode {
   let signal = @reactivity.signal,
   let count = signal(0)
   (fn() {
-      let __vm_el = @vm_dom.el("div")
-      @vm_dom.setAttr(__vm_el, ("class", @vm_dom.attr("counter")))
-      @vm_dom.setAttr(__vm_el, ("data-vm-scope", @vm_dom.attr("vm-4048536636")))
-      @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { count.get().to_string() }))
-      @vm_dom.into(__vm_el)
+      let __vm_el = @v.el("div")
+      @v.setAttr(__vm_el, ("class", @v.attr("counter")))
+      @v.setAttr(__vm_el, ("data-vm-scope", @v.attr("vm-4048536636")))
+      @v.append(__vm_el.as_node(), @v.setText(fn() { count.get().to_string() }))
+      @v.into(__vm_el)
     })()
 }
 === server ===

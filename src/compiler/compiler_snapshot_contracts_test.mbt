@@ -7,7 +7,7 @@ test "snapshot slot contracts compile" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|}
       #|
       #|pub struct SlotsDomSlots {
@@ -28,9 +28,9 @@ test "snapshot slot contracts compile" {
       #|    footer : String
       #|  }
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.el("section")
-      #|      @vm_dom.setAttr(__vm_el, ("class", @vm_dom.attr("shell")))
-      #|      @vm_dom.into(__vm_el)
+      #|      let __vm_el = @v.el("section")
+      #|      @v.setAttr(__vm_el, ("class", @v.attr("shell")))
+      #|      @v.into(__vm_el)
       #|    })()
       #|}
       #|

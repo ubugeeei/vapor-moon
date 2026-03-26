@@ -17,7 +17,7 @@ test "snapshot merged class and style attrs compile" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
@@ -25,11 +25,11 @@ test "snapshot merged class and style attrs compile" {
       #|  let tone = "color: blue"
       #|  let visible = true
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.el("div")
-      #|      @vm_dom.setAttr(__vm_el, ("class", @vm_dom.dynAttr(fn() { @vm.merge_class_names(["panel", accent.to_string()]) })))
-      #|      @vm_dom.setAttr(__vm_el, ("style", @vm_dom.dynStyle(fn() { @vm.show_style(visible, @vm.merge_styles(["display: flex", tone.to_string()])) })))
-      #|      @vm_dom.append(__vm_el.as_node(), @vm_dom.text("Hello"))
-      #|      @vm_dom.into(__vm_el)
+      #|      let __vm_el = @v.el("div")
+      #|      @v.setAttr(__vm_el, ("class", @v.dynAttr(fn() { @vm.merge_class_names(["panel", accent.to_string()]) })))
+      #|      @v.setAttr(__vm_el, ("style", @v.dynStyle(fn() { @vm.show_style(visible, @vm.merge_styles(["display: flex", tone.to_string()])) })))
+      #|      @v.append(__vm_el.as_node(), @v.text("Hello"))
+      #|      @v.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -122,7 +122,7 @@ test "snapshot v-model modifiers compile" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|  "mizchi/luna/js/resource" @reactivity,
       #|}
       #|
@@ -131,21 +131,21 @@ test "snapshot v-model modifiers compile" {
       #|  let name = signal(" hello ")
       #|  let agreed = signal(false)
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.el("form")
-      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.el("input")
-      #|                @vm_dom.setAttr(__vm_el, ("value", @vm_dom.dynAttr(fn() { name.get().to_string() })))
-      #|                @vm_dom.setAttr(__vm_el, ("change", @vm_dom.on(fn(_event) { name.set((_event._get("target")._get("value").cast()).trim().to_string()) })))
-      #|                @vm_dom.into(__vm_el)
+      #|      let __vm_el = @v.el("form")
+      #|      @v.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @v.el("input")
+      #|                @v.setAttr(__vm_el, ("value", @v.dynAttr(fn() { name.get().to_string() })))
+      #|                @v.setAttr(__vm_el, ("change", @v.on(fn(_event) { name.set((_event._get("target")._get("value").cast()).trim().to_string()) })))
+      #|                @v.into(__vm_el)
       #|              })())
-      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.el("input")
-      #|                @vm_dom.setAttr(__vm_el, ("type", @vm_dom.attr("checkbox")))
-      #|                @vm_dom.setAttr(__vm_el, ("checked", @vm_dom.dynAttr(fn() { if agreed.get() { "true" } else { "false" } })))
-      #|                @vm_dom.setAttr(__vm_el, ("change", @vm_dom.on(fn(_event) { agreed.set(_event._get("target")._get("checked").cast()) })))
-      #|                @vm_dom.into(__vm_el)
+      #|      @v.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @v.el("input")
+      #|                @v.setAttr(__vm_el, ("type", @v.attr("checkbox")))
+      #|                @v.setAttr(__vm_el, ("checked", @v.dynAttr(fn() { if agreed.get() { "true" } else { "false" } })))
+      #|                @v.setAttr(__vm_el, ("change", @v.on(fn(_event) { agreed.set(_event._get("target")._get("checked").cast()) })))
+      #|                @v.into(__vm_el)
       #|              })())
-      #|      @vm_dom.into(__vm_el)
+      #|      @v.into(__vm_el)
       #|    })()
       #|}
       #|

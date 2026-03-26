@@ -10,7 +10,7 @@ test "snapshot reactivity basics compile" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|  "mizchi/luna/js/resource" @reactivity,
       #|}
       #|
@@ -30,25 +30,25 @@ test "snapshot reactivity basics compile" {
       #|    history.set(prev.to_string() + " -> " + next.to_string())
       #|  })
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.el("section")
-      #|      @vm_dom.setAttr(__vm_el, ("class", @vm_dom.attr("reactivity")))
-      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.el("button")
-      #|                @vm_dom.setAttr(__vm_el, ("click", @vm_dom.on(fn(_event) { count.update(fn(n) { n + 1 }) })))
-      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.text("+"))
-      #|                @vm_dom.into(__vm_el)
+      #|      let __vm_el = @v.el("section")
+      #|      @v.setAttr(__vm_el, ("class", @v.attr("reactivity")))
+      #|      @v.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @v.el("button")
+      #|                @v.setAttr(__vm_el, ("click", @v.on(fn(_event) { count.update(fn(n) { n + 1 }) })))
+      #|                @v.append(__vm_el.as_node(), @v.text("+"))
+      #|                @v.into(__vm_el)
       #|              })())
-      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.el("p")
-      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { summary().to_string() }))
-      #|                @vm_dom.into(__vm_el)
+      #|      @v.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @v.el("p")
+      #|                @v.append(__vm_el.as_node(), @v.setText(fn() { summary().to_string() }))
+      #|                @v.into(__vm_el)
       #|              })())
-      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.el("small")
-      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { history.get().to_string() }))
-      #|                @vm_dom.into(__vm_el)
+      #|      @v.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @v.el("small")
+      #|                @v.append(__vm_el.as_node(), @v.setText(fn() { history.get().to_string() }))
+      #|                @v.into(__vm_el)
       #|              })())
-      #|      @vm_dom.into(__vm_el)
+      #|      @v.into(__vm_el)
       #|    })()
       #|}
       #|
@@ -144,7 +144,7 @@ test "snapshot lifecycle refs compile" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|  "mizchi/luna/js/resource" @reactivity,
       #|  "mizchi/js/browser/dom" @js_dom,
       #|}
@@ -163,20 +163,20 @@ test "snapshot lifecycle refs compile" {
       #|    })
       #|  })
       #|  (fn() {
-      #|      let __vm_el = @vm_dom.el("section")
-      #|      @vm_dom.setAttr(__vm_el, ("data-id", @vm_dom.dynAttr(fn() { instance_id.to_string() })))
-      #|      @vm_dom.setAttr(__vm_el, ("__ref", @vm_dom.on(fn(target) { @vm_dom.bindRef(root_ref, target) })))
-      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.el("p")
-      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { phase.get().to_string() }))
-      #|                @vm_dom.into(__vm_el)
+      #|      let __vm_el = @v.el("section")
+      #|      @v.setAttr(__vm_el, ("data-id", @v.dynAttr(fn() { instance_id.to_string() })))
+      #|      @v.setAttr(__vm_el, ("__ref", @v.on(fn(target) { @v.bindRef(root_ref, target) })))
+      #|      @v.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @v.el("p")
+      #|                @v.append(__vm_el.as_node(), @v.setText(fn() { phase.get().to_string() }))
+      #|                @v.into(__vm_el)
       #|              })())
-      #|      @vm_dom.append(__vm_el.as_node(), (fn() {
-      #|                let __vm_el = @vm_dom.el("p")
-      #|                @vm_dom.append(__vm_el.as_node(), @vm_dom.setText(fn() { instance_id.to_string() }))
-      #|                @vm_dom.into(__vm_el)
+      #|      @v.append(__vm_el.as_node(), (fn() {
+      #|                let __vm_el = @v.el("p")
+      #|                @v.append(__vm_el.as_node(), @v.setText(fn() { instance_id.to_string() }))
+      #|                @v.into(__vm_el)
       #|              })())
-      #|      @vm_dom.into(__vm_el)
+      #|      @v.into(__vm_el)
       #|    })()
       #|}
       #|

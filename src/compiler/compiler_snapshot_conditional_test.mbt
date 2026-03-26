@@ -16,22 +16,22 @@ test "snapshot v-if v-else compile" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  let visible = true
       #|  if visible {
       #|      (fn() {
-      #|            let __vm_el = @vm_dom.el("div")
-      #|            @vm_dom.append(__vm_el.as_node(), @vm_dom.text("shown"))
-      #|            @vm_dom.into(__vm_el)
+      #|            let __vm_el = @v.el("div")
+      #|            @v.append(__vm_el.as_node(), @v.text("shown"))
+      #|            @v.into(__vm_el)
       #|          })()
       #|    } else {
       #|      (fn() {
-      #|            let __vm_el = @vm_dom.el("div")
-      #|            @vm_dom.append(__vm_el.as_node(), @vm_dom.text("hidden"))
-      #|            @vm_dom.into(__vm_el)
+      #|            let __vm_el = @v.el("div")
+      #|            @v.append(__vm_el.as_node(), @v.text("hidden"))
+      #|            @v.into(__vm_el)
       #|          })()
       #|    }
       #|}
@@ -122,28 +122,28 @@ test "snapshot v-if v-else-if v-else compile" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  let count = 0
       #|  if count > 0 {
       #|      (fn() {
-      #|            let __vm_el = @vm_dom.el("div")
-      #|            @vm_dom.append(__vm_el.as_node(), @vm_dom.text("positive"))
-      #|            @vm_dom.into(__vm_el)
+      #|            let __vm_el = @v.el("div")
+      #|            @v.append(__vm_el.as_node(), @v.text("positive"))
+      #|            @v.into(__vm_el)
       #|          })()
       #|    } else if count == 0 {
       #|      (fn() {
-      #|            let __vm_el = @vm_dom.el("div")
-      #|            @vm_dom.append(__vm_el.as_node(), @vm_dom.text("zero"))
-      #|            @vm_dom.into(__vm_el)
+      #|            let __vm_el = @v.el("div")
+      #|            @v.append(__vm_el.as_node(), @v.text("zero"))
+      #|            @v.into(__vm_el)
       #|          })()
       #|    } else {
       #|      (fn() {
-      #|            let __vm_el = @vm_dom.el("div")
-      #|            @vm_dom.append(__vm_el.as_node(), @vm_dom.text("negative"))
-      #|            @vm_dom.into(__vm_el)
+      #|            let __vm_el = @v.el("div")
+      #|            @v.append(__vm_el.as_node(), @v.text("negative"))
+      #|            @v.into(__vm_el)
       #|          })()
       #|    }
       #|}
@@ -237,22 +237,22 @@ test "snapshot v-if v-else-if without v-else compile" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  let mode = "a"
       #|  if mode == "a" {
       #|      (fn() {
-      #|            let __vm_el = @vm_dom.el("p")
-      #|            @vm_dom.append(__vm_el.as_node(), @vm_dom.text("alpha"))
-      #|            @vm_dom.into(__vm_el)
+      #|            let __vm_el = @v.el("p")
+      #|            @v.append(__vm_el.as_node(), @v.text("alpha"))
+      #|            @v.into(__vm_el)
       #|          })()
       #|    } else if mode == "b" {
       #|      (fn() {
-      #|            let __vm_el = @vm_dom.el("p")
-      #|            @vm_dom.append(__vm_el.as_node(), @vm_dom.text("beta"))
-      #|            @vm_dom.into(__vm_el)
+      #|            let __vm_el = @v.el("p")
+      #|            @v.append(__vm_el.as_node(), @v.text("beta"))
+      #|            @v.into(__vm_el)
       #|          })()
       #|    }
       #|}
@@ -338,14 +338,14 @@ test "snapshot v-if v-else on components compile" {
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
       #|  "ubugeeei/vapor_moon/src/runtime" @vm,
-      #|  "ubugeeei/vapor_moon/src/runtime/dom" @vm_dom,
+      #|  "ubugeeei/vapor_moon/src/runtime/dom" @v,
       #|}
       #|
       #|pub fn render_dom() -> @luna_dom.DomNode {
       #|  if active {
-      #|      @vm_dom.component("ActivePanel", [], [])
+      #|      @v.component("ActivePanel", [], [])
       #|    } else {
-      #|      @vm_dom.component("InactivePanel", [], [])
+      #|      @v.component("InactivePanel", [], [])
       #|    }
       #|}
       #|
