@@ -1,0 +1,22 @@
+version 1
+key hub/work-item/20/meta
+kind work-item
+clock mizchi=1
+timestamp 1774521069
+node mizchi
+deleted 0
+
+work-item 20
+title feat: dynamic components (<component :is>)
+author mizchi
+created 1774520866
+updated 1774520866
+state open
+
+Vue 3's dynamic component rendering via \`<component :is=\"currentComponent\">\` is not implemented.
+
+```html
+<template>
+  <component :is='activeTab' />
+</template>
+```
