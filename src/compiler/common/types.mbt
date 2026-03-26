@@ -163,6 +163,14 @@ pub(all) struct TemplateElement {
   key_expr : String?
   ref_name : String?
   once : Bool
+  else_if_expr : String?
+  is_else : Bool
+} derive(Eq, Show)
+
+///|
+pub(all) struct ConditionalBranch {
+  condition : String?
+  element : TemplateElement
 } derive(Eq, Show)
 
 ///|
@@ -170,6 +178,7 @@ pub(all) enum TemplateNode {
   Element(TemplateElement)
   Text(String)
   Interpolation(String)
+  Conditional(Array[ConditionalBranch])
 } derive(Eq, Show)
 
 ///|

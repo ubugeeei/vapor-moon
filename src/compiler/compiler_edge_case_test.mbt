@@ -515,12 +515,12 @@ test "rejects plain void elements without self closing syntax" {
 }
 
 ///|
-test "rejects unsupported generic directives" {
+test "rejects v-else without preceding v-if" {
   let source =
     #|<template><div v-else></div></template>
   assert_eq(
     compile_error(source, "invalid/unsupported_v_else.mbtv"),
-    "InvalidDirective(\"unsupported directive on <div>: `v-else`\")",
+    "InvalidDirective(\"`v-else` requires a preceding `v-if` on <div>\")",
   )
 }
 

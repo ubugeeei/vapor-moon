@@ -50,7 +50,36 @@ fn render_client_node(
       }
       wrap_client_directives(element, rendered)
     }
+    Conditional(branches) =>
+      render_client_conditional(branches, indent, scope_id, static_mode)
   }
+}
+
+///|
+fn render_client_conditional(
+  branches : Array[ConditionalBranch],
+  indent : Int,
+  scope_id : String?,
+  static_mode : Bool,
+) -> String {
+  let sb = StringBuilder::new()
+  for i, branch in branches {
+    let rendered = render_client_node(
+      Element(branch.element), indent + 2, scope_id, static_mode,
+    )
+    match branch.condition {
+      Some(condition) =>
+        if i == 0 {
+          sb.write_string("if " + condition + " {\n")
+        } else {
+          sb.write_string(" else if " + condition + " {\n")
+        }
+      None => sb.write_string(" else {\n")
+    }
+    sb.write_string(indent_block(rendered, indent + 2))
+    sb.write_string("\n" + spaces(indent) + "}")
+  }
+  sb.to_string()
 }
 
 ///|
@@ -98,7 +127,36 @@ fn render_server_node(
       }
       wrap_server_directives(element, rendered)
     }
+    Conditional(branches) =>
+      render_server_conditional(branches, indent, scope_id, static_mode)
   }
+}
+
+///|
+fn render_server_conditional(
+  branches : Array[ConditionalBranch],
+  indent : Int,
+  scope_id : String?,
+  static_mode : Bool,
+) -> String {
+  let sb = StringBuilder::new()
+  for i, branch in branches {
+    let rendered = render_server_node(
+      Element(branch.element), indent + 2, scope_id, static_mode,
+    )
+    match branch.condition {
+      Some(condition) =>
+        if i == 0 {
+          sb.write_string("if " + condition + " {\n")
+        } else {
+          sb.write_string(" else if " + condition + " {\n")
+        }
+      None => sb.write_string(" else {\n")
+    }
+    sb.write_string(indent_text(rendered, indent + 2))
+    sb.write_string("\n" + spaces(indent) + "}")
+  }
+  sb.to_string()
 }
 
 ///|
