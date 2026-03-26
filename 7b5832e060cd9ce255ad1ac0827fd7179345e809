@@ -1,8 +1,8 @@
 version 1
 key hub/work-item/7/meta
 kind work-item
-clock mizchi=1
-timestamp 1774521069
+clock mizchi=2
+timestamp 1774521241
 node mizchi
 deleted 0
 
@@ -10,16 +10,24 @@ work-item 7
 title feat: v-model on components
 author mizchi
 created 1774520796
-updated 1774520796
+updated 1774521241
 state open
+label high
 
-Currently v-model only works on native form elements (`<input>`, `<textarea>`, `<select>`).
-Component v-model is explicitly rejected with \"not supported yet\".
+## Priority: High
 
-## Expected
+v-model works on native form elements but is rejected on components with "not supported yet".
+
+## Scope
+
+- Desugar `v-model` on components to `:modelValue` + `@update:modelValue` prop/emit pair
+- Support named v-model: `v-model:title='titleRef'`
+- Validate against component's defineProps/defineEmits contracts
+
+## Example
 
 ```html
 <MyInput v-model='name' />
+<!-- desugars to: -->
+<MyInput :modelValue='name.get()' @update:modelValue='name.set' />
 ```
-
-Should desugar to `:modelValue='name.get()'` + `@update:modelValue='name.set'` prop/emit pair, consistent with Vue 3 component v-model convention.
