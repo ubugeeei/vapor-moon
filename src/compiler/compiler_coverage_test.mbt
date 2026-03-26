@@ -28,6 +28,38 @@ test "component with dynamic attr compiles" {
   assert_true(output.contains("val"))
 }
 
+///|
+test "client temp nodes use short incrementing names" {
+  let source =
+    #|<template>
+    #|  <section>
+    #|    <button>inc</button>
+    #|    <p>count</p>
+    #|  </section>
+    #|</template>
+  let output = compile(source, filename="ShortTempNames.mbtv")
+  assert_true(output.client_code.contains("let n0 = @dom.el(\"section\")"))
+  assert_true(output.client_code.contains("let n1 = @dom.el(\"button\")"))
+  assert_true(output.client_code.contains("let n2 = @dom.el(\"p\")"))
+  assert_false(output.client_code.contains("__vm_el"))
+}
+
+///|
+test "dynamic interpolation creates text node then binds setText" {
+  let output = compile(basic_source(), filename="DynamicTextNode.mbtv")
+  assert_true(output.client_code.contains("let n1 = @dom.text(\"\")"))
+  assert_true(
+    output.client_code.contains(
+      "@dom.setText(n1, fn() { count.get().to_string() })",
+    ),
+  )
+  assert_false(
+    output.client_code.contains(
+      "@dom.append(n0.as_node(), @dom.setText(fn() { count.get().to_string() }))",
+    ),
+  )
+}
+
 // ── Template comments in interpolation (text.mbt) ─────────────
 
 ///|

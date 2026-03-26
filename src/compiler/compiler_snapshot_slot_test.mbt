@@ -12,9 +12,9 @@ test "snapshot named slots with #shorthand" {
     #|    <p>Default content</p>
     #|  </MyLayout>
     #|</template>
-  inspect(
+  assert_snapshot(
     compile_snapshot(source, "NamedSlots.mbtv"),
-    content=(
+    (
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
@@ -130,9 +130,9 @@ test "snapshot default slot only (no named slots)" {
     #|    <p>Just default</p>
     #|  </MyCard>
     #|</template>
-  inspect(
+  assert_snapshot(
     compile_snapshot(source, "DefaultSlotOnly.mbtv"),
-    content=(
+    (
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
@@ -225,9 +225,9 @@ test "snapshot v-slot:name full syntax" {
     #|    </template>
     #|  </MyDialog>
     #|</template>
-  inspect(
+  assert_snapshot(
     compile_snapshot(source, "VSlotSyntax.mbtv"),
-    content=(
+    (
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,

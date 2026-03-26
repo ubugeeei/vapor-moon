@@ -9,9 +9,9 @@ test "snapshot v-if v-else compile" {
     #|  <div v-if='visible'>shown</div>
     #|  <div v-else>hidden</div>
     #|</template>
-  inspect(
+  assert_snapshot(
     compile_snapshot(source, "IfElse.mbtv"),
-    content=(
+    (
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
@@ -115,9 +115,9 @@ test "snapshot v-if v-else-if v-else compile" {
     #|  <div v-else-if='count == 0'>zero</div>
     #|  <div v-else>negative</div>
     #|</template>
-  inspect(
+  assert_snapshot(
     compile_snapshot(source, "IfElseIf.mbtv"),
-    content=(
+    (
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
@@ -230,9 +230,9 @@ test "snapshot v-if v-else-if without v-else compile" {
     #|  <p v-if='mode == "a"'>alpha</p>
     #|  <p v-else-if='mode == "b"'>beta</p>
     #|</template>
-  inspect(
+  assert_snapshot(
     compile_snapshot(source, "IfElseIfNoElse.mbtv"),
-    content=(
+    (
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
@@ -331,9 +331,9 @@ test "snapshot v-if v-else on components compile" {
     #|  <ActivePanel v-if='active' />
     #|  <InactivePanel v-else />
     #|</template>
-  inspect(
+  assert_snapshot(
     compile_snapshot(source, "ConditionalComponent.mbtv"),
-    content=(
+    (
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,

@@ -74,17 +74,16 @@ pub fn text(content : String) -> @luna_dom.DomNode {
 
 ///|
 pub fn text_expr(content : () -> String) -> @luna_dom.DomNode {
-  let doc = @js_dom.document()
-  let node = doc.createTextNode(content())
-  let _ = @resource.render_effect(fn() {
-    node.as_node().setTextContent(content())
-  })
-  @luna_dom.dom_node(node)
+  let node = text("")
+  setText(node, content)
+  node
 }
 
 ///|
-pub fn setText(content : () -> String) -> @luna_dom.DomNode {
-  text_expr(content)
+pub fn setText(node : @luna_dom.DomNode, content : () -> String) -> Unit {
+  let text_node = node.to_dom()
+  text_node.setTextContent(content())
+  let _ = @resource.render_effect(fn() { text_node.setTextContent(content()) })
 }
 
 ///|

@@ -12,9 +12,9 @@ test "snapshot v-match string matching" {
     #|    <p v-default>Unknown</p>
     #|  </div>
     #|</template>
-  inspect(
+  assert_snapshot(
     compile_snapshot(source, "MatchString.mbtv"),
-    content=(
+    (
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
@@ -131,9 +131,9 @@ test "snapshot v-match enum pattern" {
     #|    <p v-case='Err(msg)'>{{ msg }}</p>
     #|  </div>
     #|</template>
-  inspect(
+  assert_snapshot(
     compile_snapshot(source, "MatchEnum.mbtv"),
-    content=(
+    (
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,
@@ -240,9 +240,9 @@ test "snapshot v-match with wildcard default" {
     #|    <p v-case='_'>Default</p>
     #|  </div>
     #|</template>
-  inspect(
+  assert_snapshot(
     compile_snapshot(source, "MatchWildcard.mbtv"),
-    content=(
+    (
       #|=== client ===
       #|import {
       #|  "mizchi/luna/dom" @luna_dom,

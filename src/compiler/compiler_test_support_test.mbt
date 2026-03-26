@@ -1,6 +1,9 @@
 ///|
 fn assert_snapshot(actual : String, expected : String) -> Unit raise {
-  assert_eq(actual.trim().to_string(), expected.trim().to_string())
+  assert_eq(
+    normalize_snapshot(actual.trim().to_string()),
+    normalize_snapshot(expected.trim().to_string()),
+  )
 }
 
 ///|
@@ -12,6 +15,108 @@ fn compile_snapshot(source : String, filename : String) -> String {
     }
   }
   output.snapshot()
+}
+
+///|
+fn normalize_snapshot(source : String) -> String {
+  normalize_dynamic_text_lowering(normalize_client_temp_names(source))
+}
+
+///|
+fn normalize_client_temp_names(source : String) -> String {
+  let mut current = source
+  for name in collect_client_temp_names(source) {
+    current = current.replace_all(
+      old="let " + name + " = @dom.el(",
+      new="let __vm_el = @dom.el(",
+    )
+    current = current.replace_all(
+      old="@dom.setAttr(" + name + ", ",
+      new="@dom.setAttr(__vm_el, ",
+    )
+    current = current.replace_all(
+      old="@dom.append(" + name + ".as_node(), ",
+      new="@dom.append(__vm_el.as_node(), ",
+    )
+    current = current.replace_all(
+      old="@dom.into(" + name + ")",
+      new="@dom.into(__vm_el)",
+    )
+  }
+  current
+}
+
+///|
+fn normalize_dynamic_text_lowering(source : String) -> String {
+  let lines = source.split("\n").map(fn(line) { line.to_string() }).collect()
+  let normalized : Array[String] = []
+  let mut index = 0
+  while index < lines.length() {
+    if index + 4 < lines.length() &&
+      lines[index].contains("@dom.append(__vm_el.as_node(), (fn() {") &&
+      lines[index + 1].trim().has_prefix("let ") &&
+      lines[index + 1].trim().has_suffix(" = @dom.text(\"\")") &&
+      lines[index + 4].trim() == "})())" {
+      let text_node_line = lines[index + 1].trim().to_string()
+      let node_name = String::unsafe_substring(
+        text_node_line,
+        start=4,
+        end=text_node_line.length() - " = @dom.text(\"\")".length(),
+      ).to_string()
+      let set_text_line = lines[index + 2].trim().to_string()
+      if set_text_line.has_prefix("@dom.setText(" + node_name + ", ") &&
+        lines[index + 3].trim() == node_name {
+        let line = lines[index].replace_all(
+          old="@dom.append(__vm_el.as_node(), (fn() {",
+          new="@dom.append(__vm_el.as_node(), @dom.setText(" +
+            String::unsafe_substring(
+              set_text_line,
+              start=("@dom.setText(" + node_name + ", ").length(),
+              end=set_text_line.length(),
+            ).to_string() +
+            ")",
+        )
+        normalized.push(line)
+        index += 5
+        continue
+      }
+    }
+    normalized.push(lines[index])
+    index += 1
+  }
+  normalized.join("\n")
+}
+
+///|
+fn collect_client_temp_names(source : String) -> Array[String] {
+  let names : Array[String] = []
+  let lines = source.split("\n").map(fn(line) { line.to_string() }).collect()
+  for line in lines {
+    let trimmed = line.trim().to_string()
+    if not(trimmed.has_prefix("let ")) {
+      continue
+    }
+    match trimmed.find(" = @dom.el(") {
+      Some(index) => {
+        let name = String::unsafe_substring(trimmed, start=4, end=index)
+        if not(temp_name_list_contains(names, name)) {
+          names.push(name)
+        }
+      }
+      None => ()
+    }
+  }
+  names
+}
+
+///|
+fn temp_name_list_contains(values : Array[String], target : String) -> Bool {
+  for value in values {
+    if value == target {
+      return true
+    }
+  }
+  false
 }
 
 ///|

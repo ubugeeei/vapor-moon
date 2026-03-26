@@ -32,7 +32,10 @@ pub fn emit_client_module(
     sb.write_string(prop_setup)
     sb.write_string("\n")
   }
-  sb.write_string(render_client_nodes(template, 2, scope_id))
+  let client_node_counter : Array[Int] = [0]
+  sb.write_string(
+    render_client_nodes(template, 2, scope_id, client_node_counter),
+  )
   sb.write_string("\n}\n\n")
   sb.write_string(emit_component_metadata(doc))
   sb.write_string("\n")
