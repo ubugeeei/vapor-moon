@@ -22,13 +22,11 @@ fn skip_inline_gap(source : String, chars : Array[Char], start : Int) -> Int {
 
 ///|
 fn starts_with_local(source : String, start : Int, expected : String) -> Bool {
-  let expected_chars = expected.to_array()
-  if start + expected_chars.length() > source.length() {
+  if start + expected.length() > source.length() {
     return false
   }
-  let chars = source.to_array()
-  for index in 0..<expected_chars.length() {
-    if chars[start + index] != expected_chars[index] {
+  for index in 0..<expected.length() {
+    if source[start + index] != expected[index] {
       return false
     }
   }
