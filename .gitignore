@@ -5,6 +5,7 @@ editors/zed/target/
 node_modules/
 dist/
 coverage/
+e2e/test-results/
 *.log
 *.tmp
 *.swp

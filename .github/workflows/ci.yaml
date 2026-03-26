@@ -7,12 +7,8 @@ on:
   pull_request:
 
 jobs:
-  check:
+  check-native:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        target: [native, js]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,7 +19,49 @@ jobs:
       - name: Moon update
         run: moon update
       - name: Moon check
-        run: moon check --deny-warn --target ${{ matrix.target }} 2> >(grep -v 'WARN Duplicate alias' >&2)
+        run: moon check --deny-warn --target native 2> >(grep -v 'WARN Duplicate alias' >&2)
       - name: Moon test
-        if: matrix.target == 'native'
         run: moon test --target native
+
+  check-js:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install MoonBit CLI
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Moon update
+        run: moon update
+      - name: Moon check
+        run: moon check --deny-warn --target js 2> >(grep -v 'WARN Duplicate alias' >&2)
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install MoonBit CLI
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Moon update
+        run: moon update
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: e2e/pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm install
+        working-directory: e2e
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium --with-deps
+        working-directory: e2e
+      - name: Run E2E tests
+        run: pnpm test
+        working-directory: e2e
