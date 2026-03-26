@@ -74,11 +74,18 @@ fn on_end_tag(
     )
   }
   validate_finalized_element(frame.element, frame.children)
-  append_node(
-    Element({ ..frame.element, children: frame.children }),
-    roots,
-    stack,
-  )
+  match frame.element.match_expr {
+    Some(expr) => {
+      let match_node = build_match_node(expr, frame.children, frame.element.tag)
+      append_node(Match(match_node), roots, stack)
+    }
+    None =>
+      append_node(
+        Element({ ..frame.element, children: frame.children }),
+        roots,
+        stack,
+      )
+  }
 }
 
 ///|
@@ -100,6 +107,9 @@ fn build_template_element(
   let mut key_expr : String? = None
   let mut ref_name : String? = None
   let mut once = false
+  let mut match_expr : String? = None
+  let mut case_pattern : String? = None
+  let mut is_case_default = false
   let mut island_directive : String? = None
   let final_attrs : Array[TemplateAttr] = []
   for attr in attrs {
@@ -122,6 +132,44 @@ fn build_template_element(
           )
         }
         is_else = true
+      }
+      "v-match" => {
+        ensure_empty_expr_directive(match_expr, attr, tag)
+        match_expr = Some(expect_attr_value(attr, tag))
+      }
+      "v-case" => {
+        if is_case_default {
+          raise CompilerError::InvalidDirective(
+            "`v-case` cannot be combined with `v-default` on <\{tag}>",
+          )
+        }
+        ensure_empty_expr_directive(case_pattern, attr, tag)
+        if attr.has_value {
+          let value = attr.value.trim().to_string()
+          if value == "_" {
+            is_case_default = true
+          } else {
+            case_pattern = Some(value)
+          }
+        } else {
+          raise CompilerError::InvalidDirective(
+            "`v-case` requires a pattern value on <\{tag}>; use `v-default` for the fallback branch",
+          )
+        }
+      }
+      "v-default" => {
+        reject_unexpected_attr_value(attr, tag)
+        if case_pattern is Some(_) {
+          raise CompilerError::InvalidDirective(
+            "`v-default` cannot be combined with `v-case` on <\{tag}>",
+          )
+        }
+        if is_case_default {
+          raise CompilerError::InvalidDirective(
+            "duplicate `v-default` on <\{tag}>",
+          )
+        }
+        is_case_default = true
       }
       "v-for" => {
         ensure_empty_expr_directive(
@@ -273,6 +321,9 @@ fn build_template_element(
     once,
     else_if_expr,
     is_else,
+    match_expr,
+    case_pattern,
+    is_case_default,
   }
 }
 
@@ -287,9 +338,26 @@ fn append_node(
   } else {
     stack[stack.length() - 1].children
   }
+  let parent_has_match = if stack.is_empty() {
+    false
+  } else {
+    stack[stack.length() - 1].element.match_expr is Some(_)
+  }
   match node {
-    Element(element) if element.else_if_expr is Some(_) || element.is_else =>
-      append_conditional_branch(target, element)
+    Element(element) => {
+      if element.else_if_expr is Some(_) || element.is_else {
+        append_conditional_branch(target, element)
+      } else if (element.case_pattern is Some(_) || element.is_case_default) &&
+        not(parent_has_match) {
+        raise CompilerError::InvalidDirective(
+          "`v-case` must be a direct child of a `v-match` element on <" +
+          element.tag +
+          ">",
+        )
+      } else {
+        target.push(node)
+      }
+    }
     _ => target.push(node)
   }
 }
@@ -352,6 +420,70 @@ fn conditional_directive_name(element : TemplateElement) -> String {
   } else {
     "v-else-if"
   }
+}
+
+///|
+fn build_match_node(
+  expr : String,
+  children : Array[TemplateNode],
+  tag : String,
+) -> MatchNode raise CompilerError {
+  let branches : Array[MatchBranch] = []
+  let mut has_default = false
+  for child in children {
+    match child {
+      Text(content) =>
+        if content.trim().length() > 0 {
+          raise CompilerError::InvalidDirective(
+            "non-whitespace text is not allowed as direct child of `v-match` on <\{tag}>",
+          )
+        }
+      Interpolation(_) =>
+        raise CompilerError::InvalidDirective(
+          "interpolation is not allowed as direct child of `v-match` on <\{tag}>",
+        )
+      Element(element) => {
+        if element.case_pattern is None && not(element.is_case_default) {
+          raise CompilerError::InvalidDirective(
+            "direct children of `v-match` must use `v-case` on <\{tag}>: found <\{element.tag}> without `v-case`",
+          )
+        }
+        if element.is_case_default {
+          if has_default {
+            raise CompilerError::InvalidDirective(
+              "duplicate `v-default` in `v-match` on <\{tag}>",
+            )
+          }
+          has_default = true
+          branches.push({
+            pattern: "_",
+            is_default: true,
+            element: { ..element, case_pattern: None, is_case_default: false },
+          })
+        } else {
+          branches.push({
+            pattern: element.case_pattern.unwrap(),
+            is_default: false,
+            element: { ..element, case_pattern: None, is_case_default: false },
+          })
+        }
+      }
+      Conditional(_) =>
+        raise CompilerError::InvalidDirective(
+          "conditional chains are not allowed inside `v-match` on <\{tag}>",
+        )
+      Match(_) =>
+        raise CompilerError::InvalidDirective(
+          "nested `v-match` is not allowed as direct child of `v-match` on <\{tag}>",
+        )
+    }
+  }
+  if branches.is_empty() {
+    raise CompilerError::InvalidDirective(
+      "`v-match` on <\{tag}> has no `v-case` children",
+    )
+  }
+  { expr, branches }
 }
 
 ///|

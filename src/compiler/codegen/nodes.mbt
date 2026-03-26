@@ -52,7 +52,30 @@ fn render_client_node(
     }
     Conditional(branches) =>
       render_client_conditional(branches, indent, scope_id, static_mode)
+    Match(node) =>
+      render_client_match(node, indent, scope_id, static_mode)
   }
+}
+
+///|
+fn render_client_match(
+  node : MatchNode,
+  indent : Int,
+  scope_id : String?,
+  static_mode : Bool,
+) -> String {
+  let sb = StringBuilder::new()
+  sb.write_string("match " + node.expr + " {\n")
+  for branch in node.branches {
+    let rendered = render_client_node(
+      Element(branch.element), indent + 4, scope_id, static_mode,
+    )
+    sb.write_string(spaces(indent + 2) + branch.pattern + " =>\n")
+    sb.write_string(indent_block(rendered, indent + 4))
+    sb.write_string("\n")
+  }
+  sb.write_string(spaces(indent) + "}")
+  sb.to_string()
 }
 
 ///|
@@ -129,7 +152,30 @@ fn render_server_node(
     }
     Conditional(branches) =>
       render_server_conditional(branches, indent, scope_id, static_mode)
+    Match(node) =>
+      render_server_match(node, indent, scope_id, static_mode)
   }
+}
+
+///|
+fn render_server_match(
+  node : MatchNode,
+  indent : Int,
+  scope_id : String?,
+  static_mode : Bool,
+) -> String {
+  let sb = StringBuilder::new()
+  sb.write_string("match " + node.expr + " {\n")
+  for branch in node.branches {
+    let rendered = render_server_node(
+      Element(branch.element), indent + 4, scope_id, static_mode,
+    )
+    sb.write_string(spaces(indent + 2) + branch.pattern + " =>\n")
+    sb.write_string(indent_text(rendered, indent + 4))
+    sb.write_string("\n")
+  }
+  sb.write_string(spaces(indent) + "}")
+  sb.to_string()
 }
 
 ///|

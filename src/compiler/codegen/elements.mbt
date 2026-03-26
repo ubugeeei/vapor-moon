@@ -255,6 +255,10 @@ fn collect_node_islands(node : TemplateNode, result : Array[String]) -> Unit {
       for branch in branches {
         collect_node_islands(Element(branch.element), result)
       }
+    Match(node) =>
+      for branch in node.branches {
+        collect_node_islands(Element(branch.element), result)
+      }
     _ => ()
   }
 }
