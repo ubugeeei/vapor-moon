@@ -57,7 +57,7 @@
   "mbtv-template": {
     "prefix": "mbtv",
     "body": [
-      "<script setup>",
+      "<script>",
       "${1}",
       "</script>",
       "",

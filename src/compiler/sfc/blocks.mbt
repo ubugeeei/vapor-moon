@@ -103,9 +103,11 @@ fn classify_block(tag : String, attrs : Array[BlockAttr]) -> BlockKind {
     Template
   } else if tag == "style" {
     Style
+  } else if has_attr(attrs, "extern") {
+    ScriptExtern
   } else if has_attr(attrs, "setup") {
     ScriptSetup
   } else {
-    Script
+    ScriptSetup
   }
 }

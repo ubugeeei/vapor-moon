@@ -12,4 +12,4 @@ using @common {
 }
 
 ///|
-using @script_setup {analyze_script_setup}
+using @script_setup {analyze_script_extern, analyze_script_setup}

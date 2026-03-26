@@ -1,4 +1,4 @@
-<script setup>
+<script>
 struct Slots {
   default : Unit
   footer : String

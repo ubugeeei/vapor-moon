@@ -4,5 +4,6 @@ using @common {
   type MacroField,
   type MacroFieldTypeShape,
   type PropDefault,
+  type ScriptExternInfo,
   type ScriptSetupInfo,
 }

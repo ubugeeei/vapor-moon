@@ -1,4 +1,4 @@
-<script setup>
+<script>
 import {
   "mizchi/luna/js/resource" @reactivity,
   let signal = @reactivity.signal,
