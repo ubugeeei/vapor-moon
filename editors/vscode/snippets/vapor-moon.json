@@ -1,0 +1,80 @@
+{
+  "v-if": {
+    "prefix": "v-if",
+    "body": "v-if='${1:condition}'",
+    "description": "Conditional rendering"
+  },
+  "v-else-if": {
+    "prefix": "v-else-if",
+    "body": "v-else-if='${1:condition}'",
+    "description": "Conditional branch"
+  },
+  "v-else": {
+    "prefix": "v-else",
+    "body": "v-else",
+    "description": "Fallback branch"
+  },
+  "v-for": {
+    "prefix": "v-for",
+    "body": "v-for='(${1:item}, ${2:index}) in ${3:items}'",
+    "description": "List rendering"
+  },
+  "v-match": {
+    "prefix": "v-match",
+    "body": "v-match='${1:expr}'",
+    "description": "Pattern matching on an expression"
+  },
+  "v-case": {
+    "prefix": "v-case",
+    "body": "v-case='${1:pattern}'",
+    "description": "Match branch pattern"
+  },
+  "v-default": {
+    "prefix": "v-default",
+    "body": "v-default",
+    "description": "Default match branch"
+  },
+  "v-show": {
+    "prefix": "v-show",
+    "body": "v-show='${1:condition}'",
+    "description": "Toggle visibility"
+  },
+  "v-model": {
+    "prefix": "v-model",
+    "body": "v-model='${1:ref}.get()'",
+    "description": "Two-way binding"
+  },
+  "v-html": {
+    "prefix": "v-html",
+    "body": "v-html='${1:content}'",
+    "description": "Render raw HTML"
+  },
+  "v-once": {
+    "prefix": "v-once",
+    "body": "v-once",
+    "description": "Render once, skip reactivity"
+  },
+  "mbtv-template": {
+    "prefix": "mbtv",
+    "body": [
+      "<script setup>",
+      "${1}",
+      "</script>",
+      "",
+      "<template>",
+      "  ${2:<div></div>}",
+      "</template>"
+    ],
+    "description": "Vapor Moon SFC template"
+  },
+  "mbtv-match-block": {
+    "prefix": "vmatch",
+    "body": [
+      "<div v-match='${1:expr}'>",
+      "  <${2:div} v-case='${3:pattern}'>${4}</${2:div}>",
+      "  <${2:div} v-default>${5}</${2:div}>",
+      "</div>"
+    ],
+    "description": "Pattern matching block"
+  }
+}

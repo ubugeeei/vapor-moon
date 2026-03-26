@@ -29,6 +29,12 @@
         "configuration": "./language-configuration.json"
       }
     ],
+    "snippets": [
+      {
+        "language": "vapor-moon",
+        "path": "./snippets/vapor-moon.json"
+      }
+    ],
     "grammars": [
       {
         "language": "vapor-moon",
