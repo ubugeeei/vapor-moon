@@ -299,13 +299,17 @@ fn build_template_element(
       _ if attr.name.has_prefix("#") => {
         ensure_empty_expr_directive(slot_name, attr, tag)
         let name = String::unsafe_substring(
-          attr.name, start=1, end=attr.name.length(),
+          attr.name,
+          start=1,
+          end=attr.name.length(),
         )
-        slot_name = Some(if name == "default" || name.length() == 0 {
-          "default"
-        } else {
-          name
-        })
+        slot_name = Some(
+          if name == "default" || name.length() == 0 {
+            "default"
+          } else {
+            name
+          },
+        )
       }
       _ =>
         match parse_model_attr(attr) {

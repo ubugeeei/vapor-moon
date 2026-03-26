@@ -58,7 +58,12 @@ fn render_client_component(
   let props = render_client_component_props(element, static_mode)
   let meta_attrs = render_client_component_meta_attrs(element)
   let children = if has_named_slots(element.children) {
-    render_client_slots_record(element.children, indent + 2, scope_id, static_mode)
+    render_client_slots_record(
+      element.children,
+      indent + 2,
+      scope_id,
+      static_mode,
+    )
   } else {
     render_client_children(element.children, indent + 2, scope_id, static_mode)
   }
@@ -120,7 +125,12 @@ fn render_server_component(
   let props = render_server_component_props(element, static_mode)
   let meta_attrs = render_server_component_meta_attrs(element)
   let children = if has_named_slots(element.children) {
-    render_server_slots_record(element.children, indent + 2, scope_id, static_mode)
+    render_server_slots_record(
+      element.children,
+      indent + 2,
+      scope_id,
+      static_mode,
+    )
   } else {
     render_server_children(element.children, indent + 2, scope_id, static_mode)
   }
