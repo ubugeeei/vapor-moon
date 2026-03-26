@@ -1,8 +1,8 @@
 version 1
 key hub/work-item/13/meta
 kind work-item
-clock mizchi=1
-timestamp 1774521069
+clock mizchi=2
+timestamp 1774521218
 node mizchi
 deleted 0
 
@@ -10,17 +10,23 @@ work-item 13
 title feat: component import and linking across .mbtv files
 author mizchi
 created 1774520835
-updated 1774520835
+updated 1774521218
 state open
+label critical
 
-README lists this as intentionally excluded: \"a finalized component import / linking story across generated files\".
+## Priority: Critical
 
-When \`<CounterPanel>\` is used in a template, there is no mechanism to resolve it to another \`.mbtv\` file, compile it, and link the generated modules together.
+The most important missing feature. When `<CounterPanel>` is used in a template, there is no mechanism to resolve it to another `.mbtv` file, compile it, and link the generated modules.
 
-This is the most critical gap for building real applications.
+## Scope
 
-## Needed
+- Define component resolution convention (file-based naming or explicit import)
+- Cross-file dependency tracking in `IncrementalCompiler`
+- Module assembly: combine compiled outputs into a buildable moon package
+- Island component resolution for SSR/client split
 
-- Convention for component resolution (file-based or explicit import)
-- Cross-file dependency tracking
-- Bundle/module assembly from compiled outputs
+## Design considerations
+
+- Should integrate with moon's module system
+- `IncrementalCompiler` already tracks per-file queries; cross-file deps can be added as ripple queries
+- Convention: `<CounterPanel>` resolves to `counter_panel.mbtv` in same directory?
