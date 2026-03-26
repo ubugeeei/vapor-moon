@@ -1,8 +1,8 @@
 version 1
 key hub/work-item/16/meta
 kind work-item
-clock mizchi=1
-timestamp 1774521069
+clock mizchi=2
+timestamp 1774521255
 node mizchi
 deleted 0
 
@@ -10,15 +10,16 @@ work-item 16
 title feat: Teleport built-in component
 author mizchi
 created 1774520853
-updated 1774520853
+updated 1774521255
 state open
+label medium
 
-Vue 3's \`<Teleport to=\"#target\">\` for rendering content outside the component's DOM hierarchy is not implemented. Essential for modals, tooltips, and overlays.
+Render content outside component DOM hierarchy. Essential for modals, tooltips, overlays.
 
 ```html
-<template>
-  <Teleport to='body'>
-    <div class=\"modal\">...</div>
-  </Teleport>
-</template>
+<Teleport to='body'>
+  <div class="modal">...</div>
+</Teleport>
 ```
+
+Priority: Medium
