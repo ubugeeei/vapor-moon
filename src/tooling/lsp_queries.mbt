@@ -1,4 +1,8 @@
 ///|
+/// Editor-facing hover/definition/completion queries built on top of `ToolingIndex`.
+
+///|
+/// Compute diagnostics for a document without spinning up the JSON-RPC server.
 pub fn diagnostics(
   source : String,
   filename? : String = "Component.mbtv",
@@ -7,6 +11,7 @@ pub fn diagnostics(
 }
 
 ///|
+/// Resolve hover contents at a UTF-16 line/character position.
 pub fn hover_at(
   source : String,
   line : Int,
@@ -23,6 +28,7 @@ pub fn hover_at(
 }
 
 ///|
+/// Resolve the definition target for the token at the given UTF-16 position.
 pub fn definition_at(
   source : String,
   line : Int,
@@ -39,6 +45,7 @@ pub fn definition_at(
 }
 
 ///|
+/// Compute completion items using template-ref, member, and general directive contexts.
 pub fn complete_at(
   source : String,
   line : Int,
@@ -58,6 +65,7 @@ pub fn complete_at(
 }
 
 ///|
+/// Complete members on `resolve_template_ref(ref).member` expressions.
 fn resolved_template_ref_completion_items(
   index : ToolingIndex,
   offset : Int,
@@ -91,6 +99,7 @@ fn resolved_template_ref_completion_items(
 }
 
 ///|
+/// Detect the completion context for `resolve_template_ref(binding).prefix`.
 fn resolved_template_ref_completion_context(
   source : String,
   offset : Int,
@@ -152,6 +161,7 @@ fn resolved_template_ref_completion_context(
 }
 
 ///|
+/// Find the opening parenthesis paired with a known closing parenthesis.
 fn matching_open_paren_backward(chars : Array[Char], close_paren : Int) -> Int? {
   let mut depth = 0
   let mut cursor = close_paren + 1
@@ -172,6 +182,7 @@ fn matching_open_paren_backward(chars : Array[Char], close_paren : Int) -> Int? 
 }
 
 ///|
+/// Trim ASCII spaces and tabs from a source span.
 fn trim_whitespace_span(
   chars : Array[Char],
   start : Int,
@@ -195,6 +206,7 @@ fn trim_whitespace_span(
 }
 
 ///|
+/// Check whether a source fragment is a simple identifier token.
 fn is_identifier_literal(source : String) -> Bool {
   if source.length() == 0 {
     return false
@@ -208,6 +220,7 @@ fn is_identifier_literal(source : String) -> Bool {
 }
 
 ///|
+/// Find the best hover payload for a source offset.
 fn find_hover_target(
   index : ToolingIndex,
   offset : Int,
@@ -249,6 +262,7 @@ fn find_hover_target(
 }
 
 ///|
+/// Resolve the declaration span referenced by a source offset.
 fn find_definition_target(
   index : ToolingIndex,
   offset : Int,
@@ -288,6 +302,7 @@ fn find_definition_target(
 }
 
 ///|
+/// Complete members on direct contract bindings such as `props.foo`.
 fn member_completion_items(
   index : ToolingIndex,
   offset : Int,
@@ -319,6 +334,7 @@ fn member_completion_items(
 }
 
 ///|
+/// Fallback completion path for directives, events, bindings, and macros.
 fn general_completion_items(
   index : ToolingIndex,
   offset : Int,
@@ -351,6 +367,7 @@ fn general_completion_items(
 }
 
 ///|
+/// Detect `binding.member` completion contexts at the given offset.
 fn member_completion_context(
   source : String,
   offset : Int,
@@ -379,6 +396,7 @@ fn member_completion_context(
 }
 
 ///|
+/// Render hover text for one contract field entry.
 fn member_hover_text(entry : ToolingMemberDef) -> String {
   render_field_detail(entry.contract_kind, {
     name: entry.name,
@@ -390,6 +408,7 @@ fn member_hover_text(entry : ToolingMemberDef) -> String {
 }
 
 ///|
+/// Render hover text for an entire binding, including template-ref metadata.
 fn binding_hover_text(binding : ToolingBindingDef) -> String {
   if binding.access_mode == ResolveTemplateRef {
     let type_name = binding.type_name.unwrap_or("@js_dom.Element")
@@ -420,6 +439,7 @@ fn binding_hover_text(binding : ToolingBindingDef) -> String {
 }
 
 ///|
+/// Convert a macro field into the user-facing detail string shown in LSP results.
 fn render_field_detail(
   contract_kind : String,
   field : @compiler.MacroField,

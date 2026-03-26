@@ -1,10 +1,15 @@
 ///|
+/// Semantic index shared by hover, definition, completion, and diagnostics queries.
+
+///|
+/// Distinguishes direct macro access from accesses that go through `resolve_template_ref`.
 priv enum ToolingBindingAccessMode {
   Direct
   ResolveTemplateRef
 } derive(Eq)
 
 ///|
+/// Definition site for one contract field that can appear in hover/definition results.
 priv struct ToolingMemberDef {
   contract_kind : String
   binding_name : String
@@ -14,6 +19,7 @@ priv struct ToolingMemberDef {
 }
 
 ///|
+/// Definition site for a binding such as `props`, `emit`, or a template ref.
 priv struct ToolingBindingDef {
   contract_kind : String
   binding_name : String
@@ -24,6 +30,7 @@ priv struct ToolingBindingDef {
 }
 
 ///|
+/// One resolved member access found in source code.
 priv struct ToolingMemberRef {
   contract_kind : String
   binding_name : String
@@ -33,6 +40,7 @@ priv struct ToolingMemberRef {
 }
 
 ///|
+/// Full semantic index derived from a single `.mbtv` source document.
 priv struct ToolingIndex {
   source : String
   diagnostics : Array[ToolingDiagnostic]
@@ -42,6 +50,7 @@ priv struct ToolingIndex {
 }
 
 ///|
+/// Static target inferred from a named template ref in the template tree.
 priv struct ToolingStaticTemplateRefTarget {
   ref_name : String
   type_name : String
@@ -49,6 +58,7 @@ priv struct ToolingStaticTemplateRefTarget {
 }
 
 ///|
+/// Script-side template ref binding after its target type has been inferred.
 priv struct ToolingResolvedTemplateRef {
   binding_name : String
   type_name : String
@@ -56,6 +66,7 @@ priv struct ToolingResolvedTemplateRef {
 }
 
 ///|
+/// Build the semantic index consumed by editor queries and diagnostics.
 fn build_tooling_index(source : String, filename : String) -> ToolingIndex {
   let diagnostics : Array[ToolingDiagnostic] = []
   let bindings : Array[ToolingBindingDef] = []
@@ -148,6 +159,7 @@ fn build_tooling_index(source : String, filename : String) -> ToolingIndex {
 }
 
 ///|
+/// Register one macro contract binding and all of its declared fields.
 fn collect_contract_index(
   source : String,
   block_span : @compiler.SourceSpan?,
@@ -195,6 +207,7 @@ fn collect_contract_index(
 }
 
 ///|
+/// Register `use_template_ref()` bindings together with their inferred member sets.
 fn collect_template_ref_index(
   source : String,
   block_span : @compiler.SourceSpan?,
@@ -233,6 +246,7 @@ fn collect_template_ref_index(
 }
 
 ///|
+/// Scan source spans for member accesses against direct macro bindings.
 fn collect_contract_refs(
   source : String,
   block_span : @compiler.SourceSpan?,
@@ -267,6 +281,7 @@ fn collect_contract_refs(
 }
 
 ///|
+/// Scan source spans for member accesses behind `resolve_template_ref(...)`.
 fn collect_template_ref_refs(
   source : String,
   block_span : @compiler.SourceSpan?,
@@ -297,6 +312,7 @@ fn collect_template_ref_refs(
 }
 
 ///|
+/// Emit semantic diagnostics such as unknown members or mismatched bindings.
 fn collect_semantic_diagnostics(
   source : String,
   filename : String,
@@ -350,6 +366,7 @@ fn collect_semantic_diagnostics(
 }
 
 ///|
+/// Render the diagnostic shown for an unresolved member access.
 fn unknown_member_message(ref_ : ToolingMemberRef) -> String {
   if ref_.contract_kind == "emit" && ref_.member_name == "emit" {
     "legacy `emit.emit(...)` is not supported; use typed event calls like `" +
@@ -363,6 +380,7 @@ fn unknown_member_message(ref_ : ToolingMemberRef) -> String {
 }
 
 ///|
+/// Infer template-ref binding types by combining script metadata with template refs.
 fn resolve_tooling_template_refs(
   doc : @compiler.SfcDocument,
   nodes : Array[@compiler.TemplateNode],
@@ -400,6 +418,7 @@ fn resolve_tooling_template_refs(
 }
 
 ///|
+/// Gather the static template refs declared in the template tree.
 fn collect_static_template_ref_targets(
   nodes : Array[@compiler.TemplateNode],
   filename : String,
@@ -412,6 +431,7 @@ fn collect_static_template_ref_targets(
 }
 
 ///|
+/// Walk one template subtree and register any statically named refs it contains.
 fn collect_static_template_ref_targets_into(
   node : @compiler.TemplateNode,
   filename : String,
@@ -453,6 +473,7 @@ fn collect_static_template_ref_targets_into(
 }
 
 ///|
+/// Merge a newly inferred target into the table keyed by ref name.
 fn register_static_template_ref_target(
   targets : Array[ToolingStaticTemplateRefTarget],
   ref_name : String,
@@ -469,6 +490,7 @@ fn register_static_template_ref_target(
 }
 
 ///|
+/// Downgrade conflicting static ref targets to a generic DOM element type.
 fn merge_static_template_ref_target(
   current : ToolingStaticTemplateRefTarget,
   next_ : ToolingStaticTemplateRefTarget,
@@ -481,6 +503,7 @@ fn merge_static_template_ref_target(
 }
 
 ///|
+/// Compare macro field lists exactly so ref targets can be merged safely.
 fn macro_fields_equal(
   left : Array[@compiler.MacroField],
   right : Array[@compiler.MacroField],
@@ -497,6 +520,7 @@ fn macro_fields_equal(
 }
 
 ///|
+/// Infer the exposed type and fields for a single template ref target element.
 fn infer_tooling_template_ref_target(
   element : @compiler.TemplateElement,
   filename : String,
@@ -508,6 +532,7 @@ fn infer_tooling_template_ref_target(
 }
 
 ///|
+/// Resolve component refs by reading the referenced component file when possible.
 fn infer_component_template_ref_target(
   tag : String,
   filename : String,

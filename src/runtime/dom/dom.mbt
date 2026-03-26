@@ -2,36 +2,43 @@
 /// Small luna DOM wrappers used by generated Vapor Moon client code.
 
 ///|
+/// Create a raw DOM element for generated client renderers.
 pub fn element(tag : String) -> @js_dom.Element {
   @js_dom.document().createElement(tag)
 }
 
 ///|
+/// Short alias for `element`.
 pub fn el(tag : String) -> @js_dom.Element {
   element(tag)
 }
 
 ///|
+/// Lift a `js_dom.Element` into Luna's `DomNode` wrapper.
 pub fn to_node(elem : @js_dom.Element) -> @luna_dom.DomNode {
   @luna_dom.dom_node(elem)
 }
 
 ///|
+/// Short alias for `to_node`.
 pub fn into(elem : @js_dom.Element) -> @luna_dom.DomNode {
   to_node(elem)
 }
 
 ///|
+/// Append one rendered child node to a parent DOM node.
 pub fn append_child(node : @js_dom.Node, child : @luna_dom.DomNode) -> Unit {
   node.appendChild(child.to_dom()) |> ignore
 }
 
 ///|
+/// Short alias for `append_child`.
 pub fn append(node : @js_dom.Node, child : @luna_dom.DomNode) -> Unit {
   append_child(node, child)
 }
 
 ///|
+/// Append a batch of rendered child nodes in order.
 pub fn append_children(
   node : @js_dom.Node,
   children : Array[@luna_dom.DomNode],
@@ -42,6 +49,7 @@ pub fn append_children(
 }
 
 ///|
+/// Apply compiler-emitted attribute entries to a DOM element.
 pub fn apply_attrs(
   elem : @js_dom.Element,
   attrs : Array[(String, @luna_dom.AttrValue)],
@@ -52,6 +60,7 @@ pub fn apply_attrs(
 }
 
 ///|
+/// Apply one `(name, value)` attribute entry to a DOM element.
 pub fn apply_attr_entry(
   elem : @js_dom.Element,
   attr : (String, @luna_dom.AttrValue),
@@ -60,6 +69,7 @@ pub fn apply_attr_entry(
 }
 
 ///|
+/// Legacy alias for `apply_attr_entry`.
 pub fn setAttr(
   elem : @js_dom.Element,
   attr : (String, @luna_dom.AttrValue),
@@ -68,11 +78,13 @@ pub fn setAttr(
 }
 
 ///|
+/// Create a static text node.
 pub fn text(content : String) -> @luna_dom.DomNode {
   @luna_dom.dom_node(@js_dom.document().createTextNode(content))
 }
 
 ///|
+/// Create a reactive text node backed by a getter.
 pub fn text_expr(content : () -> String) -> @luna_dom.DomNode {
   let node = text("")
   setText(node, content)
@@ -80,6 +92,7 @@ pub fn text_expr(content : () -> String) -> @luna_dom.DomNode {
 }
 
 ///|
+/// Keep an existing text node synchronized with a reactive getter.
 pub fn setText(node : @luna_dom.DomNode, content : () -> String) -> Unit {
   let text_node = node.to_dom()
   text_node.setTextContent(content())
@@ -87,6 +100,7 @@ pub fn setText(node : @luna_dom.DomNode, content : () -> String) -> Unit {
 }
 
 ///|
+/// Collapse zero, one, or many children into a fragment-compatible node.
 pub fn fragment(children : Array[@luna_dom.DomNode]) -> @luna_dom.DomNode {
   match children.length() {
     0 =>
@@ -103,11 +117,13 @@ pub fn fragment(children : Array[@luna_dom.DomNode]) -> @luna_dom.DomNode {
 }
 
 ///|
+/// Short alias for `fragment`.
 pub fn frag(children : Array[@luna_dom.DomNode]) -> @luna_dom.DomNode {
   fragment(children)
 }
 
 ///|
+/// Conditional rendering wrapper delegated to Luna.
 pub fn show(
   when : () -> Bool,
   render_fn : () -> @luna_dom.DomNode,
@@ -116,6 +132,7 @@ pub fn show(
 }
 
 ///|
+/// Repeat rendering wrapper delegated to Luna.
 pub fn[T] for_each(
   items : () -> Array[T],
   render_item : (T, Int) -> @luna_dom.DomNode,
@@ -124,6 +141,7 @@ pub fn[T] for_each(
 }
 
 ///|
+/// Short alias for `for_each`.
 pub fn[T] each(
   items : () -> Array[T],
   render_item : (T, Int) -> @luna_dom.DomNode,
@@ -132,26 +150,31 @@ pub fn[T] each(
 }
 
 ///|
+/// Build a static attribute value.
 pub fn attr_static(value : String) -> @luna_dom.AttrValue {
   @luna_dom.attr_static(value)
 }
 
 ///|
+/// Short alias for `attr_static`.
 pub fn attr(value : String) -> @luna_dom.AttrValue {
   attr_static(value)
 }
 
 ///|
+/// Build a reactive attribute value.
 pub fn attr_dynamic(getter : () -> String) -> @luna_dom.AttrValue {
   @luna_dom.attr_dynamic(getter)
 }
 
 ///|
+/// Short alias for `attr_dynamic`.
 pub fn dynAttr(getter : () -> String) -> @luna_dom.AttrValue {
   attr_dynamic(getter)
 }
 
 ///|
+/// Wrap a DOM event handler as an attribute value.
 pub fn attr_handler(handler : (@js.Any) -> Unit) -> @luna_dom.AttrValue {
   @luna_dom.attr_handler(handler)
 }
@@ -167,6 +190,7 @@ extern "js" fn attach_event_modifiers(
   #| }
 
 ///|
+/// Attach event modifiers like `stop` or `prevent` to a handler value.
 pub fn attr_handler_with_modifiers(
   handler : (@js.Any) -> Unit,
   modifiers : Array[String],
@@ -175,11 +199,13 @@ pub fn attr_handler_with_modifiers(
 }
 
 ///|
+/// Short alias for `attr_handler`.
 pub fn on(handler : (@js.Any) -> Unit) -> @luna_dom.AttrValue {
   attr_handler(handler)
 }
 
 ///|
+/// Short alias for `attr_handler_with_modifiers`.
 pub fn onWith(
   handler : (@js.Any) -> Unit,
   modifiers : Array[String],
@@ -188,26 +214,31 @@ pub fn onWith(
 }
 
 ///|
+/// Build a static `style` attribute value.
 pub fn attr_style(style : String) -> @luna_dom.AttrValue {
   @luna_dom.attr_style(style)
 }
 
 ///|
+/// Short alias for `attr_style`.
 pub fn style(value : String) -> @luna_dom.AttrValue {
   attr_style(value)
 }
 
 ///|
+/// Build a reactive `style` attribute value.
 pub fn attr_dynamic_style(getter : () -> String) -> @luna_dom.AttrValue {
   @luna_dom.attr_dynamic_style(getter)
 }
 
 ///|
+/// Short alias for `attr_dynamic_style`.
 pub fn dynStyle(getter : () -> String) -> @luna_dom.AttrValue {
   attr_dynamic_style(getter)
 }
 
 ///|
+/// Render a component placeholder element for client-side hydration.
 pub fn component_dom(
   name : String,
   props : Array[(String, () -> String)],
@@ -217,6 +248,7 @@ pub fn component_dom(
 }
 
 ///|
+/// Render a component placeholder with extra metadata attributes.
 pub fn component_dom_meta(
   name : String,
   props : Array[(String, () -> String)],
@@ -239,6 +271,7 @@ pub fn component_dom_meta(
 }
 
 ///|
+/// Short alias for `component_dom`.
 pub fn component(
   name : String,
   props : Array[(String, () -> String)],
@@ -248,6 +281,7 @@ pub fn component(
 }
 
 ///|
+/// Short alias for `component_dom_meta`.
 pub fn componentMeta(
   name : String,
   props : Array[(String, () -> String)],
@@ -258,6 +292,7 @@ pub fn componentMeta(
 }
 
 ///|
+/// Render an island placeholder element for client-side hydration.
 pub fn island_dom(
   name : String,
   mode : @vm.HydrationMode,
@@ -268,6 +303,7 @@ pub fn island_dom(
 }
 
 ///|
+/// Render an island placeholder with extra metadata attributes.
 pub fn island_dom_meta(
   name : String,
   mode : @vm.HydrationMode,
@@ -293,6 +329,7 @@ pub fn island_dom_meta(
 }
 
 ///|
+/// Short alias for `island_dom`.
 pub fn island(
   name : String,
   mode : @vm.HydrationMode,
@@ -303,6 +340,7 @@ pub fn island(
 }
 
 ///|
+/// Short alias for `island_dom_meta`.
 pub fn islandMeta(
   name : String,
   mode : @vm.HydrationMode,
@@ -339,16 +377,19 @@ extern "js" fn lookup_bound_template_ref(ref_ : @js.Any) -> @js.Any =
   #| (ref_) => globalThis.__vaporMoonBoundTemplateRefs?.get(ref_) ?? undefined
 
 ///|
+/// Bind a named template ref to its concrete DOM target.
 pub fn bind_template_ref_name(name : String, target : @js.Any) -> Unit {
   register_template_ref(name, target)
 }
 
 ///|
+/// Short alias for `bind_template_ref_name`.
 pub fn bindRefName(name : String, target : @js.Any) -> Unit {
   bind_template_ref_name(name, target)
 }
 
 ///|
+/// Bind a typed template-ref handle to its concrete DOM target.
 pub fn[T] bind_template_ref(
   ref_ : @vm.TemplateRef[T],
   target : @js.Any,
@@ -357,11 +398,13 @@ pub fn[T] bind_template_ref(
 }
 
 ///|
+/// Short alias for `bind_template_ref`.
 pub fn[T] bindRef(ref_ : @vm.TemplateRef[T], target : @js.Any) -> Unit {
   bind_template_ref(ref_, target)
 }
 
 ///|
+/// Resolve a template ref, preferring the typed binding table before the named table.
 pub fn[T] resolve_template_ref(ref_ : @vm.TemplateRef[T]) -> T? {
   let bound_target = lookup_bound_template_ref(@js.any(ref_))
   if not(@js.is_nullish(bound_target)) {
@@ -376,6 +419,7 @@ pub fn[T] resolve_template_ref(ref_ : @vm.TemplateRef[T]) -> T? {
 }
 
 ///|
+/// Apply one normalized attribute value to an element, including handlers and refs.
 pub fn apply_attr(
   elem : @js_dom.Element,
   name : String,
@@ -408,6 +452,7 @@ pub fn apply_attr(
 }
 
 ///|
+/// Apply one already-materialized string attribute to an element.
 fn apply_static_attr(
   elem : @js_dom.Element,
   name : String,
@@ -568,6 +613,7 @@ extern "js" fn bind_event_handler(
   #| }
 
 ///|
+/// Convert a hydration mode into the DOM marker string consumed by the bootloader.
 fn render_mode_label(mode : @vm.HydrationMode) -> String {
   match mode {
     Manual => "manual"
