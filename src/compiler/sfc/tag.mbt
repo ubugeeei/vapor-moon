@@ -36,7 +36,7 @@ fn reject_unsupported_attrs(
     }
     if attr.name == "generic" && block.kind != ScriptSetup {
       raise CompilerError::InvalidSfc(
-        "`generic` is only supported on <script setup> in \{filename}",
+        "`generic` is only supported on <script> in \{filename}",
       )
     }
   }
@@ -51,15 +51,25 @@ fn validate_block_attrs(
   for attr in block.attrs {
     if has_seen_block_attr(seen, attr.name) {
       raise CompilerError::InvalidSfc(
-        "duplicate `\{attr.name}` attribute on <\{block_tag_name(block.kind)}\{block_tag_suffix(block.kind)}> in \{filename}",
+        "duplicate `\{attr.name}` attribute on \{block_tag_display(block)} in \{filename}",
       )
     }
     seen.push(attr.name)
     if not(is_supported_block_attr(block.kind, attr.name)) {
       match attr.name {
         "setup" =>
+          if block.kind == ScriptExtern {
+            raise CompilerError::InvalidSfc(
+              "`setup` cannot be combined with `extern` on <script extern> in \{filename}",
+            )
+          } else {
+            raise CompilerError::InvalidSfc(
+              "`setup` is only supported on <script> in \{filename}",
+            )
+          }
+        "extern" =>
           raise CompilerError::InvalidSfc(
-            "`setup` is only supported on <script> in \{filename}",
+            "`extern` is only supported on <script> in \{filename}",
           )
         "scoped" =>
           raise CompilerError::InvalidSfc(
@@ -67,7 +77,7 @@ fn validate_block_attrs(
           )
         _ =>
           raise CompilerError::InvalidSfc(
-            "unsupported attribute `\{attr.name}` on <\{block_tag_name(block.kind)}\{block_tag_suffix(block.kind)}> in \{filename}",
+            "unsupported attribute `\{attr.name}` on \{block_tag_display(block)} in \{filename}",
           )
       }
     }
@@ -78,7 +88,7 @@ fn validate_block_attrs(
             Some(value) if value.trim().length() > 0 => ()
             _ =>
               raise CompilerError::InvalidSfc(
-                "`generic` requires a value on <script setup> in \{filename}",
+                "`generic` requires a value on \{block_tag_display(block)} in \{filename}",
               )
           }
         }
@@ -86,7 +96,15 @@ fn validate_block_attrs(
         match attr.value {
           Some(_) =>
             raise CompilerError::InvalidSfc(
-              "`setup` does not take a value on <\{block_tag_name(block.kind)}\{block_tag_suffix(block.kind)}> in \{filename}",
+              "`setup` does not take a value on \{block_tag_display(block)} in \{filename}",
+            )
+          None => ()
+        }
+      "extern" =>
+        match attr.value {
+          Some(_) =>
+            raise CompilerError::InvalidSfc(
+              "`extern` does not take a value on <script extern> in \{filename}",
             )
           None => ()
         }
@@ -117,26 +135,32 @@ fn has_seen_block_attr(seen : Array[String], target : String) -> Bool {
 fn block_tag_name(kind : BlockKind) -> String {
   match kind {
     Template => "template"
-    Script | ScriptSetup => "script"
+    ScriptSetup | ScriptExtern => "script"
     Style => "style"
   }
 }
 
 ///|
-fn block_tag_suffix(kind : BlockKind) -> String {
-  match kind {
-    ScriptSetup => " setup"
+fn block_tag_suffix(block : SfcBlock) -> String {
+  match block.kind {
+    ScriptSetup => if has_attr(block.attrs, "setup") { " setup" } else { "" }
+    ScriptExtern => " extern"
     _ => ""
   }
+}
+
+///|
+fn block_tag_display(block : SfcBlock) -> String {
+  "<" + block_tag_name(block.kind) + block_tag_suffix(block) + ">"
 }
 
 ///|
 fn is_supported_block_attr(kind : BlockKind, name : String) -> Bool {
   match kind {
     Template => name == "lang" || name == "src" || name == "generic"
-    Script => name == "lang" || name == "src"
     ScriptSetup =>
       name == "setup" || name == "generic" || name == "lang" || name == "src"
+    ScriptExtern => name == "extern" || name == "lang" || name == "src"
     Style => name == "scoped" || name == "lang" || name == "src"
   }
 }

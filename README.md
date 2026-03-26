@@ -5,7 +5,7 @@ Vapor Moon is a MoonBit-first Single File Component toolchain for building luna.
 The goal is simple:
 
 - keep authoring in one file
-- keep `script setup` and template expressions in plain MoonBit
+- keep `script` blocks and template expressions in plain MoonBit
 - keep runtime updates fine-grained and Virtual DOM-less by leaning on `mizchi/luna`
 - add Island / Server Component style delivery that Vue proper does not have
 
@@ -14,7 +14,7 @@ The goal is simple:
 This repository already includes:
 
 - `.mbtv` as the default SFC extension
-- a compiler that parses `<template>`, `<script setup>`, and `<style>`
+- a compiler that parses `<template>`, `<script>`, `<script extern>`, and `<style>`
 - code generation for raw DOM-oriented client output and SSR output
 - language-tool analysis plus LSP-oriented diagnostics / hover / definition / completion
 - a small runtime bridge on top of luna for DOM placeholders and SSR island wrappers
@@ -22,7 +22,6 @@ This repository already includes:
 
 Current scope intentionally excludes:
 
-- plain `<script>` blocks
 - `lang="mbt"` and other per-block language switches
 - CSS preprocessors
 - a finalized component import / linking story across generated files
@@ -33,10 +32,10 @@ Current scope intentionally excludes:
 
 ## Generic components
 
-Vapor Moon supports Vue-style generic component declarations on `<script setup>`:
+Vapor Moon supports Vue-style generic component declarations on `<script>`:
 
 ```html
-<script setup generic="T, U : Show">
+<script generic="T, U : Show">
 struct Props[T, U] {
   items : Array[T]
   selected : U
@@ -57,7 +56,7 @@ let slots : Slots[T, U] = defineSlot()
 </script>
 ```
 
-- `generic="..."` is only valid on `<script setup>`
+- `generic="..."` is only valid on `<script>`
 - generic parameters must appear in the local contract types referenced by `defineProps()` / `defineEmits()` / `defineSlot()`
 - the compiler threads those parameters through generated `Props`, `Emits`, `DomSlots`, `SsrSlots`, and `render_*` signatures
 - generics stay type-level only; no runtime validation or runtime type registry is emitted
@@ -65,7 +64,7 @@ let slots : Slots[T, U] = defineSlot()
 ## SFC shape
 
 ```html
-<script setup>
+<script>
 import {
   "mizchi/luna/js/resource" @reactivity,
   let signal = @reactivity.signal,
@@ -90,7 +89,8 @@ let count = signal(0)
 </style>
 ```
 
-`<script setup>` is the only supported script block. Vapor Moon intentionally rejects plain `<script>`.
+`<script>` is the default setup-scope block. Use `<script extern>` for module-scope helpers that should live outside render/setup.
+The older `<script setup>` spelling still works as an alias, but plain `<script>` is now the canonical form.
 
 `<style>` blocks are scoped by default. Use `<style scoped="false">` when you explicitly want global CSS.
 
@@ -133,7 +133,7 @@ When a component declares `props`, `emits`, or `slots`, the generated module als
 
 ## Compiler macros
 
-Vapor Moon currently supports MoonBit-flavored macro calls inside `<script setup>`:
+Vapor Moon currently supports MoonBit-flavored macro calls inside `<script>`:
 
 ```moonbit
 struct Props {
@@ -161,7 +161,7 @@ let props : Props = defineProps({
 })
 ```
 
-- these declarations are compiler-only and disappear from lowered `script setup`
+- these declarations are compiler-only and disappear from lowered setup-scope script
 - the compiler generates typed component surfaces such as `ExampleProps`, `ExampleEmits`, `ExampleDomSlots`, and `ExampleSsrSlots`
 - a prop with a default stays required inside the component but becomes optional in the generated caller-facing props type
 - generated `render_dom` / `render_ssr` functions take those contracts as plain arguments, so the runtime does not own props, emits, or slot bags
@@ -211,7 +211,7 @@ The compiler currently treats these as component-only directives and emits luna-
 - `src/compiler/common/` holds shared AST and error types
 - `src/compiler/sfc/` parses top-level SFC blocks
 - `src/compiler/template/` tokenizes template input and builds AST through start-tag / end-tag / text visitor-style events
-- `src/compiler/script_setup/` walks MoonBit AST for `script setup` macros and lowering
+- `src/compiler/script_setup/` walks MoonBit AST for setup-scope script macros and lowering
 - `src/compiler/codegen/` emits client / server MoonBit modules and scoped CSS
 
 ### `src/runtime/`

@@ -98,8 +98,8 @@ fn block_symbols(blocks : Array[@compiler.SfcBlock]) -> Array[ToolingSymbol] {
   for block in blocks {
     let (name, kind) = match block.kind {
       @compiler_common.Template => ("template", "block")
-      @compiler_common.Script => ("script", "block")
-      @compiler_common.ScriptSetup => ("script setup", "block")
+      @compiler_common.ScriptSetup => ("script", "block")
+      @compiler_common.ScriptExtern => ("script extern", "block")
       @compiler_common.Style => {
         let name = "style " + style_index.to_string()
         style_index += 1
