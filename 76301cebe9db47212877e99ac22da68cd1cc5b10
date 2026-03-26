@@ -1,0 +1,22 @@
+version 1
+key hub/work-item/8/meta
+kind work-item
+clock mizchi=1
+timestamp 1774521069
+node mizchi
+deleted 0
+
+work-item 8
+title feat: v-on full syntax and event modifiers
+author mizchi
+created 1774520809
+updated 1774520809
+state open
+
+Only the shorthand \`@event\` syntax is supported. The full \`v-on:event\` form, dynamic event arguments, and event modifiers are all rejected.
+
+## Needed
+
+- \`v-on:click\` as equivalent to \`@click\`
+- Modifiers: \`.stop\`, \`.prevent\`, \`.self\`, \`.once\`, \`.capture\`, \`.passive\`
+- Key modifiers: \`@keyup.enter\`, \`@keyup.esc\`
