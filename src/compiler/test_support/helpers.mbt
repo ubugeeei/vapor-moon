@@ -1,5 +1,5 @@
 ///|
-fn assert_snapshot(actual : String, expected : String) -> Unit raise {
+pub fn assert_snapshot(actual : String, expected : String) -> Unit raise {
   assert_eq(
     normalize_snapshot(actual.trim().to_string()),
     normalize_snapshot(expected.trim().to_string()),
@@ -7,7 +7,38 @@ fn assert_snapshot(actual : String, expected : String) -> Unit raise {
 }
 
 ///|
-fn compile_snapshot(source : String, filename : String) -> String {
+pub fn compile(
+  source : String,
+  filename? : String = "Component.mbtv",
+) -> @compiler.CompileOutput raise @compiler.CompilerError {
+  @compiler.compile(source, filename~)
+}
+
+///|
+pub fn parse_sfc(
+  source : String,
+  filename? : String = "Component.mbtv",
+) -> @compiler.SfcDocument raise @compiler.CompilerError {
+  @compiler.parse_sfc(source, filename~)
+}
+
+///|
+pub fn parse_template(
+  source : String,
+) -> Array[@compiler.TemplateNode] raise @compiler.CompilerError {
+  @compiler.parse_template(source)
+}
+
+///|
+pub fn analyze_script_setup(
+  source : String,
+  filename : String,
+) -> @compiler.ScriptSetupInfo raise @compiler.CompilerError {
+  @compiler.analyze_script_setup(source, filename)
+}
+
+///|
+pub fn compile_snapshot(source : String, filename : String) -> String {
   let output = compile(source, filename~) catch {
     err => {
       ignore(err)
@@ -120,13 +151,13 @@ fn temp_name_list_contains(values : Array[String], target : String) -> Bool {
 }
 
 ///|
-fn compile_error(source : String, filename : String) -> String {
+pub fn compile_error(source : String, filename : String) -> String {
   let _ = compile(source, filename~) catch { err => return err.to_string() }
   panic()
 }
 
 ///|
-fn basic_source() -> String {
+pub fn basic_source() -> String {
   let source =
     #|<script>
     #|import {
@@ -150,7 +181,7 @@ fn basic_source() -> String {
 }
 
 ///|
-fn macros_source() -> String {
+pub fn macros_source() -> String {
   let source =
     #|<script>
     #|struct Props {
@@ -176,7 +207,7 @@ fn macros_source() -> String {
 }
 
 ///|
-fn slots_source() -> String {
+pub fn slots_source() -> String {
   let source =
     #|<script>
     #|struct Slots {
@@ -194,7 +225,7 @@ fn slots_source() -> String {
 }
 
 ///|
-fn generic_source() -> String {
+pub fn generic_source() -> String {
   let source =
     #|<script generic="T, U : Show">
     #|struct Props[T, U] {
@@ -223,7 +254,7 @@ fn generic_source() -> String {
 }
 
 ///|
-fn island_visible_source() -> String {
+pub fn island_visible_source() -> String {
   let source =
     #|<script>
     #|import {
@@ -243,7 +274,7 @@ fn island_visible_source() -> String {
 }
 
 ///|
-fn directives_source() -> String {
+pub fn directives_source() -> String {
   let source =
     #|<script>
     #|let items = [1, 2, 3]
@@ -259,7 +290,7 @@ fn directives_source() -> String {
 }
 
 ///|
-fn media_and_defer_source() -> String {
+pub fn media_and_defer_source() -> String {
   let source =
     #|<template>
     #|  <main>
@@ -271,7 +302,7 @@ fn media_and_defer_source() -> String {
 }
 
 ///|
-fn reactivity_basics_source() -> String {
+pub fn reactivity_basics_source() -> String {
   let source =
     #|<script>
     #|import {
@@ -305,7 +336,7 @@ fn reactivity_basics_source() -> String {
 }
 
 ///|
-fn lifecycle_refs_source() -> String {
+pub fn lifecycle_refs_source() -> String {
   let source =
     #|<script>
     #|import {
@@ -336,7 +367,7 @@ fn lifecycle_refs_source() -> String {
 }
 
 ///|
-fn composable_counter_source() -> String {
+pub fn composable_counter_source() -> String {
   let source =
     #|<script>
     #|import {

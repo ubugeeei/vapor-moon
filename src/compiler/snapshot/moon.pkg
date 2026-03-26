@@ -1,0 +1,8 @@
+import {
+  "ubugeeei/vapor_moon/src/compiler" @compiler,
+  "ubugeeei/vapor_moon/src/compiler/test_support" @support,
+} for "test"
+
+options(
+  "supported-targets": "all",
+)

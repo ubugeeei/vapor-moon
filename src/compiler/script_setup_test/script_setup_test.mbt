@@ -2,7 +2,7 @@
 fn must_analyze_script_setup(
   source : String,
   filename : String,
-) -> ScriptSetupInfo {
+) -> @compiler.ScriptSetupInfo {
   analyze_script_setup(source, filename) catch {
     err => {
       ignore(err)
