@@ -5,7 +5,7 @@ fn visitor_on_text(
   start : Int,
   end_ : Int,
   has_content : Bool,
-) -> Unit {
+) -> Unit raise CompilerError {
   if not(has_content) {
     return
   }
@@ -20,7 +20,7 @@ fn visitor_on_text(
 fn visitor_on_interpolation(
   visitor : TemplateTokenVisitor,
   expr : String,
-) -> Unit {
+) -> Unit raise CompilerError {
   append_node(Interpolation(expr), visitor.roots, visitor.stack)
 }
 
@@ -90,6 +90,8 @@ fn build_template_element(
   validate_element_tag_form(tag, self_closing)
   let is_component = is_component_name(tag)
   let mut if_expr : String? = None
+  let mut else_if_expr : String? = None
+  let mut is_else = false
   let mut for_binding : ForBinding? = None
   let mut island_mode = IslandMode::None
   let mut show_expr : String? = None
@@ -107,6 +109,19 @@ fn build_template_element(
       "v-if" => {
         ensure_empty_expr_directive(if_expr, attr, tag)
         if_expr = Some(expect_attr_value(attr, tag))
+      }
+      "v-else-if" => {
+        ensure_empty_expr_directive(else_if_expr, attr, tag)
+        else_if_expr = Some(expect_attr_value(attr, tag))
+      }
+      "v-else" => {
+        reject_unexpected_attr_value(attr, tag)
+        if is_else {
+          raise CompilerError::InvalidDirective(
+            "duplicate `v-else` on <\{tag}>",
+          )
+        }
+        is_else = true
       }
       "v-for" => {
         ensure_empty_expr_directive(
@@ -256,6 +271,8 @@ fn build_template_element(
     key_expr,
     ref_name,
     once,
+    else_if_expr,
+    is_else,
   }
 }
 
@@ -264,12 +281,76 @@ fn append_node(
   node : TemplateNode,
   roots : Array[TemplateNode],
   stack : Array[TemplateFrame],
-) -> Unit {
-  if stack.is_empty() {
-    roots.push(node)
+) -> Unit raise CompilerError {
+  let target = if stack.is_empty() {
+    roots
   } else {
-    let last_index = stack.length() - 1
-    stack[last_index].children.push(node)
+    stack[stack.length() - 1].children
+  }
+  match node {
+    Element(element) if element.else_if_expr is Some(_) || element.is_else =>
+      append_conditional_branch(target, element)
+    _ => target.push(node)
+  }
+}
+
+///|
+fn append_conditional_branch(
+  siblings : Array[TemplateNode],
+  element : TemplateElement,
+) -> Unit raise CompilerError {
+  let tag = element.tag
+  let branch : ConditionalBranch = {
+    condition: element.else_if_expr,
+    element: { ..element, else_if_expr: None, is_else: false },
+  }
+  if siblings.is_empty() {
+    raise CompilerError::InvalidDirective(
+      "`\{conditional_directive_name(element)}` requires a preceding `v-if` on <\{tag}>",
+    )
+  }
+  let last_index = siblings.length() - 1
+  match siblings[last_index] {
+    Conditional(branches) => {
+      validate_conditional_chain(branches, element, tag)
+      branches.push(branch)
+    }
+    Element(prev) if prev.if_expr is Some(condition) => {
+      let first_branch : ConditionalBranch = {
+        condition: Some(condition),
+        element: { ..prev, if_expr: None },
+      }
+      siblings[last_index] = Conditional([first_branch, branch])
+    }
+    _ =>
+      raise CompilerError::InvalidDirective(
+        "`\{conditional_directive_name(element)}` requires a preceding `v-if` on <\{tag}>",
+      )
+  }
+}
+
+///|
+fn validate_conditional_chain(
+  branches : Array[ConditionalBranch],
+  element : TemplateElement,
+  tag : String,
+) -> Unit raise CompilerError {
+  if branches.length() > 0 {
+    let last = branches[branches.length() - 1]
+    if last.condition is None {
+      raise CompilerError::InvalidDirective(
+        "`\{conditional_directive_name(element)}` cannot follow `v-else` on <\{tag}>",
+      )
+    }
+  }
+}
+
+///|
+fn conditional_directive_name(element : TemplateElement) -> String {
+  if element.is_else {
+    "v-else"
+  } else {
+    "v-else-if"
   }
 }
 

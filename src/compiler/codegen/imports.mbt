@@ -1,5 +1,6 @@
 ///|
 using @common {
+  type ConditionalBranch,
   type GenericParam,
   type IslandMode,
   type MacroField,

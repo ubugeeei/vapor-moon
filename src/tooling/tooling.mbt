@@ -182,5 +182,17 @@ fn collect_template_metadata(
         collect_template_metadata(child, expressions, island_components)
       }
     }
+    @compiler_common.Conditional(branches) =>
+      for branch in branches {
+        match branch.condition {
+          Some(expr) => expressions.push(expr)
+          None => ()
+        }
+        collect_template_metadata(
+          @compiler_common.Element(branch.element),
+          expressions,
+          island_components,
+        )
+      }
   }
 }

@@ -251,6 +251,10 @@ fn collect_node_islands(node : TemplateNode, result : Array[String]) -> Unit {
         collect_node_islands(child, result)
       }
     }
+    Conditional(branches) =>
+      for branch in branches {
+        collect_node_islands(Element(branch.element), result)
+      }
     _ => ()
   }
 }

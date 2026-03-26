@@ -130,6 +130,14 @@ fn validate_template_node(
         validate_template_node(child, binding, filename)
       }
     }
+    Conditional(branches) =>
+      for branch in branches {
+        match branch.condition {
+          Some(expr) => validate_template_expr(expr, binding, filename)
+          None => ()
+        }
+        validate_template_node(Element(branch.element), binding, filename)
+      }
   }
 }
 
