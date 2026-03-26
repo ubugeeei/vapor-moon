@@ -109,6 +109,7 @@ test "snapshot style close tag literal compile" {
       #|  (fn() {
       #|      let __vm_el = @vm_dom.element("div")
       #|      @vm_dom.apply_attr_entry(__vm_el, ("class", @vm_dom.attr_static("box")))
+      #|      @vm_dom.apply_attr_entry(__vm_el, ("data-vm-scope", @vm_dom.attr_static("vm-2407032203")))
       #|      @vm_dom.to_node(__vm_el)
       #|    })()
       #|}
@@ -134,7 +135,7 @@ test "snapshot style close tag literal compile" {
       #|}
       #|
       #|pub fn render_ssr() -> @luna_core.StaticDomNode {
-      #|  @luna_core.h("div", [("class", @luna_core.attr_static("box"))], [])
+      #|  @luna_core.h("div", [("class", @luna_core.attr_static("box")), ("data-vm-scope", @luna_core.attr_static("vm-2407032203"))], [])
       #|}
       #|
       #|pub fn render_html() -> String {
@@ -155,12 +156,12 @@ test "snapshot style close tag literal compile" {
       #|
       #|pub let component_name : String = "EdgeStyleLiteral"
       #|=== css ===
-      #|.box::before { content: "</style>"; }
-      #|.box { color: red; }
+      #|[data-vm-scope="vm-2407032203"] .box::before { content: "</style>"; }
+      #|[data-vm-scope="vm-2407032203"] .box { color: red; }
       #|=== meta ===
       #|component=EdgeStyleLiteral
       #|extension=.mbtv
-      #|scope=<none>
+      #|scope=vm-2407032203
       #|islands=<none>
       #|props_binding=<none>
       #|props=<none>

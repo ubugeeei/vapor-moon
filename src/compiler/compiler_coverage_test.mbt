@@ -200,6 +200,7 @@ test "multiple style blocks both included in output" {
   let output = compile_snapshot(source, "MultiStyle.mbtv")
   assert_true(output.contains("color: red"))
   assert_true(output.contains("font-size: 16px"))
+  assert_true(output.contains("data-vm-scope"))
 }
 
 // ── Conditional on components ─────────────────────────────────
@@ -374,6 +375,24 @@ test "event handler generates attr_handler" {
   let output = compile_snapshot(source, "EventHandler.mbtv")
   assert_true(output.contains("attr_handler"))
   assert_true(output.contains("handle()"))
+}
+
+///|
+test "event modifiers generate attr_handler_with_modifiers" {
+  let source =
+    #|<script setup>
+    #|fn save() { () }
+    #|</script>
+    #|
+    #|<template>
+    #|  <button @click.stop.prevent.self='save()'>save</button>
+    #|  <button @click.capture.once.passive='save()'>options</button>
+    #|</template>
+  let output = compile_snapshot(source, "EventModifiers.mbtv")
+  assert_true(output.contains("attr_handler_with_modifiers"))
+  assert_true(output.contains("[\"stop\", \"prevent\", \"self\"]"))
+  assert_true(output.contains("[\"capture\", \"once\", \"passive\"]"))
+  assert_true(output.contains("save()"))
 }
 
 ///|

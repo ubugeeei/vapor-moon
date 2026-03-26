@@ -160,6 +160,65 @@ pub fn analyze_script_setup(
 }
 
 ///|
+pub fn analyze_script_extern(
+  source : String,
+  filename : String,
+) -> ScriptExternInfo raise CompilerError {
+  let (ir, _) = parse_script_setup_module_with_contracts(source, filename)
+  validate_script_extern_module(ir, filename)
+  let transformed = render_script_setup_module(ir, false)
+  {
+    source: transformed,
+    transformed,
+    import_entries: collect_script_setup_import_entries(ir),
+  }
+}
+
+///|
+fn validate_script_extern_module(
+  ir : ScriptSetupModule,
+  filename : String,
+) -> Unit raise CompilerError {
+  for statement in ir.statements {
+    match statement {
+      LetStatement(let_stmt) => validate_script_extern_expr(let_stmt.expr, filename)
+      ExpressionStatement(expr) => validate_script_extern_expr(expr, filename)
+      ImportStatement(_) | RawStatement(_) => ()
+    }
+  }
+}
+
+///|
+fn validate_script_extern_expr(
+  expr : ScriptSetupExpression,
+  filename : String,
+) -> Unit raise CompilerError {
+  match expr {
+    MacroExpr(macro_) =>
+      match macro_.name {
+        "defineProps" | "defineEmits" | "defineSlot" | "useId" | "useTemplateRef" =>
+          raise CompilerError::InvalidScriptExtern(
+            script_extern_setup_only_message(macro_.name, filename),
+          )
+        _ => ()
+      }
+    RawExpr(_) => ()
+  }
+}
+
+///|
+fn script_extern_setup_only_message(
+  name : String,
+  filename : String,
+) -> String {
+  "`" +
+  name +
+  "()` is only supported in <script> setup scope in " +
+  filename +
+  "; move it from <script extern> to <script>"
+}
+
+///|
 fn lower_script_setup_module(ir : ScriptSetupModule) -> ScriptSetupModule {
   let statements : Array[ScriptSetupStatement] = []
   let mut use_id_index = 0

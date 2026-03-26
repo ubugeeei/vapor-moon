@@ -11,8 +11,15 @@ pub fn emit_client_module(
     "\"ubugeeei/vapor_moon/src/runtime/dom\" @vm_dom,",
   ]
   sb.write_string(
-    emit_import_block(base_imports, doc.script_setup_import_entries),
+    emit_import_block(
+      base_imports,
+      merge_import_entries(
+        doc.script_import_entries,
+        doc.script_setup_import_entries,
+      ),
+    ),
   )
+  emit_extern_script(sb, doc)
   sb.write_string(emit_component_contracts(doc, component_name, true))
   sb.write_string(render_component_signature(doc, component_name, true))
   if doc.script_setup_transformed is Some(script_setup) &&
@@ -48,8 +55,15 @@ pub fn emit_server_module(
     "\"ubugeeei/vapor_moon/src/runtime/server\" @vm_server,",
   ]
   sb.write_string(
-    emit_import_block(base_imports, doc.script_setup_import_entries),
+    emit_import_block(
+      base_imports,
+      merge_import_entries(
+        doc.script_import_entries,
+        doc.script_setup_import_entries,
+      ),
+    ),
   )
+  emit_extern_script(sb, doc)
   sb.write_string(emit_component_contracts(doc, component_name, false))
   sb.write_string(render_component_signature(doc, component_name, false))
   if doc.script_setup_transformed is Some(script_setup) &&
@@ -99,6 +113,34 @@ fn emit_import_block(
   }
   sb.write_string("}\n\n")
   sb.to_string()
+}
+
+///|
+fn emit_extern_script(sb : StringBuilder, doc : SfcDocument) -> Unit {
+  if doc.script_transformed is Some(script) &&
+    not(script.trim().is_empty()) {
+    sb.write_string(script.trim().to_string())
+    sb.write_string("\n\n")
+  }
+}
+
+///|
+fn merge_import_entries(
+  first : Array[String],
+  second : Array[String],
+) -> Array[String] {
+  let merged : Array[String] = []
+  for entry in first {
+    if not(string_array_contains(merged, entry)) {
+      merged.push(entry)
+    }
+  }
+  for entry in second {
+    if not(string_array_contains(merged, entry)) {
+      merged.push(entry)
+    }
+  }
+  merged
 }
 
 ///|

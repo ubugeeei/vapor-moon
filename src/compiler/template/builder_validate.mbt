@@ -93,11 +93,7 @@ fn validate_normalized_attr(
           "dynamic event arguments are not supported on <\{tag}>: `\{raw_attr.name}`",
         )
       }
-      if has_directive_modifier(attr.name) {
-        raise CompilerError::InvalidDirective(
-          "event modifiers are not supported on <\{tag}>: `\{raw_attr.name}`",
-        )
-      }
+      validate_event_modifiers(attr, tag)
       if not(raw_attr.has_value) || raw_attr.value.trim().is_empty() {
         raise CompilerError::InvalidDirective(
           "`\{raw_attr.name}` requires an expression",
@@ -352,6 +348,41 @@ fn has_model_modifier_name(model : TemplateModel, expected : String) -> Bool {
 }
 
 ///|
+fn validate_event_modifiers(
+  attr : TemplateAttr,
+  tag : String,
+) -> Unit raise CompilerError {
+  let seen : Array[String] = []
+  let mut has_passive = false
+  let mut has_prevent = false
+  for modifier in attr.modifiers {
+    if not(is_supported_event_modifier(modifier)) {
+      raise CompilerError::InvalidDirective(
+        "unsupported event modifier `.\{modifier}` on <\{tag}>",
+      )
+    }
+    for previous in seen {
+      if previous == modifier {
+        raise CompilerError::InvalidDirective(
+          "duplicate event modifier `.\{modifier}` on <\{tag}>",
+        )
+      }
+    }
+    seen.push(modifier)
+    if modifier == "passive" {
+      has_passive = true
+    } else if modifier == "prevent" {
+      has_prevent = true
+    }
+  }
+  if has_passive && has_prevent {
+    raise CompilerError::InvalidDirective(
+      "event modifiers `.passive` and `.prevent` cannot be combined on <\{tag}>",
+    )
+  }
+}
+
+///|
 fn has_attr(attrs : Array[TemplateAttr], name : String) -> Bool {
   for attr in attrs {
     if attr.name == name {
@@ -416,6 +447,16 @@ fn find_static_attr_value(
 ///|
 fn has_dynamic_directive_argument(name : String) -> Bool {
   name.contains("[") || name.contains("]")
+}
+
+///|
+fn is_supported_event_modifier(name : String) -> Bool {
+  name == "stop" ||
+  name == "prevent" ||
+  name == "self" ||
+  name == "capture" ||
+  name == "once" ||
+  name == "passive"
 }
 
 ///|

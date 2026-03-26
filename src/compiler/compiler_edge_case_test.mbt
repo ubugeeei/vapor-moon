@@ -756,12 +756,22 @@ test "accepts v-for sources with multiline string separators" {
 }
 
 ///|
-test "rejects event modifiers" {
+test "rejects unsupported event modifiers" {
   let source =
-    #|<template><button @click.stop='save()'></button></template>
+    #|<template><button @click.middle='save()'></button></template>
   assert_eq(
     compile_error(source, "invalid/event_modifier.mbtv"),
-    "InvalidDirective(\"event modifiers are not supported on <button>: `@click.stop`\")",
+    "InvalidDirective(\"unsupported event modifier `.middle` on <button>\")",
+  )
+}
+
+///|
+test "rejects passive prevent event modifier combination" {
+  let source =
+    #|<template><button @click.passive.prevent='save()'></button></template>
+  assert_eq(
+    compile_error(source, "invalid/event_modifier_passive_prevent.mbtv"),
+    "InvalidDirective(\"event modifiers `.passive` and `.prevent` cannot be combined on <button>\")",
   )
 }
 

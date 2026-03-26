@@ -15,8 +15,8 @@ pub fn new_source_span(start : Int, end_ : Int) -> SourceSpan {
 ///|
 pub(all) enum BlockKind {
   Template
-  Script
   ScriptSetup
+  ScriptExtern
   Style
 } derive(Eq, Show)
 
@@ -87,11 +87,20 @@ pub(all) struct ScriptSetupInfo {
 } derive(Eq, Show)
 
 ///|
+pub(all) struct ScriptExternInfo {
+  source : String
+  transformed : String
+  import_entries : Array[String]
+} derive(Eq, Show)
+
+///|
 pub(all) struct SfcDocument {
   filename : String
   extension : String
   template : String
   script : String?
+  script_transformed : String?
+  script_import_entries : Array[String]
   script_setup : String?
   script_setup_transformed : String?
   script_setup_import_entries : Array[String]
@@ -136,6 +145,7 @@ pub(all) struct TemplateAttr {
   kind : TemplateAttrKind
   name : String
   value : String
+  modifiers : Array[String]
 } derive(Eq, Show)
 
 ///|
@@ -287,6 +297,7 @@ pub(all) suberror CompilerError {
   InvalidTemplate(String)
   InvalidDirective(String)
   InvalidScriptSetup(String)
+  InvalidScriptExtern(String)
 } derive(Eq, Show)
 
 ///|

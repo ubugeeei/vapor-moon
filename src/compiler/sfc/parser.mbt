@@ -9,6 +9,8 @@ pub fn parse_sfc(
   let blocks = parse_blocks(source, filename)
   let mut template : String? = None
   let mut script : String? = None
+  let mut script_transformed : String? = None
+  let mut script_import_entries : Array[String] = []
   let mut script_setup : String? = None
   let mut script_setup_transformed : String? = None
   let mut script_setup_import_entries : Array[String] = []
@@ -35,19 +37,24 @@ pub fn parse_sfc(
             )
           None => template = Some(block.content)
         }
-      Script =>
+      ScriptExtern =>
         match script {
           Some(_) =>
             raise CompilerError::InvalidSfc(
-              "duplicate <script> block in \{filename}",
+              "duplicate \{block_tag_display(block)} block in \{filename}",
             )
-          None => script = Some(block.content)
+          None => {
+            let info = analyze_script_extern(block.content, filename)
+            script = Some(info.source)
+            script_transformed = Some(info.transformed)
+            script_import_entries = info.import_entries
+          }
         }
       ScriptSetup =>
         match script_setup {
           Some(_) =>
             raise CompilerError::InvalidSfc(
-              "duplicate <script setup> block in \{filename}",
+              "duplicate \{block_tag_display(block)} block in \{filename}",
             )
           None => {
             let info = analyze_script_setup(block.content, filename)
@@ -68,7 +75,7 @@ pub fn parse_sfc(
           }
         }
       Style => {
-        let scoped = has_attr(block.attrs, "scoped")
+        let scoped = style_block_is_scoped(block.attrs)
         styles.push({
           attrs: block.attrs,
           content: block.content,
@@ -79,14 +86,6 @@ pub fn parse_sfc(
     }
   }
 
-  match script {
-    Some(_) =>
-      raise CompilerError::InvalidSfc(
-        "plain <script> is not supported in \{filename}; use <script setup> only",
-      )
-    None => ()
-  }
-
   match template {
     Some(template_content) => {
       let ext = detect_extension(filename)
@@ -95,6 +94,8 @@ pub fn parse_sfc(
         extension: ext,
         template: template_content,
         script,
+        script_transformed,
+        script_import_entries,
         script_setup,
         script_setup_transformed,
         script_setup_import_entries,

@@ -23,7 +23,7 @@ fn compile_error(source : String, filename : String) -> String {
 ///|
 fn basic_source() -> String {
   let source =
-    #|<script setup>
+    #|<script>
     #|import {
     #|  "mizchi/luna/js/resource" @reactivity,
     #|  let signal = @reactivity.signal,
@@ -47,7 +47,7 @@ fn basic_source() -> String {
 ///|
 fn macros_source() -> String {
   let source =
-    #|<script setup>
+    #|<script>
     #|struct Props {
     #|  title : String
     #|  count : Int
@@ -73,7 +73,7 @@ fn macros_source() -> String {
 ///|
 fn slots_source() -> String {
   let source =
-    #|<script setup>
+    #|<script>
     #|struct Slots {
     #|  default : Unit
     #|  footer : String
@@ -91,7 +91,7 @@ fn slots_source() -> String {
 ///|
 fn generic_source() -> String {
   let source =
-    #|<script setup generic="T, U : Show">
+    #|<script generic="T, U : Show">
     #|struct Props[T, U] {
     #|  items : Array[T]
     #|  selected : U
@@ -120,7 +120,7 @@ fn generic_source() -> String {
 ///|
 fn island_visible_source() -> String {
   let source =
-    #|<script setup>
+    #|<script>
     #|import {
     #|  "mizchi/luna/js/resource" @reactivity,
     #|  let signal = @reactivity.signal,
@@ -140,7 +140,7 @@ fn island_visible_source() -> String {
 ///|
 fn directives_source() -> String {
   let source =
-    #|<script setup>
+    #|<script>
     #|let items = [1, 2, 3]
     #|let visible = true
     #|</script>
@@ -168,7 +168,7 @@ fn media_and_defer_source() -> String {
 ///|
 fn reactivity_basics_source() -> String {
   let source =
-    #|<script setup>
+    #|<script>
     #|import {
     #|  "mizchi/luna/js/resource" @reactivity,
     #|  let signal = @reactivity.signal,
@@ -202,7 +202,7 @@ fn reactivity_basics_source() -> String {
 ///|
 fn lifecycle_refs_source() -> String {
   let source =
-    #|<script setup>
+    #|<script>
     #|import {
     #|  "mizchi/luna/js/resource" @reactivity,
     #|  let signal = @reactivity.signal,
@@ -233,7 +233,7 @@ fn lifecycle_refs_source() -> String {
 ///|
 fn composable_counter_source() -> String {
   let source =
-    #|<script setup>
+    #|<script>
     #|import {
     #|  "mizchi/luna/js/resource" @reactivity,
     #|  let signal = @reactivity.signal,

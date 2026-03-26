@@ -20,7 +20,7 @@ The launcher currently shells out to `moon run --target js src/cmd/vapor_moon_ls
 - Extension source lives in [`editors/zed`](./zed)
 - Install it as a dev extension from the local path
 - The extension checks `VAPOR_MOON_LSP`, then a repo-local `bin/vapor-moon-lsp`, then `vapor-moon-lsp` from `PATH`
-- `.mbtv` is registered as the `Vapor Moon` language and uses the Vue tree-sitter grammar with MoonBit injections for `script setup` and template expressions
+- `.mbtv` is registered as the `Vapor Moon` language and uses the Vue tree-sitter grammar with MoonBit injections for `script` / `script extern` blocks and template expressions
 
 ## Neovim
 

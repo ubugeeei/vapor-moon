@@ -12,15 +12,58 @@ fn must_analyze_script_setup(
 }
 
 ///|
-test "rejects plain script blocks" {
+test "plain script blocks default to setup scope" {
   let source =
     #|<script>
     #|let count = 1
     #|</script>
     #|<template><div>{{ count.to_string() }}</div></template>
+  let output = compile(source, filename="examples/plain_script_defaults_to_setup.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("let count = 1"))
+  assert_true(output.server_code.contains("let count = 1"))
+}
+
+///|
+test "script extern is emitted at module scope" {
+  let source =
+    #|<script extern>
+    #|let shared = 1
+    #|
+    #|fn read_shared() -> Int { shared }
+    #|</script>
+    #|<script>
+    #|let count = read_shared()
+    #|</script>
+    #|<template><div>{{ count.to_string() }}</div></template>
+  let output = compile(source, filename="examples/script_extern.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(
+    output.client_code.contains("fn read_shared() -> Int { shared }\n\npub fn render_dom"),
+  )
+  assert_true(
+    output.server_code.contains("fn read_shared() -> Int { shared }\n\npub fn render_ssr"),
+  )
+}
+
+///|
+test "rejects setup-only helpers in script extern" {
+  let source =
+    #|<script extern>
+    #|let id = useId()
+    #|</script>
+    #|<template><div /></template>
   assert_eq(
-    compile_error(source, "invalid/plain_script.mbtv"),
-    "InvalidSfc(\"plain <script> is not supported in invalid/plain_script.mbtv; use <script setup> only\")",
+    compile_error(source, "invalid/extern_use_id.mbtv"),
+    "InvalidScriptExtern(\"`useId()` is only supported in <script> setup scope in invalid/extern_use_id.mbtv; move it from <script extern> to <script>\")",
   )
 }
 
@@ -461,7 +504,7 @@ test "rejects generic on template blocks" {
     #|<template generic="T"><div /></template>
   assert_eq(
     compile_error(source, "invalid/generic_template_block.mbtv"),
-    "InvalidSfc(\"`generic` is only supported on <script setup> in invalid/generic_template_block.mbtv\")",
+    "InvalidSfc(\"`generic` is only supported on <script> in invalid/generic_template_block.mbtv\")",
   )
 }
 
@@ -515,13 +558,58 @@ test "rejects valued setup attributes" {
 test "rejects valued scoped attributes" {
   let source =
     #|<template><div /></template>
-    #|<style scoped="true">
+    #|<style scoped="maybe">
     #|.root { color: red; }
     #|</style>
   assert_eq(
     compile_error(source, "invalid/scoped_with_value.mbtv"),
-    "InvalidSfc(\"`scoped` does not take a value on <style> in invalid/scoped_with_value.mbtv\")",
+    "InvalidSfc(\"`scoped` only accepts `false` on <style> in invalid/scoped_with_value.mbtv\")",
   )
+}
+
+///|
+test "style blocks are scoped by default" {
+  let source =
+    #|<template><div class="root" /></template>
+    #|<style>
+    #|.root { color: red; }
+    #|</style>
+  let output = compile(source, filename="examples/default_scoped_style.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("data-vm-scope"))
+  assert_true(output.css_output.contains("data-vm-scope"))
+  match output.scope_id {
+    Some(_) => ()
+    None => panic()
+  }
+}
+
+///|
+test "scoped false disables style scoping" {
+  let source =
+    #|<template><div class="root" /></template>
+    #|<style scoped="false">
+    #|.root { color: red; }
+    #|</style>
+  let output = compile(
+    source,
+    filename="examples/unscoped_style_opt_out.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_false(output.client_code.contains("data-vm-scope"))
+  assert_false(output.css_output.contains("data-vm-scope"))
+  match output.scope_id {
+    Some(_) => panic()
+    None => ()
+  }
 }
 
 ///|

@@ -1,4 +1,4 @@
-<script setup>
+<script>
 let items = [1, 2, 3]
 let visible = true
 </script>

@@ -1,4 +1,4 @@
-<script setup generic="T, U : Show">
+<script generic="T, U : Show">
 struct Props[T, U] {
   items : Array[T]
   selected : U
