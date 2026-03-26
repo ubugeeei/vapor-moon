@@ -101,7 +101,11 @@ pub fn render_dom() -> @luna_dom.DomNode {
       let n0 = @dom.el("div")
       @dom.setAttr(n0, ("class", @dom.attr("counter")))
       @dom.setAttr(n0, ("data-vm-scope", @dom.attr("vm-4048536636")))
-      @dom.append(n0.as_node(), @dom.setText(fn() { count.get().to_string() }))
+      @dom.append(n0.as_node(), (fn() {
+            let n1 = @dom.text("")
+            @dom.setText(n1, fn() { count.get().to_string() })
+            n1
+          })())
       @dom.into(n0)
     })()
 }

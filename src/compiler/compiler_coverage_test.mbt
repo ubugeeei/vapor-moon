@@ -44,6 +44,22 @@ test "client temp nodes use short incrementing names" {
   assert_false(output.client_code.contains("__vm_el"))
 }
 
+///|
+test "dynamic interpolation creates text node then binds setText" {
+  let output = compile(basic_source(), filename="DynamicTextNode.mbtv")
+  assert_true(output.client_code.contains("let n1 = @dom.text(\"\")"))
+  assert_true(
+    output.client_code.contains(
+      "@dom.setText(n1, fn() { count.get().to_string() })",
+    ),
+  )
+  assert_false(
+    output.client_code.contains(
+      "@dom.append(n0.as_node(), @dom.setText(fn() { count.get().to_string() }))",
+    ),
+  )
+}
+
 // ── Template comments in interpolation (text.mbt) ─────────────
 
 ///|

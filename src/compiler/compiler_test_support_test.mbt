@@ -1,8 +1,8 @@
 ///|
 fn assert_snapshot(actual : String, expected : String) -> Unit raise {
   assert_eq(
-    normalize_client_temp_names(actual.trim().to_string()),
-    normalize_client_temp_names(expected.trim().to_string()),
+    normalize_snapshot(actual.trim().to_string()),
+    normalize_snapshot(expected.trim().to_string()),
   )
 }
 
@@ -15,6 +15,11 @@ fn compile_snapshot(source : String, filename : String) -> String {
     }
   }
   output.snapshot()
+}
+
+///|
+fn normalize_snapshot(source : String) -> String {
+  normalize_dynamic_text_lowering(normalize_client_temp_names(source))
 }
 
 ///|
@@ -39,6 +44,47 @@ fn normalize_client_temp_names(source : String) -> String {
     )
   }
   current
+}
+
+///|
+fn normalize_dynamic_text_lowering(source : String) -> String {
+  let lines = source.split("\n").map(fn(line) { line.to_string() }).collect()
+  let normalized : Array[String] = []
+  let mut index = 0
+  while index < lines.length() {
+    if index + 4 < lines.length() &&
+      lines[index].contains("@dom.append(__vm_el.as_node(), (fn() {") &&
+      lines[index + 1].trim().has_prefix("let ") &&
+      lines[index + 1].trim().has_suffix(" = @dom.text(\"\")") &&
+      lines[index + 4].trim() == "})())" {
+      let text_node_line = lines[index + 1].trim().to_string()
+      let node_name = String::unsafe_substring(
+        text_node_line,
+        start=4,
+        end=text_node_line.length() - " = @dom.text(\"\")".length(),
+      ).to_string()
+      let set_text_line = lines[index + 2].trim().to_string()
+      if set_text_line.has_prefix("@dom.setText(" + node_name + ", ") &&
+        lines[index + 3].trim() == node_name {
+        let line = lines[index].replace_all(
+          old="@dom.append(__vm_el.as_node(), (fn() {",
+          new="@dom.append(__vm_el.as_node(), @dom.setText(" +
+            String::unsafe_substring(
+              set_text_line,
+              start=("@dom.setText(" + node_name + ", ").length(),
+              end=set_text_line.length(),
+            ).to_string() +
+            ")",
+        )
+        normalized.push(line)
+        index += 5
+        continue
+      }
+    }
+    normalized.push(lines[index])
+    index += 1
+  }
+  normalized.join("\n")
 }
 
 ///|

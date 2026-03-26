@@ -46,7 +46,7 @@ fn render_client_node(
       if static_mode {
         "@dom.text(" + expr + ".to_string())"
       } else {
-        "@dom.setText(fn() { " + expr + ".to_string() })"
+        render_client_dynamic_text(expr, indent, node_counter)
       }
     Element(element) => {
       let next_static = static_mode || element.once
@@ -148,6 +148,21 @@ fn render_client_append_statements(
     )
   }
   statements
+}
+
+///|
+fn render_client_dynamic_text(
+  expr : String,
+  indent : Int,
+  node_counter : Array[Int],
+) -> String {
+  let node_name = next_client_node_name(node_counter)
+  let statements : Array[String] = [
+    "let " + node_name + " = @dom.text(\"\")",
+    "@dom.setText(" + node_name + ", fn() { " + expr + ".to_string() })",
+    node_name,
+  ]
+  render_client_iife(statements, indent)
 }
 
 ///|
