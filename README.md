@@ -4,6 +4,7 @@ Vapor Moon is a MoonBit-first Single File Component toolchain for building `luna
 
 ## Why The Name
 
+- `Vapor Moon` is a pun on `Paper Moon`.
 - `Moon` reflects that the authoring model, generated code, and tooling are MoonBit-first.
 - `Vapor` reflects the direction of the compiler: emit direct DOM/SSR-oriented code instead of leaning on a Virtual DOM layer.
 - `.mbtv` stays short, unique, and obviously tied to MoonBit plus Vapor Moon without borrowing Vue's `.vue`.
