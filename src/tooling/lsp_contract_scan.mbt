@@ -1,27 +1,27 @@
 ///|
-fn find_contract_field_definition_span(
-  source : String,
+fn ToolingDocument::find_contract_field_definition_span(
+  self : ToolingDocument,
   search_span : @compiler.SourceSpan,
   binding : String,
   field_name : String,
 ) -> @compiler.SourceSpan? {
-  match find_contract_type_body_span(source, search_span, binding) {
+  match self.find_contract_type_body_span(search_span, binding) {
     Some(body_span) =>
-      find_token_in_span(source, field_name, body_span, body_span.start)
-    None => find_field_definition_span(source, search_span, field_name)
+      self.find_token_in_span(field_name, body_span, body_span.start)
+    None => self.find_field_definition_span(search_span, field_name)
   }
 }
 
 ///|
-fn find_contract_type_body_span(
-  source : String,
+fn ToolingDocument::find_contract_type_body_span(
+  self : ToolingDocument,
   search_span : @compiler.SourceSpan,
   binding : String,
 ) -> @compiler.SourceSpan? {
-  match find_contract_type_name(source, search_span, binding) {
+  match self.find_contract_type_name(search_span, binding) {
     Some(type_name) =>
-      match find_substring_in_span(source, "struct " + type_name, search_span) {
-        Some(start) => find_record_body_span(source, search_span, start)
+      match self.find_substring_in_span("struct " + type_name, search_span) {
+        Some(start) => self.find_record_body_span(search_span, start)
         None => None
       }
     None => None
@@ -29,14 +29,14 @@ fn find_contract_type_body_span(
 }
 
 ///|
-fn find_contract_type_name(
-  source : String,
+fn ToolingDocument::find_contract_type_name(
+  self : ToolingDocument,
   search_span : @compiler.SourceSpan,
   binding : String,
 ) -> String? {
-  match find_binding_definition_span(source, search_span, binding) {
+  match self.find_binding_definition_span(search_span, binding) {
     Some(binding_span) => {
-      let chars = source.to_array()
+      let chars = self.chars
       let mut cursor = binding_span.end
       while cursor < search_span.end &&
             chars[cursor] != ':' &&
@@ -59,7 +59,7 @@ fn find_contract_type_name(
       if cursor == start {
         None
       } else {
-        Some(String::unsafe_substring(source, start~, end=cursor))
+        Some(String::unsafe_substring(self.source, start~, end=cursor))
       }
     }
     None => None
@@ -67,12 +67,12 @@ fn find_contract_type_name(
 }
 
 ///|
-fn find_record_body_span(
-  source : String,
+fn ToolingDocument::find_record_body_span(
+  self : ToolingDocument,
   search_span : @compiler.SourceSpan,
   start_offset : Int,
 ) -> @compiler.SourceSpan? {
-  let chars = source.to_array()
+  let chars = self.chars
   let mut cursor = start_offset
   while cursor < search_span.end && chars[cursor] != '{' {
     cursor += 1

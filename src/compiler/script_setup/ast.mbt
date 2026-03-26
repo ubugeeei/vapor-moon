@@ -42,40 +42,37 @@ priv struct ScriptSetupMacro {
 }
 
 ///|
-fn script_setup_statement_from_ast(
-  source : String,
+fn ScriptSetupSource::statement_from_ast(
+  self : ScriptSetupSource,
   impl_ : @mbt_syntax.Impl,
-  filename : String,
 ) -> ScriptSetupStatement raise CompilerError {
   match impl_ {
     TopLetDef(binder~, ty~, expr~, ..) =>
       LetStatement({
-        declaration: extract_let_declaration(source, expr.loc(), filename),
+        declaration: self.extract_let_declaration(expr.loc()),
         binding: Some(binder.name),
-        annotation: type_annotation_from_ast(source, ty),
-        expr: parse_script_setup_expr_ast(source, expr, filename),
+        annotation: self.type_annotation_from_ast(ty),
+        expr: self.parse_expr_ast(expr),
       })
     TopExpr(expr~, ..) =>
-      match parse_script_setup_expr_ast(source, expr, filename) {
+      match self.parse_expr_ast(expr) {
         RawExpr(raw) => RawStatement(raw)
         macro_expr => ExpressionStatement(macro_expr)
       }
-    _ => RawStatement(source.trim().to_string())
+    _ => RawStatement(self.source.trim().to_string())
   }
 }
 
 ///|
-fn type_annotation_from_ast(
-  source : String,
+fn ScriptSetupSource::type_annotation_from_ast(
+  self : ScriptSetupSource,
   ty : @mbt_syntax.Type?,
 ) -> ScriptSetupTypeAnnotation? {
   match ty {
     Some(type_) =>
       match type_ {
         Name(constr_id~, ..) => {
-          let source_text = slice_location(source, type_.loc())
-            .trim()
-            .to_string()
+          let source_text = self.slice_location(type_.loc()).trim().to_string()
           match constr_id.id {
             Ident(name~) => Some({ name, source: source_text, is_local: true })
             Dot(pkg~, id~) => {
@@ -91,22 +88,20 @@ fn type_annotation_from_ast(
 }
 
 ///|
-fn parse_script_setup_expr_ast(
-  source : String,
+fn ScriptSetupSource::parse_expr_ast(
+  self : ScriptSetupSource,
   expr : @mbt_syntax.Expr,
-  filename : String,
 ) -> ScriptSetupExpression raise CompilerError {
-  match parse_script_setup_macro(expr, source, filename) {
+  match self.parse_macro(expr) {
     Some(macro_) => MacroExpr(macro_)
-    None => RawExpr(slice_location(source, expr.loc()).trim().to_string())
+    None => RawExpr(self.slice_location(expr.loc()).trim().to_string())
   }
 }
 
 ///|
-fn parse_script_setup_macro(
+fn ScriptSetupSource::parse_macro(
+  self : ScriptSetupSource,
   expr : @mbt_syntax.Expr,
-  source : String,
-  filename : String,
 ) -> ScriptSetupMacro? raise CompilerError {
   let expr = unwrap_group_expr(expr)
   match expr {
@@ -119,16 +114,16 @@ fn parse_script_setup_macro(
             for _ in args {
               arg_count += 1
             }
-            validate_runtime_helper_macro(canonical_name, arg_count, filename)
+            validate_runtime_helper_macro(
+              canonical_name,
+              arg_count,
+              self.filename,
+            )
             Some({
               name: canonical_name,
-              args: extract_call_args(
-                slice_location(source, loc),
-                name,
-                filename,
-              ),
+              args: self.extract_call_args(self.slice_location(loc), name),
               arg_count,
-              prop_defaults: parse_define_props_defaults(args, source),
+              prop_defaults: self.parse_define_props_defaults(args),
               static_string_arg: extract_static_string_arg(args),
             })
           } else {
@@ -193,9 +188,9 @@ fn validate_runtime_helper_macro(
 }
 
 ///|
-fn parse_define_props_defaults(
+fn ScriptSetupSource::parse_define_props_defaults(
+  self : ScriptSetupSource,
   args : @list.List[@mbt_syntax.Argument],
-  source : String,
 ) -> Array[PropDefault]? {
   guard args is @list.More(arg, tail=@list.Empty) else { return None }
   guard arg.kind is Positional else { return None }
@@ -203,7 +198,7 @@ fn parse_define_props_defaults(
     Record(type_name~, fields~, ..) =>
       match type_name {
         Some(_) => None
-        None => Some(parse_record_defaults(fields, source))
+        None => Some(self.parse_record_defaults(fields))
       }
     _ => None
   }
@@ -226,15 +221,15 @@ fn extract_static_string_arg(
 }
 
 ///|
-fn parse_record_defaults(
+fn ScriptSetupSource::parse_record_defaults(
+  self : ScriptSetupSource,
   fields : @list.List[@mbt_syntax.FieldDef],
-  source : String,
 ) -> Array[PropDefault] {
   let defaults : Array[PropDefault] = []
   for field in fields {
     defaults.push({
       name: field.label.name,
-      expr: slice_location(source, field.expr.loc()).trim().to_string(),
+      expr: self.slice_location(field.expr.loc()).trim().to_string(),
     })
   }
   defaults
@@ -249,46 +244,56 @@ fn unwrap_group_expr(expr : @mbt_syntax.Expr) -> @mbt_syntax.Expr {
 }
 
 ///|
-fn slice_location(source : String, loc : @mbt_basic.Location) -> String {
-  String::unsafe_substring(source, start=loc.start.cnum, end=loc.end.cnum)
+fn ScriptSetupSource::slice_location(
+  self : ScriptSetupSource,
+  loc : @mbt_basic.Location,
+) -> String {
+  String::unsafe_substring(
+    self.source,
+    start=loc.start.cnum,
+    end=loc.end.cnum,
+  )
 }
 
 ///|
-fn extract_let_declaration(
-  source : String,
+fn ScriptSetupSource::extract_let_declaration(
+  self : ScriptSetupSource,
   expr_loc : @mbt_basic.Location,
-  filename : String,
 ) -> String raise CompilerError {
   let prefix = String::unsafe_substring(
-    source,
+    self.source,
     start=0,
     end=expr_loc.start.cnum,
   )
-  match find_top_level_char(prefix, prefix.to_array(), '=') {
+  let prefix_source = ScriptSetupSource::new(prefix, self.filename)
+  match prefix_source.find_top_level_char('=') {
     Some(index) =>
       String::unsafe_substring(prefix, start=0, end=index).trim().to_string()
     None =>
       raise CompilerError::InvalidScriptSetup(
-        "failed to locate `=` in script setup declaration in \{filename}",
+        "failed to locate `=` in script setup declaration in \{self.filename}",
       )
   }
 }
 
 ///|
-fn extract_call_args(
+fn ScriptSetupSource::extract_call_args(
+  self : ScriptSetupSource,
   source : String,
   name : String,
-  filename : String,
 ) -> String raise CompilerError {
-  let chars = source.to_array()
-  let open_index = skip_inline_gap(source, chars, name.length())
-  if open_index >= chars.length() || chars[open_index] != '(' {
+  let call_source = ScriptSetupSource::new(source, self.filename)
+  let open_index = call_source.skip_inline_gap(name.length())
+  if open_index >= call_source.chars.length() || call_source.chars[open_index] != '(' {
     raise CompilerError::InvalidScriptSetup(
-      "expected \{name}() call in \{filename}",
+      "expected \{name}() call in \{self.filename}",
     )
   }
-  let close_index = find_matching_delimiter(
-    source, chars, open_index, '(', ')', filename, "macro call",
+  let close_index = call_source.find_matching_delimiter(
+    open_index,
+    '(',
+    ')',
+    "macro call",
   )
   String::unsafe_substring(source, start=open_index + 1, end=close_index)
   .trim()

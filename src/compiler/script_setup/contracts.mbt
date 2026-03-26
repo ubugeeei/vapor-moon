@@ -5,20 +5,20 @@ priv struct ScriptSetupContractType {
 }
 
 ///|
-fn parse_contract_type_decl(
-  source : String,
+fn ScriptSetupSource::parse_contract_type_decl(
+  self : ScriptSetupSource,
   type_decl : @mbt_syntax.TypeDecl,
 ) -> ScriptSetupContractType {
   let fields = match type_decl.components {
-    Record(field_decls) => Some(parse_contract_type_fields(source, field_decls))
+    Record(field_decls) => Some(self.parse_contract_type_fields(field_decls))
     _ => None
   }
   { name: type_decl.tycon, fields }
 }
 
 ///|
-fn parse_contract_type_fields(
-  source : String,
+fn ScriptSetupSource::parse_contract_type_fields(
+  self : ScriptSetupSource,
   field_decls : @list.List[@mbt_syntax.FieldDecl],
 ) -> Array[MacroField] {
   let fields : Array[MacroField] = []
@@ -26,7 +26,7 @@ fn parse_contract_type_fields(
     fields.push({
       name: field_decl.name.label,
       signature: Some(
-        slice_location(source, field_decl.ty.loc()).trim().to_string(),
+        self.slice_location(field_decl.ty.loc()).trim().to_string(),
       ),
       type_identifiers: collect_type_identifiers(field_decl.ty),
       type_shape: classify_macro_field_type_shape(field_decl.ty),
@@ -170,17 +170,4 @@ fn contains_type_identifier(
     }
   }
   false
-}
-
-///|
-fn find_contract_type(
-  contract_types : Array[ScriptSetupContractType],
-  name : String,
-) -> ScriptSetupContractType? {
-  for contract in contract_types {
-    if contract.name == name {
-      return Some(contract)
-    }
-  }
-  None
 }

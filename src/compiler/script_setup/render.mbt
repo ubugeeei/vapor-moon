@@ -1,10 +1,10 @@
 ///|
-fn render_script_setup_module(
-  ir : ScriptSetupModule,
+fn ScriptSetupModule::render(
+  self : ScriptSetupModule,
   include_imports : Bool,
 ) -> String {
   let lines : Array[String] = []
-  for statement in ir.statements {
+  for statement in self.statements {
     match statement {
       ImportStatement(entries) =>
         if include_imports {
@@ -12,9 +12,9 @@ fn render_script_setup_module(
         }
       LetStatement(let_stmt) =>
         lines.push(
-          let_stmt.declaration + " = " + render_script_setup_expr(let_stmt.expr),
+          let_stmt.declaration + " = " + let_stmt.expr.render(),
         )
-      ExpressionStatement(expr) => lines.push(render_script_setup_expr(expr))
+      ExpressionStatement(expr) => lines.push(expr.render())
       RawStatement(raw) => lines.push(raw)
     }
   }
@@ -35,8 +35,8 @@ fn render_import_statement(entries : Array[String]) -> String {
 }
 
 ///|
-fn render_script_setup_expr(expr : ScriptSetupExpression) -> String {
-  match expr {
+fn ScriptSetupExpression::render(self : ScriptSetupExpression) -> String {
+  match self {
     RawExpr(source) => source
     MacroExpr(macro_) => macro_.name + "(" + macro_.args + ")"
   }

@@ -1,26 +1,39 @@
 ///|
-fn resolve_macro_fields(
-  macro_ : ScriptSetupMacro,
-  annotation : ScriptSetupTypeAnnotation?,
-  contract_types : Array[ScriptSetupContractType],
-  filename : String,
-) -> Array[MacroField] raise CompilerError {
-  let fields = if accepts_typed_contract_macro(macro_) {
-    resolve_typed_contract_fields(macro_, annotation, contract_types, filename)
-  } else {
-    raise CompilerError::InvalidScriptSetup(
-      legacy_runtime_decl_message(macro_.name, filename),
-    )
-  }
-  validate_interface_fields(fields, macro_.name, filename)
+priv struct ScriptSetupContractResolver {
+  filename : String
+  contract_types : Array[ScriptSetupContractType]
 }
 
 ///|
-fn resolve_prop_defaults(
+fn ScriptSetupContractResolver::new(
+  filename : String,
+  contract_types : Array[ScriptSetupContractType],
+) -> ScriptSetupContractResolver {
+  { filename, contract_types }
+}
+
+///|
+fn ScriptSetupContractResolver::resolve_macro_fields(
+  self : ScriptSetupContractResolver,
+  macro_ : ScriptSetupMacro,
+  annotation : ScriptSetupTypeAnnotation?,
+) -> Array[MacroField] raise CompilerError {
+  let fields = if accepts_typed_contract_macro(macro_) {
+    self.resolve_typed_contract_fields(macro_, annotation)
+  } else {
+    raise CompilerError::InvalidScriptSetup(
+      legacy_runtime_decl_message(macro_.name, self.filename),
+    )
+  }
+  self.validate_interface_fields(fields, macro_.name)
+}
+
+///|
+fn ScriptSetupContractResolver::resolve_prop_defaults(
+  self : ScriptSetupContractResolver,
   macro_ : ScriptSetupMacro,
   fields : Array[MacroField],
   declaration : String?,
-  filename : String,
 ) -> Array[PropDefault] raise CompilerError {
   if macro_.name != "defineProps" || macro_.arg_count == 0 {
     return []
@@ -28,22 +41,23 @@ fn resolve_prop_defaults(
   let defaults = match macro_.prop_defaults {
     Some(defaults) => defaults
     None =>
-      raise CompilerError::InvalidScriptSetup(default_props_message(filename))
+      raise CompilerError::InvalidScriptSetup(
+        default_props_message(self.filename),
+      )
   }
   guard declaration is Some(_) else {
     raise CompilerError::InvalidScriptSetup(
-      "defineProps({ ... }) defaults require a typed binding like `let props : Props = defineProps({ ... })` in \{filename}",
+      "defineProps({ ... }) defaults require a typed binding like `let props : Props = defineProps({ ... })` in \{self.filename}",
     )
   }
-  validate_prop_defaults(defaults, fields, filename)
+  self.validate_prop_defaults(defaults, fields)
 }
 
 ///|
-fn resolve_typed_contract_fields(
+fn ScriptSetupContractResolver::resolve_typed_contract_fields(
+  self : ScriptSetupContractResolver,
   macro_ : ScriptSetupMacro,
   annotation : ScriptSetupTypeAnnotation?,
-  contract_types : Array[ScriptSetupContractType],
-  filename : String,
 ) -> Array[MacroField] raise CompilerError {
   let type_name = match annotation {
     Some(annotation) =>
@@ -51,46 +65,46 @@ fn resolve_typed_contract_fields(
         annotation.name
       } else {
         raise CompilerError::InvalidScriptSetup(
-          "\{macro_.name}() requires a local `struct \{annotation.name} {{ ... }}` contract in \{filename}; qualified type annotation `\{annotation.source}` is not supported",
+          "\{macro_.name}() requires a local `struct \{annotation.name} {{ ... }}` contract in \{self.filename}; qualified type annotation `\{annotation.source}` is not supported",
         )
       }
     None =>
       raise CompilerError::InvalidScriptSetup(
-        typed_contract_message(macro_.name, filename),
+        typed_contract_message(macro_.name, self.filename),
       )
   }
-  match find_contract_type(contract_types, type_name) {
+  match self.find_contract_type(type_name) {
     Some(contract) =>
       match contract.fields {
         Some(fields) => fields
         None =>
           raise CompilerError::InvalidScriptSetup(
-            "\{macro_.name}() requires `\{type_name}` to be a local `struct` contract in \{filename}",
+            "\{macro_.name}() requires `\{type_name}` to be a local `struct` contract in \{self.filename}",
           )
       }
     None =>
       raise CompilerError::InvalidScriptSetup(
-        "\{macro_.name}() requires a local `struct \{type_name} {{ ... }}` contract in \{filename}",
+        "\{macro_.name}() requires a local `struct \{type_name} {{ ... }}` contract in \{self.filename}",
       )
   }
 }
 
 ///|
-fn validate_interface_fields(
+fn ScriptSetupContractResolver::validate_interface_fields(
+  self : ScriptSetupContractResolver,
   fields : Array[MacroField],
   macro_name : String,
-  filename : String,
 ) -> Array[MacroField] raise CompilerError {
   let validated : Array[MacroField] = []
   for field in fields {
     if not(is_identifier_literal(field.name)) {
       raise CompilerError::InvalidScriptSetup(
-        "\{macro_name}() entries must be identifier-like for typed interfaces in \{filename}: \{field.name}",
+        "\{macro_name}() entries must be identifier-like for typed interfaces in \{self.filename}: \{field.name}",
       )
     }
     if has_interface_field(validated, field.name) {
       raise CompilerError::InvalidScriptSetup(
-        "\{macro_name}() contract contains duplicate field `\{field.name}` in \{filename}",
+        "\{macro_name}() contract contains duplicate field `\{field.name}` in \{self.filename}",
       )
     }
     validated.push(field)
@@ -156,28 +170,28 @@ fn default_contract_binding_name(macro_name : String) -> String {
 }
 
 ///|
-fn validate_prop_defaults(
+fn ScriptSetupContractResolver::validate_prop_defaults(
+  self : ScriptSetupContractResolver,
   defaults : Array[PropDefault],
   fields : Array[MacroField],
-  filename : String,
 ) -> Array[PropDefault] raise CompilerError {
   let validated : Array[PropDefault] = []
   for default_ in defaults {
     if has_prop_default(validated, default_.name) {
       raise CompilerError::InvalidScriptSetup(
-        "duplicate default for prop `\{default_.name}` in \{filename}",
+        "duplicate default for prop `\{default_.name}` in \{self.filename}",
       )
     }
     let field = match find_interface_field(fields, default_.name) {
       Some(field) => field
       None =>
         raise CompilerError::InvalidScriptSetup(
-          "defineProps() default `\{default_.name}` does not match any declared prop in \{filename}",
+          "defineProps() default `\{default_.name}` does not match any declared prop in \{self.filename}",
         )
     }
     if field.is_optional {
       raise CompilerError::InvalidScriptSetup(
-        "defineProps() default `\{default_.name}` requires a non-optional prop type in \{filename}; remove `?` from the contract field and let the default make it optional for callers",
+        "defineProps() default `\{default_.name}` requires a non-optional prop type in \{self.filename}; remove `?` from the contract field and let the default make it optional for callers",
       )
     }
     validated.push(default_)
@@ -216,4 +230,17 @@ fn has_interface_field(fields : Array[MacroField], name : String) -> Bool {
     }
   }
   false
+}
+
+///|
+fn ScriptSetupContractResolver::find_contract_type(
+  self : ScriptSetupContractResolver,
+  name : String,
+) -> ScriptSetupContractType? {
+  for contract in self.contract_types {
+    if contract.name == name {
+      return Some(contract)
+    }
+  }
+  None
 }

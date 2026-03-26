@@ -1,49 +1,66 @@
 ///|
-fn split_top_level_statements(source : String) -> Array[String] {
+priv struct ScriptSetupSource {
+  source : String
+  filename : String
+  chars : Array[Char]
+}
+
+///|
+fn ScriptSetupSource::new(
+  source : String,
+  filename : String,
+) -> ScriptSetupSource {
+  { source, filename, chars: source.to_array() }
+}
+
+///|
+fn ScriptSetupSource::split_top_level_statements(
+  self : ScriptSetupSource,
+) -> Array[String] {
   let parts : Array[String] = []
-  let chars = source.to_array()
   let mut cursor = 0
   let mut start = 0
   let mut paren_depth = 0
   let mut bracket_depth = 0
   let mut brace_depth = 0
-  while cursor < chars.length() {
-    if starts_multiline_string_line(chars, cursor) {
-      cursor = skip_multiline_string_line(chars, cursor)
+  while cursor < self.chars.length() {
+    if self.starts_multiline_string_line(cursor) {
+      cursor = self.skip_multiline_string_line(cursor)
       continue
     }
-    if starts_with_local(source, cursor, "//") {
-      let next = skip_line_comment(chars, cursor)
-      if range_has_only_statement_trivia(chars, start, cursor) {
+    if self.starts_with(cursor, "//") {
+      let next = self.skip_line_comment(cursor)
+      if self.range_has_only_statement_trivia(start, cursor) {
         start = next
       }
       cursor = next
       continue
     }
-    if starts_with_local(source, cursor, "/*") {
-      let next = skip_block_comment(chars, cursor)
-      if range_has_only_statement_trivia(chars, start, cursor) {
+    if self.starts_with(cursor, "/*") {
+      let next = self.skip_block_comment(cursor)
+      if self.range_has_only_statement_trivia(start, cursor) {
         start = next
       }
       cursor = next
       continue
     }
-    let current = chars[cursor]
+    let current = self.chars[cursor]
     if current == '"' || current == '\'' {
-      cursor = skip_quoted(chars, cursor, current)
+      cursor = self.skip_quoted(cursor, current)
       continue
     }
     let depths = update_scan_depths(
-      current, paren_depth, bracket_depth, brace_depth,
+      current,
+      paren_depth,
+      bracket_depth,
+      brace_depth,
     )
     paren_depth = depths.0
     bracket_depth = depths.1
     brace_depth = depths.2
     if (current == '\n' || current == ';') &&
       not(
-        continues_top_level_statement(
-          source,
-          chars,
+        self.continues_top_level_statement(
           start,
           cursor,
           cursor + 1,
@@ -53,24 +70,26 @@ fn split_top_level_statements(source : String) -> Array[String] {
       paren_depth == 0 &&
       bracket_depth == 0 &&
       brace_depth == 0 {
-      parts.push(String::unsafe_substring(source, start~, end=cursor))
+      parts.push(String::unsafe_substring(self.source, start~, end=cursor))
       start = cursor + 1
     }
     cursor += 1
   }
-  parts.push(String::unsafe_substring(source, start~, end=source.length()))
+  parts.push(
+    String::unsafe_substring(self.source, start~, end=self.source.length()),
+  )
   parts
 }
 
 ///|
-fn range_has_only_statement_trivia(
-  chars : Array[Char],
+fn ScriptSetupSource::range_has_only_statement_trivia(
+  self : ScriptSetupSource,
   start : Int,
   end_ : Int,
 ) -> Bool {
   let mut cursor = start
   while cursor < end_ {
-    let current = chars[cursor]
+    let current = self.chars[cursor]
     if current == ' ' || current == '\n' || current == '\t' || current == '\r' {
       cursor += 1
       continue
@@ -81,9 +100,8 @@ fn range_has_only_statement_trivia(
 }
 
 ///|
-fn continues_top_level_statement(
-  source : String,
-  chars : Array[Char],
+fn ScriptSetupSource::continues_top_level_statement(
+  self : ScriptSetupSource,
   start : Int,
   end_ : Int,
   next_start : Int,
@@ -92,7 +110,7 @@ fn continues_top_level_statement(
   if separator == ';' {
     return false
   }
-  let prefix = String::unsafe_substring(source, start~, end=end_)
+  let prefix = String::unsafe_substring(self.source, start~, end=end_)
     .trim_end(chars=" \t\r")
     .to_string()
   if prefix.length() == 0 {
@@ -114,46 +132,44 @@ fn continues_top_level_statement(
   prefix.has_suffix("||") ||
   prefix.has_suffix("=>") ||
   prefix.has_suffix("->") ||
-  next_significant_token_continues_statement(source, chars, next_start)
+  self.next_significant_token_continues_statement(next_start)
 }
 
 ///|
-fn next_significant_token_continues_statement(
-  source : String,
-  chars : Array[Char],
+fn ScriptSetupSource::next_significant_token_continues_statement(
+  self : ScriptSetupSource,
   start : Int,
 ) -> Bool {
-  let cursor = skip_to_next_significant_token(source, chars, start)
-  if cursor >= chars.length() {
+  let cursor = self.skip_to_next_significant_token(start)
+  if cursor >= self.chars.length() {
     return false
   }
-  starts_with_local(source, cursor, "|>") ||
-  starts_with_local(source, cursor, "..") ||
-  chars[cursor] == '.' ||
-  starts_with_continuation_word(source, chars, cursor, "else") ||
-  starts_with_continuation_word(source, chars, cursor, "catch")
+  self.starts_with(cursor, "|>") ||
+  self.starts_with(cursor, "..") ||
+  self.chars[cursor] == '.' ||
+  self.starts_with_continuation_word(cursor, "else") ||
+  self.starts_with_continuation_word(cursor, "catch")
 }
 
 ///|
-fn skip_to_next_significant_token(
-  source : String,
-  chars : Array[Char],
+fn ScriptSetupSource::skip_to_next_significant_token(
+  self : ScriptSetupSource,
   start : Int,
 ) -> Int {
   let mut cursor = start
-  while cursor < chars.length() {
-    if starts_multiline_string_line(chars, cursor) {
+  while cursor < self.chars.length() {
+    if self.starts_multiline_string_line(cursor) {
       return cursor
     }
-    if starts_with_local(source, cursor, "//") {
-      cursor = skip_line_comment(chars, cursor)
+    if self.starts_with(cursor, "//") {
+      cursor = self.skip_line_comment(cursor)
       continue
     }
-    if starts_with_local(source, cursor, "/*") {
-      cursor = skip_block_comment(chars, cursor)
+    if self.starts_with(cursor, "/*") {
+      cursor = self.skip_block_comment(cursor)
       continue
     }
-    let current = chars[cursor]
+    let current = self.chars[cursor]
     if current == ' ' || current == '\n' || current == '\t' || current == '\r' {
       cursor += 1
       continue
@@ -164,20 +180,19 @@ fn skip_to_next_significant_token(
 }
 
 ///|
-fn starts_with_continuation_word(
-  source : String,
-  chars : Array[Char],
+fn ScriptSetupSource::starts_with_continuation_word(
+  self : ScriptSetupSource,
   start : Int,
   expected : String,
 ) -> Bool {
-  if not(starts_with_local(source, start, expected)) {
+  if not(self.starts_with(start, expected)) {
     return false
   }
   let end_ = start + expected.length()
-  if end_ >= chars.length() {
+  if end_ >= self.chars.length() {
     return true
   }
-  let current = chars[end_]
+  let current = self.chars[end_]
   current == ' ' ||
   current == '\n' ||
   current == '\t' ||
@@ -186,31 +201,30 @@ fn starts_with_continuation_word(
 }
 
 ///|
-fn find_top_level_char(
-  source : String,
-  chars : Array[Char],
+fn ScriptSetupSource::find_top_level_char(
+  self : ScriptSetupSource,
   target : Char,
 ) -> Int? {
   let mut cursor = 0
   let mut paren_depth = 0
   let mut bracket_depth = 0
   let mut brace_depth = 0
-  while cursor < chars.length() {
-    if starts_multiline_string_line(chars, cursor) {
-      cursor = skip_multiline_string_line(chars, cursor)
+  while cursor < self.chars.length() {
+    if self.starts_multiline_string_line(cursor) {
+      cursor = self.skip_multiline_string_line(cursor)
       continue
     }
-    if starts_with_local(source, cursor, "//") {
-      cursor = skip_line_comment(chars, cursor)
+    if self.starts_with(cursor, "//") {
+      cursor = self.skip_line_comment(cursor)
       continue
     }
-    if starts_with_local(source, cursor, "/*") {
-      cursor = skip_block_comment(chars, cursor)
+    if self.starts_with(cursor, "/*") {
+      cursor = self.skip_block_comment(cursor)
       continue
     }
-    let current = chars[cursor]
+    let current = self.chars[cursor]
     if current == '"' || current == '\'' {
-      cursor = skip_quoted(chars, cursor, current)
+      cursor = self.skip_quoted(cursor, current)
       continue
     }
     if current == target &&
@@ -220,7 +234,10 @@ fn find_top_level_char(
       return Some(cursor)
     }
     let depths = update_scan_depths(
-      current, paren_depth, bracket_depth, brace_depth,
+      current,
+      paren_depth,
+      bracket_depth,
+      brace_depth,
     )
     paren_depth = depths.0
     bracket_depth = depths.1
@@ -231,33 +248,31 @@ fn find_top_level_char(
 }
 
 ///|
-fn find_matching_delimiter(
-  source : String,
-  chars : Array[Char],
+fn ScriptSetupSource::find_matching_delimiter(
+  self : ScriptSetupSource,
   open_index : Int,
   open_char : Char,
   close_char : Char,
-  filename : String,
   label : String,
 ) -> Int raise CompilerError {
   let mut cursor = open_index + 1
   let mut depth = 1
-  while cursor < chars.length() {
-    if starts_multiline_string_line(chars, cursor) {
-      cursor = skip_multiline_string_line(chars, cursor)
+  while cursor < self.chars.length() {
+    if self.starts_multiline_string_line(cursor) {
+      cursor = self.skip_multiline_string_line(cursor)
       continue
     }
-    if starts_with_local(source, cursor, "//") {
-      cursor = skip_line_comment(chars, cursor)
+    if self.starts_with(cursor, "//") {
+      cursor = self.skip_line_comment(cursor)
       continue
     }
-    if starts_with_local(source, cursor, "/*") {
-      cursor = skip_block_comment(chars, cursor)
+    if self.starts_with(cursor, "/*") {
+      cursor = self.skip_block_comment(cursor)
       continue
     }
-    let current = chars[cursor]
+    let current = self.chars[cursor]
     if current == '"' || current == '\'' {
-      cursor = skip_quoted(chars, cursor, current)
+      cursor = self.skip_quoted(cursor, current)
       continue
     }
     if current == open_char {
@@ -271,8 +286,75 @@ fn find_matching_delimiter(
     cursor += 1
   }
   raise CompilerError::InvalidScriptSetup(
-    "unterminated \{label} in \{filename}",
+    "unterminated \{label} in \{self.filename}",
   )
+}
+
+///|
+fn ScriptSetupSource::split_top_level(
+  self : ScriptSetupSource,
+  separator : Char,
+) -> Array[String] {
+  let parts : Array[String] = []
+  let current_parts : Array[String] = []
+  let mut cursor = 0
+  let mut start = 0
+  let mut paren_depth = 0
+  let mut bracket_depth = 0
+  let mut brace_depth = 0
+  while cursor < self.chars.length() {
+    if self.starts_multiline_string_line(cursor) {
+      cursor = self.skip_multiline_string_line(cursor)
+      continue
+    }
+    if self.starts_with(cursor, "//") {
+      current_parts.push(
+        String::unsafe_substring(self.source, start~, end=cursor),
+      )
+      cursor = self.skip_line_comment(cursor)
+      start = cursor
+      continue
+    }
+    if self.starts_with(cursor, "/*") {
+      current_parts.push(
+        String::unsafe_substring(self.source, start~, end=cursor),
+      )
+      cursor = self.skip_block_comment(cursor)
+      start = cursor
+      continue
+    }
+    let current = self.chars[cursor]
+    if current == '"' || current == '\'' {
+      cursor = self.skip_quoted(cursor, current)
+      continue
+    }
+    let depths = update_scan_depths(
+      current,
+      paren_depth,
+      bracket_depth,
+      brace_depth,
+    )
+    paren_depth = depths.0
+    bracket_depth = depths.1
+    brace_depth = depths.2
+    if current == separator &&
+      paren_depth == 0 &&
+      bracket_depth == 0 &&
+      brace_depth == 0 {
+      current_parts.push(
+        String::unsafe_substring(self.source, start~, end=cursor),
+      )
+      parts.push(current_parts.join(""))
+      current_parts.clear()
+      start = cursor + 1
+    }
+    cursor += 1
+  }
+  current_parts.push(
+    String::unsafe_substring(self.source, start~, end=self.source.length()),
+  )
+  parts.push(current_parts.join(""))
+  parts
 }
 
 ///|
@@ -318,60 +400,4 @@ fn update_scan_depths(
       )
     _ => (paren_depth, bracket_depth, brace_depth)
   }
-}
-
-///|
-fn split_top_level(source : String, separator : Char) -> Array[String] {
-  let parts : Array[String] = []
-  let current_parts : Array[String] = []
-  let chars = source.to_array()
-  let mut cursor = 0
-  let mut start = 0
-  let mut paren_depth = 0
-  let mut bracket_depth = 0
-  let mut brace_depth = 0
-  while cursor < chars.length() {
-    if starts_multiline_string_line(chars, cursor) {
-      cursor = skip_multiline_string_line(chars, cursor)
-      continue
-    }
-    if starts_with_local(source, cursor, "//") {
-      current_parts.push(String::unsafe_substring(source, start~, end=cursor))
-      cursor = skip_line_comment(chars, cursor)
-      start = cursor
-      continue
-    }
-    if starts_with_local(source, cursor, "/*") {
-      current_parts.push(String::unsafe_substring(source, start~, end=cursor))
-      cursor = skip_block_comment(chars, cursor)
-      start = cursor
-      continue
-    }
-    let current = chars[cursor]
-    if current == '"' || current == '\'' {
-      cursor = skip_quoted(chars, cursor, current)
-      continue
-    }
-    let depths = update_scan_depths(
-      current, paren_depth, bracket_depth, brace_depth,
-    )
-    paren_depth = depths.0
-    bracket_depth = depths.1
-    brace_depth = depths.2
-    if current == separator &&
-      paren_depth == 0 &&
-      bracket_depth == 0 &&
-      brace_depth == 0 {
-      current_parts.push(String::unsafe_substring(source, start~, end=cursor))
-      parts.push(current_parts.join(""))
-      current_parts.clear()
-      start = cursor + 1
-    }
-    cursor += 1
-  }
-  current_parts.push(
-    String::unsafe_substring(source, start~, end=source.length()),
-  )
-  parts.push(current_parts.join(""))
-  parts
 }

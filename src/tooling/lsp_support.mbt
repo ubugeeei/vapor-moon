@@ -1,6 +1,22 @@
 ///|
-fn position_to_offset(source : String, line : Int, character : Int) -> Int {
-  let chars = source.to_array()
+priv struct ToolingDocument {
+  source : String
+  filename : String
+  chars : Array[Char]
+}
+
+///|
+fn ToolingDocument::new(source : String, filename : String) -> ToolingDocument {
+  { source, filename, chars: source.to_array() }
+}
+
+///|
+fn ToolingDocument::position_to_offset(
+  self : ToolingDocument,
+  line : Int,
+  character : Int,
+) -> Int {
+  let chars = self.chars
   let mut cursor = 0
   let mut current_line = 0
   let mut current_character = 0
@@ -37,8 +53,11 @@ fn utf16_width(c : Char) -> Int {
 }
 
 ///|
-fn offset_to_position(source : String, offset : Int) -> ToolingPosition {
-  let chars = source.to_array()
+fn ToolingDocument::offset_to_position(
+  self : ToolingDocument,
+  offset : Int,
+) -> ToolingPosition {
+  let chars = self.chars
   let limit = if offset < chars.length() { offset } else { chars.length() }
   let mut cursor = 0
   let mut line = 0
@@ -56,17 +75,16 @@ fn offset_to_position(source : String, offset : Int) -> ToolingPosition {
 }
 
 ///|
-fn location_from_span(
-  source : String,
-  filename : String,
+fn ToolingDocument::location_from_span(
+  self : ToolingDocument,
   span : @compiler.SourceSpan,
 ) -> ToolingLocation {
   {
-    filename,
+    filename: self.filename,
     span,
     range: {
-      start: offset_to_position(source, span.start),
-      end_: offset_to_position(source, span.end),
+      start: self.offset_to_position(span.start),
+      end_: self.offset_to_position(span.end),
     },
   }
 }
@@ -104,17 +122,23 @@ fn token_boundary(c : Char) -> Bool {
 }
 
 ///|
-fn span_text(source : String, span : @compiler.SourceSpan) -> String {
-  String::unsafe_substring(source, start=span.start, end=span.end)
+fn ToolingDocument::span_text(
+  self : ToolingDocument,
+  span : @compiler.SourceSpan,
+) -> String {
+  String::unsafe_substring(self.source, start=span.start, end=span.end)
 }
 
 ///|
-fn current_token_prefix(source : String, offset : Int) -> String {
-  let chars = source.to_array()
+fn ToolingDocument::current_token_prefix(
+  self : ToolingDocument,
+  offset : Int,
+) -> String {
+  let chars = self.chars
   let limit = if offset < chars.length() { offset } else { chars.length() }
   let mut start = limit
   while start > 0 && not(token_boundary(chars[start - 1])) {
     start -= 1
   }
-  String::unsafe_substring(source, start~, end=limit)
+  String::unsafe_substring(self.source, start~, end=limit)
 }
