@@ -365,6 +365,11 @@ Island and delivery directives are part of the template surface:
 - `client:only`
 - `server:defer`
 
+## CLI
+
+- `moon run src/cmd/vapor_moon -- compile path/to/Component.mbtv` prints a compile snapshot to stdout
+- `moon run src/cmd/vapor_moon -- watch path/to/components` recursively watches `.mbtv` files and writes sibling `.client.mbt`, `.server.mbt`, and `.css` outputs on add/change/remove
+
 ## Examples
 
 Small examples live in [`examples/`](./examples) and are intended to cover the current surface area without too much ceremony:
@@ -444,6 +449,26 @@ moon build --target js src/cmd/vapor_moon_lsp
 ```
 
 `bash scripts/patch_mooncakes.sh` reapplies a small local patch for a known `moonbitlang/yacc` dependency warning, and the repo-local pre-commit hook runs it automatically before the test suite.
+
+## Publishing
+
+Recommended release flow:
+
+```bash
+moon register   # first time only
+moon login
+moon test
+moon package --list
+moon publish
+```
+
+Before publishing:
+
+- bump `version` in `moon.mod.json` using semver
+- confirm `name`, `repository`, `license`, `description`, and `keywords` are up to date
+- review the packaged files with `moon package --list`; this repository uses `exclude` in `moon.mod.json` to keep editor fixtures, examples, scripts, and test files out of the published archive
+
+On newer MoonBit toolchains, `moon publish --dry-run` is also useful before the real publish.
 
 ## Git Setup
 

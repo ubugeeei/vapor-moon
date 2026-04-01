@@ -11,6 +11,22 @@
   "readme": "README.md",
   "repository": "https://github.com/ubugeeei/vapor-moon",
   "license": "MIT",
+  "exclude": [
+    ".github",
+    ".githooks",
+    "actrun.toml",
+    "bin",
+    "e2e",
+    "editors",
+    "examples",
+    "scripts",
+    "testdata",
+    "README.mbt.md",
+    "src/compiler/script_setup_test",
+    "src/compiler/snapshot",
+    "src/compiler/test_support",
+    "src/**/*_test.mbt"
+  ],
   "keywords": [
     "moonbit",
     "sfc",
