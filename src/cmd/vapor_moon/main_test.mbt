@@ -1,12 +1,13 @@
 ///|
 fn command_test_dir(name : String) -> String {
   let cwd = @env.current_dir().unwrap_or(".")
-  let root =
-    join_path(
-      cwd,
-      ".vapor_moon_cmd_test_" + name + "_" + @env.now().to_string(),
-    )
-  @fs.create_dir(root) catch { _ => panic() }
+  let root = join_path(
+    cwd,
+    ".vapor_moon_cmd_test_" + name + "_" + @env.now().to_string(),
+  )
+  @fs.create_dir(root) catch {
+    _ => panic()
+  }
   root
 }
 
@@ -59,7 +60,11 @@ test "collect watch sources finds nested mbtv files only" {
   let root_source = join_path(root, "Root.mbtv")
   let nested_source = join_path(nested, "Child.mbtv")
   let note = join_path(root, "note.txt")
-  @fs.write_string_to_file(root_source, "<template><div /></template>", encoding="utf8") catch {
+  @fs.write_string_to_file(
+    root_source,
+    "<template><div /></template>",
+    encoding="utf8",
+  ) catch {
     _ => {
       cleanup_command_test_dir(root)
       panic()

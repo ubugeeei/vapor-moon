@@ -106,11 +106,7 @@ fn watch_directory(root : String) -> Unit {
     println("no .mbtv files found")
   }
   sync_watch_sources(
-    compiler,
-    resolved_root,
-    known_sources,
-    initial_sources,
-    true,
+    compiler, resolved_root, known_sources, initial_sources, true,
   )
   while true {
     sleep_watch_interval()
@@ -121,11 +117,7 @@ fn watch_directory(root : String) -> Unit {
       }
     }
     sync_watch_sources(
-      compiler,
-      resolved_root,
-      known_sources,
-      next_sources,
-      false,
+      compiler, resolved_root, known_sources, next_sources, false,
     )
   }
 }
@@ -164,11 +156,7 @@ fn sync_watch_sources(
         if previous != source {
           store_known_source(known_sources, source_path, source)
           compile_watched_source(
-            compiler,
-            root_dir,
-            source_path,
-            source,
-            "changed",
+            compiler, root_dir, source_path, source, "changed",
           )
         }
       None => {
@@ -178,7 +166,11 @@ fn sync_watch_sources(
           root_dir,
           source_path,
           source,
-          if initial { "init" } else { "added" },
+          if initial {
+            "init"
+          } else {
+            "added"
+          },
         )
       }
     }
@@ -289,7 +281,11 @@ fn is_watch_source_path(path : String) -> Bool {
 /// Compute the generated output file paths written beside a source `.mbtv`.
 pub fn generated_output_paths(source_path : String) -> GeneratedOutputPaths {
   let stem = strip_watch_source_extension(source_path)
-  { client: stem + ".client.mbt", server: stem + ".server.mbt", css: stem + ".css" }
+  {
+    client: stem + ".client.mbt",
+    server: stem + ".server.mbt",
+    css: stem + ".css",
+  }
 }
 
 ///|
@@ -308,8 +304,16 @@ pub fn write_compile_outputs(
   output : @compiler.CompileOutput,
 ) -> Unit raise @fs.IOError {
   let generated = generated_output_paths(source_path)
-  @fs.write_string_to_file(generated.client, output.client_code, encoding="utf8")
-  @fs.write_string_to_file(generated.server, output.server_code, encoding="utf8")
+  @fs.write_string_to_file(
+    generated.client,
+    output.client_code,
+    encoding="utf8",
+  )
+  @fs.write_string_to_file(
+    generated.server,
+    output.server_code,
+    encoding="utf8",
+  )
   @fs.write_string_to_file(generated.css, output.css_output, encoding="utf8")
 }
 
@@ -336,7 +340,11 @@ fn remove_file_if_exists(path : String) -> Unit {
 fn render_watch_label(root_dir : String, path : String) -> String {
   let prefix = if root_dir.has_suffix("/") { root_dir } else { root_dir + "/" }
   if path.has_prefix(prefix) {
-    return String::unsafe_substring(path, start=prefix.length(), end=path.length())
+    return String::unsafe_substring(
+      path,
+      start=prefix.length(),
+      end=path.length(),
+    )
   }
   if path == root_dir {
     return "."
