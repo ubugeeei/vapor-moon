@@ -95,6 +95,20 @@ pub fn request_document_position(params : @js.Any?) -> (String, Int, Int)? {
 }
 
 ///|
+/// Extract `context.includeDeclaration` from a references request.
+pub fn request_include_declaration(params : @js.Any?) -> Bool {
+  match params_object(params) {
+    Some(params) =>
+      match object_prop(params, "context") {
+        Some(context) =>
+          bool_prop(context, "includeDeclaration").unwrap_or(true)
+        None => true
+      }
+    None => true
+  }
+}
+
+///|
 /// Validate the JSON-RPC envelope and build a `RequestMessage`.
 fn decode_request_value(
   value : @js.Any,

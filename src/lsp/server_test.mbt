@@ -130,7 +130,80 @@ fn position_request(
 }
 
 ///|
-test "initialize advertises hover definition and completion" {
+fn references_request(
+  id : Int,
+  line : Int,
+  character : Int,
+  include_declaration : Bool,
+) -> String {
+  stringify_json(
+    json_object([
+      ("jsonrpc", @js.any("2.0")),
+      ("id", @js.any(id)),
+      ("method", @js.any("textDocument/references")),
+      (
+        "params",
+        json_object([
+          (
+            "textDocument",
+            json_object([("uri", @js.any("file:///Component.mbtv"))]),
+          ),
+          (
+            "position",
+            json_object([
+              ("line", @js.any(line)),
+              ("character", @js.any(character)),
+            ]),
+          ),
+          (
+            "context",
+            json_object([("includeDeclaration", @js.any(include_declaration))]),
+          ),
+        ]),
+      ),
+    ]),
+  )
+}
+
+///|
+fn formatting_request(id : Int) -> String {
+  stringify_json(
+    json_object([
+      ("jsonrpc", @js.any("2.0")),
+      ("id", @js.any(id)),
+      ("method", @js.any("textDocument/formatting")),
+      (
+        "params",
+        json_object([
+          (
+            "textDocument",
+            json_object([("uri", @js.any("file:///Component.mbtv"))]),
+          ),
+          (
+            "options",
+            json_object([
+              ("tabSize", @js.any(2)),
+              ("insertSpaces", @js.any(true)),
+            ]),
+          ),
+        ]),
+      ),
+    ]),
+  )
+}
+
+///|
+fn unformatted_source() -> String {
+  let source =
+    #|<script setup>
+    #|let count = 1
+    #|</script>
+    #|<template><div><span>{{ count }}</span></div></template>
+  source
+}
+
+///|
+test "initialize advertises hover definition completion references and formatting" {
   let state = ServerState::new()
   let result = handle_message(
     state, "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{}}",
@@ -139,6 +212,10 @@ test "initialize advertises hover definition and completion" {
   assert_eq(result.exit_code, None)
   assert_true(result.messages[0].contains("\"hoverProvider\":true"))
   assert_true(result.messages[0].contains("\"definitionProvider\":true"))
+  assert_true(result.messages[0].contains("\"referencesProvider\":true"))
+  assert_true(
+    result.messages[0].contains("\"documentFormattingProvider\":true"),
+  )
   assert_true(result.messages[0].contains("\"completionProvider\""))
   assert_true(result.messages[0].contains("\"positionEncoding\":\"utf-16\""))
 }
@@ -238,4 +315,40 @@ test "completion returns template event candidates" {
   )
 
   assert_true(completion.messages[0].contains("\"label\":\"@click\""))
+}
+
+///|
+test "server references return declaration and usage locations" {
+  let state = ServerState::new()
+  let source = component_source()
+  ignore(handle_message(state, open_request("file:///Component.mbtv", source)))
+
+  let (member_line, member_character) = line_character_at(
+    source, "title }}</h1>",
+  )
+  let (definition_line, _) = line_character_at(source, "title : String")
+  let references = handle_message(
+    state,
+    references_request(6, member_line, member_character, true),
+  )
+
+  assert_true(
+    references.messages[0].contains("\"line\":" + definition_line.to_string()),
+  )
+  assert_true(
+    references.messages[0].contains("\"line\":" + member_line.to_string()),
+  )
+}
+
+///|
+test "server formatting returns one full-document edit" {
+  let state = ServerState::new()
+  let source = unformatted_source()
+  ignore(handle_message(state, open_request("file:///Component.mbtv", source)))
+
+  let formatting = handle_message(state, formatting_request(7))
+
+  assert_true(formatting.messages[0].contains("\"newText\":\"<script setup>"))
+  assert_true(formatting.messages[0].contains("\\n\\n<template>\\n  <div>"))
+  assert_true(formatting.messages[0].contains("<span>{{ count }}</span>"))
 }

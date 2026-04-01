@@ -43,3 +43,9 @@ pub struct ToolingCompletionItem {
   detail : String
   insert_text : String
 } derive(Eq, Show)
+
+///|
+pub struct ToolingTextEdit {
+  range : ToolingRange
+  new_text : String
+} derive(Eq, Show)

@@ -8,6 +8,12 @@ priv struct ToolingQuery {
 }
 
 ///|
+priv enum ToolingReferenceTarget {
+  Binding(String, String, @compiler.SourceSpan)
+  Member(String, String, String, @compiler.SourceSpan)
+}
+
+///|
 /// Compute diagnostics for a document without spinning up the JSON-RPC server.
 pub fn diagnostics(
   source : String,
@@ -47,6 +53,20 @@ pub fn complete_at(
   filename? : String = "Component.mbtv",
 ) -> Array[ToolingCompletionItem] {
   ToolingQuery::new(source, filename).complete(line, character)
+}
+
+///|
+/// Resolve all references for the token at the given UTF-16 position.
+pub fn references_at(
+  source : String,
+  line : Int,
+  character : Int,
+  include_declaration? : Bool = true,
+  filename? : String = "Component.mbtv",
+) -> Array[ToolingLocation] {
+  ToolingQuery::new(source, filename).references(
+    line, character, include_declaration,
+  )
 }
 
 ///|
@@ -102,6 +122,21 @@ fn ToolingQuery::complete(
         Some(items) => items
         None => self.general_completion_items(offset)
       }
+  }
+}
+
+///|
+/// Resolve all references for the token at the given UTF-16 position.
+fn ToolingQuery::references(
+  self : ToolingQuery,
+  line : Int,
+  character : Int,
+  include_declaration : Bool,
+) -> Array[ToolingLocation] {
+  let offset = self.index.document.position_to_offset(line, character)
+  match self.find_reference_target(offset) {
+    Some(target) => self.reference_locations(target, include_declaration)
+    None => []
   }
 }
 
@@ -343,6 +378,9 @@ fn ToolingQuery::general_completion_items(
   if prefix.has_prefix("v-bind:") {
     return long_binding_completion_items(prefix)
   }
+  if prefix.has_prefix("v-slot") || prefix.has_prefix("#") {
+    return slot_completion_items(prefix)
+  }
   if prefix.has_prefix("v-") {
     return directive_completion_items(prefix)
   }
@@ -385,6 +423,145 @@ fn ToolingQuery::member_completion_context(
     end=binding_end,
   )
   Some((binding_name, prefix))
+}
+
+///|
+/// Resolve the binding/member target used by go-to-references.
+fn ToolingQuery::find_reference_target(
+  self : ToolingQuery,
+  offset : Int,
+) -> ToolingReferenceTarget? {
+  for entry in self.index.members {
+    if contains_offset(entry.span, offset) {
+      return Some(
+        Member(entry.contract_kind, entry.binding_name, entry.name, entry.span),
+      )
+    }
+  }
+  for binding in self.index.bindings {
+    if contains_offset(binding.span, offset) {
+      return Some(
+        Binding(binding.contract_kind, binding.binding_name, binding.span),
+      )
+    }
+  }
+  for ref_ in self.index.refs {
+    if contains_offset(ref_.member_span, offset) {
+      match
+        find_binding(self.index.bindings, ref_.contract_kind, ref_.binding_name) {
+        Some(binding) =>
+          match
+            find_member(
+              self.index.members,
+              binding.binding_name,
+              ref_.member_name,
+            ) {
+            Some(entry) =>
+              return Some(
+                Member(
+                  binding.contract_kind,
+                  binding.binding_name,
+                  entry.name,
+                  entry.span,
+                ),
+              )
+            None => ()
+          }
+        None => ()
+      }
+    }
+    if contains_offset(ref_.binding_span, offset) {
+      match
+        find_binding(self.index.bindings, ref_.contract_kind, ref_.binding_name) {
+        Some(binding) =>
+          return Some(
+            Binding(binding.contract_kind, binding.binding_name, binding.span),
+          )
+        None => ()
+      }
+    }
+  }
+  None
+}
+
+///|
+/// Collect reference locations for one resolved binding or member target.
+fn ToolingQuery::reference_locations(
+  self : ToolingQuery,
+  target : ToolingReferenceTarget,
+  include_declaration : Bool,
+) -> Array[ToolingLocation] {
+  let locations : Array[ToolingLocation] = []
+  match target {
+    Binding(contract_kind, binding_name, span) => {
+      if include_declaration {
+        push_unique_location(
+          locations,
+          self.index.document.location_from_span(span),
+        )
+      }
+      for ref_ in self.index.refs {
+        if ref_.contract_kind != contract_kind {
+          continue
+        }
+        match
+          find_binding(
+            self.index.bindings,
+            ref_.contract_kind,
+            ref_.binding_name,
+          ) {
+          Some(binding) if binding.binding_name == binding_name =>
+            push_unique_location(
+              locations,
+              self.index.document.location_from_span(ref_.binding_span),
+            )
+          _ => ()
+        }
+      }
+    }
+    Member(contract_kind, binding_name, member_name, span) => {
+      if include_declaration {
+        push_unique_location(
+          locations,
+          self.index.document.location_from_span(span),
+        )
+      }
+      for ref_ in self.index.refs {
+        if ref_.contract_kind != contract_kind ||
+          ref_.member_name != member_name {
+          continue
+        }
+        match
+          find_binding(
+            self.index.bindings,
+            ref_.contract_kind,
+            ref_.binding_name,
+          ) {
+          Some(binding) if binding.binding_name == binding_name =>
+            push_unique_location(
+              locations,
+              self.index.document.location_from_span(ref_.member_span),
+            )
+          _ => ()
+        }
+      }
+    }
+  }
+  locations
+}
+
+///|
+/// Deduplicate reference locations by filename and source span.
+fn push_unique_location(
+  locations : Array[ToolingLocation],
+  next_ : ToolingLocation,
+) -> Unit {
+  for location in locations {
+    if location.filename == next_.filename && location.span == next_.span {
+      return
+    }
+  }
+  locations.push(next_)
 }
 
 ///|

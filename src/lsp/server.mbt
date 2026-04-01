@@ -44,7 +44,9 @@ fn dispatch_request(
     "textDocument/didClose" => handle_did_close(state, request.params)
     "textDocument/hover" => handle_hover(state, request)
     "textDocument/definition" => handle_definition(state, request)
+    "textDocument/references" => handle_references(state, request)
     "textDocument/completion" => handle_completion(state, request)
+    "textDocument/formatting" => handle_formatting(state, request)
     _ => reply_missing_method(request)
   }
 }
@@ -174,6 +176,61 @@ fn handle_completion(
     None =>
       reply_error(
         request, invalid_params_code, "completion requires textDocument.uri and position",
+      )
+  }
+}
+
+///|
+/// Serve `textDocument/references` requests from the tooling query layer.
+fn handle_references(
+  state : ServerState,
+  request : RequestMessage,
+) -> ServerResult {
+  match request_document_position(request.params) {
+    Some((uri, line, character)) => {
+      let include_declaration = request_include_declaration(request.params)
+      let locations = match state.document_text(uri) {
+        Some(source) =>
+          @tooling.references_at(
+            source,
+            line,
+            character,
+            include_declaration~,
+            filename=uri_to_filename(uri),
+          )
+        None => []
+      }
+      reply_ok(request, references_payload(locations))
+    }
+    None =>
+      reply_error(
+        request, invalid_params_code, "references requires textDocument.uri, position, and optional context",
+      )
+  }
+}
+
+///|
+/// Serve `textDocument/formatting` requests using one full-document edit.
+fn handle_formatting(
+  state : ServerState,
+  request : RequestMessage,
+) -> ServerResult {
+  match request_document_uri(request.params) {
+    Some(uri) => {
+      let edits = match state.document_text(uri) {
+        Some(source) =>
+          match
+            @tooling.formatting_edit(source, filename=uri_to_filename(uri)) {
+            Some(edit) => [edit]
+            None => []
+          }
+        None => []
+      }
+      reply_ok(request, formatting_payload(edits))
+    }
+    None =>
+      reply_error(
+        request, invalid_params_code, "formatting requires textDocument.uri",
       )
   }
 }

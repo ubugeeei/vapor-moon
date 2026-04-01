@@ -5,7 +5,7 @@ path_suffixes = ["mbtv"]
 block_comment = ["<!-- ", " -->"]
 autoclose_before = ";:.,=}])>"
 word_characters = ["-"]
-completion_query_characters = ["-", ":", "@", "."]
+completion_query_characters = ["-", ":", "@", ".", "#"]
 language_servers = ["vapor-moon-lsp"]
 brackets = [
   { start = "{", end = "}", close = true, newline = true },

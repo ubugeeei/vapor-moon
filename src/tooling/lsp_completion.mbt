@@ -54,6 +54,12 @@ fn directive_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
 }
 
 ///|
+fn slot_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
+  let entries = ["v-slot", "v-slot:default", "#default"]
+  prefixed_completion_items(prefix, entries, "directive", "slot directive")
+}
+
+///|
 fn event_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
   let entries = [
     "@click", "@input", "@change", "@submit", "@keydown", "@keyup", "@focus", "@blur",

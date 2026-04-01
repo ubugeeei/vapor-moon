@@ -4,6 +4,7 @@ pub using @common {
   type BlockKind,
   type CompileOutput,
   type CompilerError,
+  type ConditionalBranch,
   type ForBinding,
   type GenericParam,
   type IslandMode,
@@ -18,6 +19,7 @@ pub using @common {
   type TemplateAttr,
   type TemplateAttrKind,
   type TemplateElement,
+  type TemplateModel,
   type TemplateNode,
   new_source_span,
 }

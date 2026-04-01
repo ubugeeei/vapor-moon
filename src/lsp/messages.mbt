@@ -55,11 +55,13 @@ pub fn initialize_payload() -> @js.Any {
         ),
         ("hoverProvider", @js.any(true)),
         ("definitionProvider", @js.any(true)),
+        ("referencesProvider", @js.any(true)),
+        ("documentFormattingProvider", @js.any(true)),
         (
           "completionProvider",
           json_object([
             ("resolveProvider", @js.any(false)),
-            ("triggerCharacters", @js.any([".", ":", "-", "@"])),
+            ("triggerCharacters", @js.any([".", ":", "-", "@", "#"])),
           ]),
         ),
       ]),
@@ -117,6 +119,35 @@ pub fn completion_payload(
     payload.push(completion_item_json(item))
   }
   json_object([("isIncomplete", @js.any(false)), ("items", @js.any(payload))])
+}
+
+///|
+/// Convert reference locations into the LSP locations array shape.
+pub fn references_payload(
+  locations : Array[@tooling.ToolingLocation],
+) -> @js.Any {
+  let payload : Array[@js.Any] = []
+  for location in locations {
+    payload.push(
+      location_json(filename_to_uri(location.filename), location.range),
+    )
+  }
+  @js.any(payload)
+}
+
+///|
+/// Convert text edits into the LSP formatting result payload.
+pub fn formatting_payload(edits : Array[@tooling.ToolingTextEdit]) -> @js.Any {
+  let payload : Array[@js.Any] = []
+  for edit in edits {
+    payload.push(
+      json_object([
+        ("range", range_json(edit.range)),
+        ("newText", @js.any(edit.new_text)),
+      ]),
+    )
+  }
+  @js.any(payload)
 }
 
 ///|

@@ -39,7 +39,11 @@
       {
         "language": "vapor-moon",
         "scopeName": "text.html.vapor-moon",
-        "path": "./syntaxes/vapor-moon.tmLanguage.json"
+        "path": "./syntaxes/vapor-moon.tmLanguage.json",
+        "embeddedLanguages": {
+          "source.moonbit.embedded.vapor-moon": "moonbit",
+          "source.css.embedded.vapor-moon": "css"
+        }
       }
     ],
     "configuration": {

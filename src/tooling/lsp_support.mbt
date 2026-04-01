@@ -90,6 +90,15 @@ fn ToolingDocument::location_from_span(
 }
 
 ///|
+pub fn full_document_range(source : String) -> ToolingRange {
+  let document = ToolingDocument::new(source, "")
+  {
+    start: { line: 0, character: 0 },
+    end_: document.offset_to_position(source.length()),
+  }
+}
+
+///|
 fn contains_offset(span : @compiler.SourceSpan, offset : Int) -> Bool {
   offset >= span.start && offset < span.end
 }

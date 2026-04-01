@@ -408,3 +408,93 @@ test "snapshot lsp event and binding completion" {
     ),
   )
 }
+
+///|
+test "references include declaration and usage spans" {
+  let source =
+    #|<script setup>
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|
+    #|let props : Props = defineProps()
+    #|</script>
+    #|
+    #|<template>
+    #|  <h1>{{ props.title }}</h1>
+    #|</template>
+  let refs = references_at(
+    source,
+    9,
+    15,
+    filename="examples/references_props.mbtv",
+  )
+  assert_eq(refs.length(), 2)
+  assert_eq(refs[0].range.start.line, 2)
+  assert_eq(refs[1].range.start.line, 9)
+
+  let refs_without_decl = references_at(
+    source,
+    9,
+    15,
+    include_declaration=false,
+    filename="examples/references_props.mbtv",
+  )
+  assert_eq(refs_without_decl.length(), 1)
+  assert_eq(refs_without_decl[0].range.start.line, 9)
+}
+
+///|
+test "slot shorthand completion suggests default slot forms" {
+  let source =
+    #|<template>
+    #|  <Child #def></Child>
+    #|</template>
+  let (line, character) = line_character_at(source, "#def")
+  inspect(
+    complete_at(
+      source,
+      line,
+      character + 4,
+      filename="examples/complete_slot_shorthand.mbtv",
+    ).to_string(),
+    content=(
+      #|[{label: "#default", kind: "directive", detail: "slot directive", insert_text: "#default"}]
+    ),
+  )
+}
+
+///|
+test "format document normalizes block spacing and template indentation" {
+  let source =
+    #|<script setup>
+    #|let count = 1
+    #|</script>
+    #|<template><div><span>{{ count }}</span></div></template>
+    #|<style scoped>
+    #|.counter { color: red; }
+    #|</style>
+  match format_document(source, filename="examples/format_basic.mbtv") {
+    Some(formatted) =>
+      assert_eq(
+        formatted,
+        (
+          #|<script setup>
+          #|let count = 1
+          #|</script>
+          #|
+          #|<template>
+          #|  <div>
+          #|    <span>{{ count }}</span>
+          #|  </div>
+          #|</template>
+          #|
+          #|<style scoped>
+          #|.counter { color: red; }
+          #|</style>
+        ) +
+        "\n",
+      )
+    None => panic()
+  }
+}

@@ -75,6 +75,15 @@ pub fn int_prop(obj : @js.Any, key : String) -> Int? {
 }
 
 ///|
+/// Read a boolean property from an object.
+pub fn bool_prop(obj : @js.Any, key : String) -> Bool? {
+  match get_prop(obj, key) {
+    Some(value) => bool_value(value)
+    None => None
+  }
+}
+
+///|
 /// Read an object-valued property from an object.
 pub fn object_prop(obj : @js.Any, key : String) -> @js.Any? {
   match get_prop(obj, key) {
@@ -106,6 +115,16 @@ pub fn string_value(value : @js.Any) -> String? {
 /// Narrow a JS value to a number cast as `Int`.
 pub fn int_value(value : @js.Any) -> Int? {
   if @js.typeof_(value) == "number" {
+    Some(value.cast())
+  } else {
+    None
+  }
+}
+
+///|
+/// Narrow a JS value to a boolean.
+pub fn bool_value(value : @js.Any) -> Bool? {
+  if @js.typeof_(value) == "boolean" {
     Some(value.cast())
   } else {
     None
