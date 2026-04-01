@@ -56,6 +56,20 @@ fn main {
         let source = read_text(path)
         println(query_definition(source, path, args[3], args[4]))
       }
+    "references" =>
+      if args.length() < 5 {
+        print_usage()
+      } else {
+        let source = read_text(path)
+        let include_declaration = if args.length() >= 6 {
+          parse_cli_bool(args[5])
+        } else {
+          true
+        }
+        println(
+          query_references(source, path, args[3], args[4], include_declaration),
+        )
+      }
     "complete" =>
       if args.length() < 5 {
         print_usage()
@@ -63,6 +77,10 @@ fn main {
         let source = read_text(path)
         println(query_completion(source, path, args[3], args[4]))
       }
+    "format" => {
+      let source = read_text(path)
+      println(query_format(source, path))
+    }
     _ => print_usage()
   }
 }
@@ -442,6 +460,26 @@ fn query_definition(
 }
 
 ///|
+/// Run the references query and stringify the result for CLI output.
+pub fn query_references(
+  source : String,
+  path : String,
+  line : String,
+  character : String,
+  include_declaration : Bool,
+) -> String {
+  let line = parse_cli_int(line)
+  let character = parse_cli_int(character)
+  @tooling.references_at(
+    source,
+    line,
+    character,
+    include_declaration~,
+    filename=path,
+  ).to_string()
+}
+
+///|
 /// Run the completion query and stringify the result for CLI output.
 fn query_completion(
   source : String,
@@ -455,6 +493,15 @@ fn query_completion(
 }
 
 ///|
+/// Run the formatter query and stringify the formatted output when available.
+pub fn query_format(source : String, path : String) -> String {
+  match @tooling.format_document(source, filename=path) {
+    Some(formatted) => formatted
+    None => "None"
+  }
+}
+
+///|
 /// Parse a CLI integer argument, defaulting to `0` when invalid.
 fn parse_cli_int(source : String) -> Int {
   @strconv.parse_int(source) catch {
@@ -463,9 +510,18 @@ fn parse_cli_int(source : String) -> Int {
 }
 
 ///|
+/// Parse a CLI boolean flag, defaulting to `true` when omitted or invalid.
+pub fn parse_cli_bool(source : String) -> Bool {
+  match source {
+    "false" | "0" | "no" => false
+    _ => true
+  }
+}
+
+///|
 /// Print the supported CLI command surface.
 fn print_usage() -> Unit {
   println(
-    "Usage: moon run src/cmd/vapor_moon -- <compile|watch|analyze|diagnostics|hover|definition|complete> <file.mbtv|directory> [line] [character]",
+    "Usage: moon run src/cmd/vapor_moon -- <compile|watch|analyze|diagnostics|hover|definition|references|complete|format> <file.mbtv|directory> [line] [character] [includeDeclaration]",
   )
 }

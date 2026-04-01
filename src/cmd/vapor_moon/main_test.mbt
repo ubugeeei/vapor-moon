@@ -40,6 +40,47 @@ fn assert_contains_path(paths : Array[String], target : String) -> Unit raise {
 }
 
 ///|
+fn find_offset(source : String, needle : String) -> Int {
+  let chars = source.to_array()
+  let pattern = needle.to_array()
+  let last = chars.length() - pattern.length()
+  let mut cursor = 0
+  while cursor <= last {
+    let mut matched = true
+    for index in 0..<pattern.length() {
+      if chars[cursor + index] != pattern[index] {
+        matched = false
+        break
+      }
+    }
+    if matched {
+      return cursor
+    }
+    cursor += 1
+  }
+  0
+}
+
+///|
+fn line_character_at(source : String, needle : String) -> (Int, Int) {
+  let start = find_offset(source, needle)
+  let chars = source.to_array()
+  let mut line = 0
+  let mut character = 0
+  let mut cursor = 0
+  while cursor < start {
+    if chars[cursor] == '\n' {
+      line += 1
+      character = 0
+    } else {
+      character += if chars[cursor].to_int() > 0xFFFF { 2 } else { 1 }
+    }
+    cursor += 1
+  }
+  (line, character)
+}
+
+///|
 test "generated output paths use sibling client server css files" {
   let generated = generated_output_paths("/tmp/examples/Panel.mbtv")
   assert_eq(generated.client, "/tmp/examples/Panel.client.mbt")
@@ -145,4 +186,54 @@ test "write compile outputs persists generated files beside source" {
   assert_false(@fs.path_exists(generated.server))
   assert_false(@fs.path_exists(generated.css))
   cleanup_command_test_dir(root)
+}
+
+///|
+test "query references renders declaration and usage locations" {
+  let source =
+    #|<script setup>
+    #|struct Props {
+    #|  title : String
+    #|}
+    #|
+    #|let props : Props = defineProps()
+    #|</script>
+    #|
+    #|<template>
+    #|  <h1>{{ props.title }}</h1>
+    #|</template>
+  let (line, character) = line_character_at(source, "title }}</h1>")
+  let output = query_references(
+    source,
+    "examples/references_props.mbtv",
+    line.to_string(),
+    character.to_string(),
+    true,
+  )
+  assert_true(output.contains("examples/references_props.mbtv"))
+  assert_true(output.contains("line: 2"))
+  assert_true(output.contains("line: 9"))
+}
+
+///|
+test "query format prints formatted document" {
+  let source =
+    #|<script setup>
+    #|let count = 1
+    #|</script>
+    #|<template><div><span>{{ count }}</span></div></template>
+  let output = query_format(source, "examples/format_basic.mbtv")
+  assert_true(
+    output.contains("<template>\n  <div>\n    <span>{{ count }}</span>"),
+  )
+  assert_true(output.has_suffix("</template>\n"))
+}
+
+///|
+test "parse cli bool accepts explicit false spellings" {
+  assert_false(parse_cli_bool("false"))
+  assert_false(parse_cli_bool("0"))
+  assert_false(parse_cli_bool("no"))
+  assert_true(parse_cli_bool("true"))
+  assert_true(parse_cli_bool("unexpected"))
 }

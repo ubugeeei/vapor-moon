@@ -30,7 +30,7 @@ This repository already includes:
 - server code generation for `luna` SSR output
 - typed `defineProps()`, `defineEmits()`, and `defineSlots()` contracts
 - scoped styles by default
-- diagnostics, hover, definition, and completion queries for editor tooling
+- diagnostics, hover, definition, references, formatting, and completion queries for editor tooling
 - a stdio JSON-RPC LSP server plus VS Code, Zed, and Neovim integrations
 - ripple-backed incremental compilation infrastructure
 - snapshot-heavy compiler and tooling tests
@@ -396,7 +396,9 @@ moon run src/cmd/vapor_moon -- analyze examples/basic.mbtv
 moon run src/cmd/vapor_moon -- diagnostics examples/macros.mbtv
 moon run src/cmd/vapor_moon -- hover examples/macros.mbtv 17 13
 moon run src/cmd/vapor_moon -- definition examples/macros.mbtv 16 39
+moon run src/cmd/vapor_moon -- references examples/macros.mbtv 16 39
 moon run src/cmd/vapor_moon -- complete examples/macros.mbtv 17 18
+moon run src/cmd/vapor_moon -- format examples/basic.mbtv
 moon run --target js src/cmd/vapor_moon_lsp
 ```
 
@@ -407,7 +409,9 @@ The CLI currently exposes:
 - `diagnostics <file.mbtv>`
 - `hover <file.mbtv> <line> <character>`
 - `definition <file.mbtv> <line> <character>`
+- `references <file.mbtv> <line> <character> [includeDeclaration]`
 - `complete <file.mbtv> <line> <character>`
+- `format <file.mbtv>`
 
 ## Editor Integrations
 
