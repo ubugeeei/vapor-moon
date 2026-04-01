@@ -498,3 +498,71 @@ test "format document normalizes block spacing and template indentation" {
     None => panic()
   }
 }
+
+///|
+test "format document preserves block attrs across script extern and style blocks" {
+  let source =
+    #|<script extern>
+    #|let helper = 1
+    #|</script>
+    #|<template><div /></template>
+    #|<style scoped="false">
+    #|.counter { color: red; }
+    #|</style>
+  match format_document(source, filename="examples/format_block_attrs.mbtv") {
+    Some(formatted) => {
+      assert_true(formatted.contains("<script extern>"))
+      assert_true(formatted.contains("<style scoped=\"false\">"))
+      assert_true(
+        formatted.contains("\n\n<template>\n  <div />\n</template>\n\n"),
+      )
+    }
+    None => panic()
+  }
+}
+
+///|
+test "format document falls back to raw template for html comments" {
+  let source =
+    #|<template>
+    #|  <div>
+    #|    <!-- keep -->
+    #|    <span />
+    #|  </div>
+    #|</template>
+  match
+    format_document(source, filename="examples/format_comment_fallback.mbtv") {
+    Some(formatted) => assert_eq(formatted, source + "\n")
+    None => panic()
+  }
+}
+
+///|
+test "format document falls back to raw template for v-match blocks" {
+  let source =
+    #|<template>
+    #|  <div v-match='status'>
+    #|    <p v-case='"loading"'>Loading...</p>
+    #|    <p v-default>Unknown</p>
+    #|  </div>
+    #|</template>
+  match
+    format_document(source, filename="examples/format_match_fallback.mbtv") {
+    Some(formatted) => assert_eq(formatted, source + "\n")
+    None => panic()
+  }
+}
+
+///|
+test "formatting edit returns none for already formatted sources" {
+  let source =
+    #|<template>
+    #|  <div>
+    #|    <span>{{ count }}</span>
+    #|  </div>
+    #|</template>
+  assert_eq(
+    formatting_edit(source + "\n", filename="examples/format_noop.mbtv"),
+    None,
+  )
+}

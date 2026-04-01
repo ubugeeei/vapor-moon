@@ -8,7 +8,7 @@ pub fn format_document(
   let template_nodes = @compiler.parse_template(doc.template) catch {
     _ =>
       return Some(
-        format_blocks(doc.blocks, normalize_raw_block_content(doc.template)),
+        format_blocks(doc.blocks, normalize_raw_template_content(doc.template)),
       )
   }
   Some(
@@ -129,9 +129,31 @@ fn render_template_block(
   nodes : Array[@compiler.TemplateNode],
 ) -> String {
   if raw_template.contains("<!--") || template_contains_match(nodes) {
-    return normalize_raw_block_content(raw_template)
+    return normalize_raw_template_content(raw_template)
   }
   render_template_nodes(nodes, 2)
+}
+
+///|
+/// Preserve raw template bodies while restoring the normal two-space block indent.
+fn normalize_raw_template_content(content : String) -> String {
+  let normalized = normalize_raw_block_content(content)
+  if normalized.length() == 0 {
+    return normalized
+  }
+  let lines = normalized
+    .split("\n")
+    .map(fn(line) { line.to_string() })
+    .collect()
+  let adjusted : Array[String] = []
+  for line in lines {
+    if line.trim().length() == 0 || leading_space_count(line) > 0 {
+      adjusted.push(line)
+    } else {
+      adjusted.push("  " + line)
+    }
+  }
+  adjusted.join("\n")
 }
 
 ///|
@@ -500,4 +522,14 @@ fn escape_block_attr_value(source : String) -> String {
     }
   }
   sb.to_string()
+}
+
+///|
+fn leading_space_count(source : String) -> Int {
+  let chars = source.to_array()
+  let mut count = 0
+  while count < chars.length() && chars[count] == ' ' {
+    count += 1
+  }
+  count
 }
