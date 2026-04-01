@@ -14,6 +14,7 @@ The launcher currently shells out to `moon run --target js src/cmd/vapor_moon_ls
 - Open that folder in VS Code and run the extension in an Extension Development Host
 - By default the client prefers the repo-local `bin/vapor-moon-lsp` launcher and falls back to `vapor-moon-lsp` from `PATH`
 - Override the server with `vaporMoon.languageServer.command`, `vaporMoon.languageServer.args`, and `vaporMoon.languageServer.cwd`
+- Template interpolations and directive expression values use embedded MoonBit syntax highlighting
 
 ## Zed
 

@@ -20,7 +20,38 @@
       },
       "contentName": "text.html.basic",
       "patterns": [
+        { "include": "#interpolation" },
+        { "include": "#directiveExpression" },
         { "include": "text.html.basic" }
+      ]
+    },
+    "interpolation": {
+      "begin": "(\\{\\{)",
+      "beginCaptures": {
+        "1": { "name": "punctuation.section.embedded.begin.vapor-moon" }
+      },
+      "end": "(\\}\\})",
+      "endCaptures": {
+        "1": { "name": "punctuation.section.embedded.end.vapor-moon" }
+      },
+      "contentName": "source.moonbit.embedded.vapor-moon",
+      "patterns": [
+        { "include": "source.moonbit" }
+      ]
+    },
+    "directiveExpression": {
+      "begin": "((?:[:@][A-Za-z0-9_:\\.-]*|v-[A-Za-z0-9_:-]+(?:\\.[A-Za-z0-9_-]+)*)\\s*=\\s*)(['\"])",
+      "beginCaptures": {
+        "1": { "name": "entity.other.attribute-name.vapor-moon" },
+        "2": { "name": "punctuation.definition.string.begin.html" }
+      },
+      "end": "\\2",
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.string.end.html" }
+      },
+      "contentName": "source.moonbit.embedded.vapor-moon",
+      "patterns": [
+        { "include": "source.moonbit" }
       ]
     },
     "script": {
