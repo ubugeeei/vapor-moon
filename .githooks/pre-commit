@@ -12,11 +12,8 @@ moon test src/tooling
 moon build --target js src/lsp
 moon build --target js src/cmd/vapor_moon_lsp
 
-if command -v node >/dev/null 2>&1 || \
-  command -v nodejs >/dev/null 2>&1 || \
-  command -v bun >/dev/null 2>&1 || \
-  command -v deno >/dev/null 2>&1; then
+if command -v node >/dev/null 2>&1; then
   moon test --target js src/lsp
 else
-  echo "Skipping JS LSP tests because no JS runtime is available on PATH."
+  echo "Skipping JS LSP tests because node is not available on PATH."
 fi

@@ -437,7 +437,7 @@ So editor integrations expect:
 Requirements:
 
 - MoonBit toolchain on `PATH`
-- a JS runtime on `PATH` for the editor-facing LSP server
+- `node` on `PATH` for JS-targeted LSP tests and the editor-facing LSP server
 
 Useful commands:
 

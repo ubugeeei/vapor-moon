@@ -39,6 +39,11 @@ jobs:
         run: moon update
       - name: Moon check
         run: moon check --target js 2> >(grep -v 'WARN Duplicate alias' >&2)
+      - name: JS LSP tests
+        run: |
+          moon build --target js src/lsp
+          moon test --target js src/lsp
+          moon build --target js src/cmd/vapor_moon_lsp
       - name: Runtime JS tests
         run: |
           moon test --target js src/runtime
