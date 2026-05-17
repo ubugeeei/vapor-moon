@@ -106,13 +106,16 @@ fn render_client_model_attrs(
   match element.model {
     Some(model) if not(element.is_component) => {
       let checked = infer_model_checked(element)
-      let event_name = render_model_event_name(element, model, checked)
+      let radio = is_radio_model(element)
+      let event_name = render_model_event_name(element, model, checked || radio)
       let value_expr = if checked {
         "if " + model.expression + " { \"true\" } else { \"false\" }"
+      } else if radio {
+        "if " + render_radio_model_checked_expr(element, model) + " { \"true\" } else { \"false\" }"
       } else {
         model.expression + ".to_string()"
       }
-      let attr_name = if checked { "checked" } else { "value" }
+      let attr_name = if checked || radio { "checked" } else { "value" }
       if static_mode {
         parts.push("(\"" + attr_name + "\", @dom.attr(" + value_expr + "))")
       } else {
@@ -126,7 +129,7 @@ fn render_client_model_attrs(
         "\", @dom.on(fn(_event) { " +
         render_model_write_expr(
           model.expression,
-          render_model_read_expr(model, checked),
+          render_model_read_expr(model, checked || radio),
         ) +
         " }))",
       )
@@ -145,9 +148,12 @@ fn render_server_model_attrs(
   match element.model {
     Some(model) if not(element.is_component) => {
       let checked = infer_model_checked(element)
-      let attr_name = if checked { "checked" } else { "value" }
+      let radio = is_radio_model(element)
+      let attr_name = if checked || radio { "checked" } else { "value" }
       let value_expr = if checked {
         "if " + model.expression + " { \"true\" } else { \"false\" }"
+      } else if radio {
+        "if " + render_radio_model_checked_expr(element, model) + " { \"true\" } else { \"false\" }"
       } else {
         model.expression + ".to_string()"
       }
@@ -168,6 +174,40 @@ fn render_server_model_attrs(
     _ => ()
   }
   parts
+}
+
+///|
+fn is_radio_model(element : TemplateElement) -> Bool {
+  if element.tag != "input" {
+    return false
+  }
+  for attr in element.attrs {
+    if attr.name == "type" && attr.kind == Static && attr.value == "radio" {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn render_radio_model_checked_expr(element : TemplateElement, model : TemplateModel) -> String {
+  let mut candidate = "\"on\""
+  for attr in element.attrs {
+    if attr.name == "value" {
+      match attr.kind {
+        Static => {
+          candidate = quote(attr.value)
+          break
+        }
+        Dynamic => {
+          candidate = attr.value + ".to_string()"
+          break
+        }
+        _ => ()
+      }
+    }
+  }
+  model.expression + ".to_string() == " + candidate
 }
 
 ///|
