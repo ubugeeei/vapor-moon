@@ -111,7 +111,9 @@ fn render_client_model_attrs(
       let value_expr = if checked {
         "if " + model.expression + " { \"true\" } else { \"false\" }"
       } else if radio {
-        "if " + render_radio_model_checked_expr(element, model) + " { \"true\" } else { \"false\" }"
+        "if " +
+        render_radio_model_checked_expr(element, model) +
+        " { \"true\" } else { \"false\" }"
       } else {
         model.expression + ".to_string()"
       }
@@ -129,7 +131,7 @@ fn render_client_model_attrs(
         "\", @dom.on(fn(_event) { " +
         render_model_write_expr(
           model.expression,
-          render_model_read_expr(model, checked || radio),
+          render_model_read_expr(model, checked),
         ) +
         " }))",
       )
@@ -153,7 +155,9 @@ fn render_server_model_attrs(
       let value_expr = if checked {
         "if " + model.expression + " { \"true\" } else { \"false\" }"
       } else if radio {
-        "if " + render_radio_model_checked_expr(element, model) + " { \"true\" } else { \"false\" }"
+        "if " +
+        render_radio_model_checked_expr(element, model) +
+        " { \"true\" } else { \"false\" }"
       } else {
         model.expression + ".to_string()"
       }
@@ -190,7 +194,10 @@ fn is_radio_model(element : TemplateElement) -> Bool {
 }
 
 ///|
-fn render_radio_model_checked_expr(element : TemplateElement, model : TemplateModel) -> String {
+fn render_radio_model_checked_expr(
+  element : TemplateElement,
+  model : TemplateModel,
+) -> String {
   let mut candidate = "\"on\""
   for attr in element.attrs {
     if attr.name == "value" {

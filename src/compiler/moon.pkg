@@ -9,6 +9,4 @@ import {
   "moonbitlang/parser/syntax" @mbt_syntax,
 }
 
-options(
-  "supported-targets": "all",
-)
+supported_targets = "all"

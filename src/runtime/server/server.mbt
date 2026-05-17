@@ -53,9 +53,10 @@ pub fn island_ssr_meta(
     Only => island_only_ssr(name, props_json, meta_attrs)
     ServerDefer => island_defer_ssr(name, props_json, children, meta_attrs)
     _ =>
-      @luna_core.island(
-        island_id(name, props_json),
+      @luna_core.wc_island(
+        @vm.client_element_name(name),
         @vm.client_module_path(name),
+        "",
         props_json,
         children,
         trigger=to_luna_trigger(mode),
@@ -115,20 +116,4 @@ fn to_luna_trigger(mode : @vm.HydrationMode) -> @luna_core.Trigger {
     Media(query) => @luna_core.Media(query)
     _ => @luna_core.None
   }
-}
-
-///|
-/// Build a deterministic island id from component name and serialized props.
-fn island_id(name : String, props_json : String) -> String {
-  "vm-island-" + hash_string(name + ":" + props_json)
-}
-
-///|
-/// Shared string hash used for SSR island ids.
-fn hash_string(source : String) -> String {
-  let mut hash : UInt = 5381
-  for ch in source {
-    hash = (hash << 5) + hash + ch.to_uint()
-  }
-  hash.to_string()
 }

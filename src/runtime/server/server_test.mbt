@@ -29,13 +29,17 @@ test "hydrated islands expose luna trigger metadata and preload urls" {
   )
 
   assert_true(
-    result.html.contains("luna:client-trigger=\"media:(max-width: 768px)\""),
+    result.html.contains("luna:wc-trigger=\"media:(max-width: 768px)\""),
   )
   assert_true(
     result.html.contains(
-      "luna:url=\"" + @vm.client_module_path("Counter Panel"),
+      "luna:wc-url=\"" + @vm.client_module_path("Counter Panel"),
     ),
   )
+  assert_true(
+    result.html.contains("<" + @vm.client_element_name("Counter Panel")),
+  )
+  assert_true(result.html.contains("luna:wc-state=\"{&quot;count&quot;:3}\""))
   assert_true(result.html.contains("count"))
   assert_eq(result.preload_urls, [@vm.client_module_path("Counter Panel")])
 }

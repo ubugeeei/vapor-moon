@@ -98,6 +98,37 @@ fn open_request(uri : String, text : String) -> String {
 }
 
 ///|
+fn change_request(uri : String, text : String) -> String {
+  stringify_json(
+    json_object([
+      ("jsonrpc", @js.any("2.0")),
+      ("method", @js.any("textDocument/didChange")),
+      (
+        "params",
+        json_object([
+          ("textDocument", json_object([("uri", @js.any(uri))])),
+          ("contentChanges", @js.any([json_object([("text", @js.any(text))])])),
+        ]),
+      ),
+    ]),
+  )
+}
+
+///|
+fn close_request(uri : String) -> String {
+  stringify_json(
+    json_object([
+      ("jsonrpc", @js.any("2.0")),
+      ("method", @js.any("textDocument/didClose")),
+      (
+        "params",
+        json_object([("textDocument", json_object([("uri", @js.any(uri))]))]),
+      ),
+    ]),
+  )
+}
+
+///|
 fn position_request(
   id : Int,
   method_name : String,
@@ -232,6 +263,26 @@ test "didOpen publishes diagnostics for unknown props members" {
 }
 
 ///|
+test "didChange replaces cached text and didClose clears diagnostics" {
+  let state = ServerState::new()
+  ignore(
+    handle_message(
+      state,
+      open_request("file:///Component.mbtv", invalid_props_source()),
+    ),
+  )
+
+  let changed = handle_message(
+    state,
+    change_request("file:///Component.mbtv", component_source()),
+  )
+  assert_true(changed.messages[0].contains("\"diagnostics\":[]"))
+
+  let closed = handle_message(state, close_request("file:///Component.mbtv"))
+  assert_true(closed.messages[0].contains("\"diagnostics\":[]"))
+}
+
+///|
 test "hover definition and completion use opened documents" {
   let state = ServerState::new()
   let source = component_source()
@@ -270,6 +321,29 @@ test "hover definition and completion use opened documents" {
     definition.messages[0].contains("\"line\":" + definition_line.to_string()),
   )
   assert_true(completion.messages[0].contains("\"label\":\"title\""))
+}
+
+///|
+test "position requests reject negative line and character" {
+  let state = ServerState::new()
+  ignore(
+    handle_message(
+      state,
+      open_request("file:///Component.mbtv", component_source()),
+    ),
+  )
+
+  let negative_line = handle_message(
+    state,
+    position_request(8, "textDocument/hover", -1, 0),
+  )
+  let negative_character = handle_message(
+    state,
+    position_request(9, "textDocument/definition", 0, -1),
+  )
+
+  assert_true(negative_line.messages[0].contains("\"code\":-32602"))
+  assert_true(negative_character.messages[0].contains("\"code\":-32602"))
 }
 
 ///|

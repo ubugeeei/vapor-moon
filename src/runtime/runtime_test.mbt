@@ -6,12 +6,16 @@ fn assert_trimmed_eq(actual : String, expected : String) -> Unit raise {
 ///|
 test "client helpers sanitize names consistently" {
   let path = client_module_path("Hero Banner!")
+  let element = client_element_name("Hero Banner!")
   let scope_id = make_scope_id("Hero Banner!")
   let id = use_id("Hero Banner!", 3)
   let ref_ : TemplateRef[Int] = use_template_ref("root")
 
   assert_true(path.has_prefix("/_vapor_moon/Hero_Banner_"))
   assert_true(path.has_suffix(".js"))
+  assert_true(element.has_prefix("vm-hero_banner_"))
+  assert_false(element.contains(" "))
+  assert_false(element.contains("!"))
   assert_false(path.contains(" "))
   assert_false(path.contains("!"))
   assert_true(scope_id.has_prefix("vm-"))
@@ -55,6 +59,33 @@ test "scope_css scopes nested media rules and preserves keyframes" {
       #|@media (max-width: 768px) { [data-vm-scope="vm-123"] .box, [data-vm-scope="vm-123"] .card { color: blue; } }
       #|@keyframes fade { from { opacity: 0; }
       #|  to { opacity: 1; } }
+    ),
+  )
+}
+
+///|
+test "scope_css rewrites deep global slotted and supports selectors" {
+  let source =
+    #|.wrapper :deep(.child) { color: red; }
+    #|.wrapper :deep(.child .grandchild) { font-weight: bold; }
+    #|:global(.global-reset) { margin: 0; padding: 0; }
+    #|.wrapper :global(.external-lib) { border: none; }
+    #|:slotted(div) { background: #f0f0f0; }
+    #|:slotted(.slot-item):hover { background: #e0e0e0; }
+    #|@supports (display: grid) {
+    #|  .wrapper { display: grid; }
+    #|}
+
+  assert_trimmed_eq(
+    scope_css(source, "vm-vize"),
+    (
+      #|[data-vm-scope="vm-vize"] .wrapper .child { color: red; }
+      #|[data-vm-scope="vm-vize"] .wrapper .child .grandchild { font-weight: bold; }
+      #|.global-reset { margin: 0; padding: 0; }
+      #|[data-vm-scope="vm-vize"] .wrapper .external-lib { border: none; }
+      #|[data-vm-scope="vm-vize"] div { background: #f0f0f0; }
+      #|[data-vm-scope="vm-vize"] .slot-item:hover { background: #e0e0e0; }
+      #|@supports (display: grid) { [data-vm-scope="vm-vize"] .wrapper { display: grid; } }
     ),
   )
 }

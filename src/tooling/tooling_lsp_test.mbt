@@ -80,7 +80,7 @@ test "snapshot lsp diagnostics" {
   inspect(
     diagnostics_snapshot(source, "examples/lsp_invalid.mbtv"),
     content=(
-      #|[{severity: "error", message: "unknown props member `missing`", location: {filename: "examples/lsp_invalid.mbtv", span: {start: 287, end: 294}, range: {start: {line: 20, character: 13}, end_: {line: 20, character: 20}}}}, {severity: "error", message: "unknown emit member `cancel`", location: {filename: "examples/lsp_invalid.mbtv", span: {start: 263, end: 269}, range: {start: {line: 19, character: 23}, end_: {line: 19, character: 29}}}}, {severity: "error", message: "unknown slots member `footer`", location: {filename: "examples/lsp_invalid.mbtv", span: {start: 311, end: 317}, range: {start: {line: 21, character: 13}, end_: {line: 21, character: 19}}}}]
+      #|[{severity: error, message: unknown props member `missing`, location: {filename: examples/lsp_invalid.mbtv, span: {start: 287, end: 294}, range: {start: {line: 20, character: 13}, end_: {line: 20, character: 20}}}}, {severity: error, message: unknown emit member `cancel`, location: {filename: examples/lsp_invalid.mbtv, span: {start: 263, end: 269}, range: {start: {line: 19, character: 23}, end_: {line: 19, character: 29}}}}, {severity: error, message: unknown slots member `footer`, location: {filename: examples/lsp_invalid.mbtv, span: {start: 311, end: 317}, range: {start: {line: 21, character: 13}, end_: {line: 21, character: 19}}}}]
     ),
   )
 }
@@ -102,7 +102,7 @@ test "legacy emit.emit gets a dedicated diagnostic" {
   inspect(
     diagnostics_snapshot(source, "examples/legacy_emit.mbtv"),
     content=(
-      #|[{severity: "error", message: "legacy `emit.emit(...)` is not supported; use typed event calls like `emit.save()`", location: {filename: "examples/legacy_emit.mbtv", span: {start: 125, end: 129}, range: {start: {line: 9, character: 23}, end_: {line: 9, character: 27}}}}]
+      #|[{severity: error, message: legacy `emit.emit(...)` is not supported; use typed event calls like `emit.save()`, location: {filename: examples/legacy_emit.mbtv, span: {start: 125, end: 129}, range: {start: {line: 9, character: 23}, end_: {line: 9, character: 27}}}}]
     ),
   )
 }
@@ -133,13 +133,13 @@ test "snapshot lsp hover and definition" {
   inspect(
     hover_at(source, 17, 13, filename="examples/macros.mbtv").to_string(),
     content=(
-      #|Some({contents: "props title : String", location: {filename: "examples/macros.mbtv", span: {start: 262, end: 267}, range: {start: {line: 17, character: 13}, end_: {line: 17, character: 18}}}})
+      #|Some({contents: props title : String, location: {filename: examples/macros.mbtv, span: {start: 262, end: 267}, range: {start: {line: 17, character: 13}, end_: {line: 17, character: 18}}}})
     ),
   )
   inspect(
     definition_at(source, 16, 39, filename="examples/macros.mbtv").to_string(),
     content=(
-      #|Some({name: "save", location: {filename: "examples/macros.mbtv", span: {start: 81, end: 85}, range: {start: {line: 7, character: 2}, end_: {line: 7, character: 6}}}})
+      #|Some({name: save, location: {filename: examples/macros.mbtv, span: {start: 81, end: 85}, range: {start: {line: 7, character: 2}, end_: {line: 7, character: 6}}}})
     ),
   )
 }
@@ -163,19 +163,19 @@ test "lsp supports defineExpose members in script setup" {
   inspect(
     hover_at(source, 7, 21, filename="examples/expose_hover.mbtv").to_string(),
     content=(
-      #|Some({contents: "expose focus : Unit", location: {filename: "examples/expose_hover.mbtv", span: {start: 121, end: 126}, range: {start: {line: 7, character: 21}, end_: {line: 7, character: 26}}}})
+      #|Some({contents: expose focus : Unit, location: {filename: examples/expose_hover.mbtv, span: {start: 121, end: 126}, range: {start: {line: 7, character: 21}, end_: {line: 7, character: 26}}}})
     ),
   )
   inspect(
     definition_at(source, 7, 21, filename="examples/expose_hover.mbtv").to_string(),
     content=(
-      #|Some({name: "focus", location: {filename: "examples/expose_hover.mbtv", span: {start: 33, end: 38}, range: {start: {line: 2, character: 2}, end_: {line: 2, character: 7}}}})
+      #|Some({name: focus, location: {filename: examples/expose_hover.mbtv, span: {start: 33, end: 38}, range: {start: {line: 2, character: 2}, end_: {line: 2, character: 7}}}})
     ),
   )
   inspect(
     complete_at(source, 7, 21, filename="examples/expose_hover.mbtv").to_string(),
     content=(
-      #|[{label: "focus", kind: "expose", detail: "expose focus : Unit", insert_text: "focus"}, {label: "count", kind: "expose", detail: "expose count : Int", insert_text: "count"}]
+      #|[{label: focus, kind: expose, detail: expose focus : Unit, insert_text: focus}, {label: count, kind: expose, detail: expose count : Int, insert_text: count}]
     ),
   )
 }
@@ -226,13 +226,13 @@ test "snapshot lsp completion" {
   inspect(
     complete_at(source, 10, 24, filename="examples/complete.mbtv").to_string(),
     content=(
-      #|[{label: "title", kind: "props", detail: "props title : String", insert_text: "title"}, {label: "count", kind: "props", detail: "props count : Int", insert_text: "count"}]
+      #|[{label: title, kind: props, detail: props title : String, insert_text: title}, {label: count, kind: props, detail: props count : Int, insert_text: count}]
     ),
   )
   inspect(
     complete_at(source, 10, 28, filename="examples/complete.mbtv").to_string(),
     content=(
-      #|[{label: "v-if", kind: "directive", detail: "conditional rendering", insert_text: "v-if"}, {label: "v-else-if", kind: "directive", detail: "conditional branch (requires preceding v-if)", insert_text: "v-else-if"}, {label: "v-else", kind: "directive", detail: "fallback branch (requires preceding v-if or v-else-if)", insert_text: "v-else"}, {label: "v-for", kind: "directive", detail: "list rendering", insert_text: "v-for"}, {label: "v-show", kind: "directive", detail: "toggle visibility via CSS display", insert_text: "v-show"}, {label: "v-unsafe-html", kind: "directive", detail: "render unsafe raw HTML content", insert_text: "v-unsafe-html"}, {label: "v-model", kind: "directive", detail: "two-way binding on form elements", insert_text: "v-model"}, {label: "v-once", kind: "directive", detail: "render once (skip reactivity)", insert_text: "v-once"}, {label: "v-match", kind: "directive", detail: "pattern matching on an expression", insert_text: "v-match"}, {label: "v-case", kind: "directive", detail: "match branch pattern (inside v-match)", insert_text: "v-case"}, {label: "v-default", kind: "directive", detail: "default match branch (inside v-match)", insert_text: "v-default"}]
+      #|[{label: v-if, kind: directive, detail: conditional rendering, insert_text: v-if}, {label: v-else-if, kind: directive, detail: conditional branch (requires preceding v-if), insert_text: v-else-if}, {label: v-else, kind: directive, detail: fallback branch (requires preceding v-if or v-else-if), insert_text: v-else}, {label: v-for, kind: directive, detail: list rendering, insert_text: v-for}, {label: v-show, kind: directive, detail: toggle visibility via CSS display, insert_text: v-show}, {label: v-unsafe-html, kind: directive, detail: render unsafe raw HTML content, insert_text: v-unsafe-html}, {label: v-model, kind: directive, detail: two-way binding on form elements, insert_text: v-model}, {label: v-once, kind: directive, detail: render once (skip reactivity), insert_text: v-once}, {label: v-match, kind: directive, detail: pattern matching on an expression, insert_text: v-match}, {label: v-case, kind: directive, detail: match branch pattern (inside v-match), insert_text: v-case}, {label: v-default, kind: directive, detail: default match branch (inside v-match), insert_text: v-default}]
     ),
   )
 }
@@ -254,7 +254,7 @@ test "macro completion includes defineExpose" {
       filename="examples/complete_define_expose.mbtv",
     ).to_string(),
     content=(
-      #|[{label: "defineExpose", kind: "macro", detail: "declare typed exposed members", insert_text: "defineExpose"}]
+      #|[{label: defineExpose, kind: macro, detail: declare typed exposed members, insert_text: defineExpose}]
     ),
   )
 }
@@ -371,7 +371,7 @@ test "snapshot lsp event and binding completion" {
       filename="examples/complete_attrs.mbtv",
     ).to_string(),
     content=(
-      #|[{label: "@click", kind: "event", detail: "event handler", insert_text: "@click"}, {label: "@input", kind: "event", detail: "event handler", insert_text: "@input"}, {label: "@change", kind: "event", detail: "event handler", insert_text: "@change"}, {label: "@submit", kind: "event", detail: "event handler", insert_text: "@submit"}, {label: "@keydown", kind: "event", detail: "event handler", insert_text: "@keydown"}, {label: "@keyup", kind: "event", detail: "event handler", insert_text: "@keyup"}, {label: "@focus", kind: "event", detail: "event handler", insert_text: "@focus"}, {label: "@blur", kind: "event", detail: "event handler", insert_text: "@blur"}]
+      #|[{label: @click, kind: event, detail: event handler, insert_text: @click}, {label: @input, kind: event, detail: event handler, insert_text: @input}, {label: @change, kind: event, detail: event handler, insert_text: @change}, {label: @submit, kind: event, detail: event handler, insert_text: @submit}, {label: @keydown, kind: event, detail: event handler, insert_text: @keydown}, {label: @keyup, kind: event, detail: event handler, insert_text: @keyup}, {label: @focus, kind: event, detail: event handler, insert_text: @focus}, {label: @blur, kind: event, detail: event handler, insert_text: @blur}]
     ),
   )
   inspect(
@@ -382,7 +382,7 @@ test "snapshot lsp event and binding completion" {
       filename="examples/complete_attrs.mbtv",
     ).to_string(),
     content=(
-      #|[{label: "v-on:click", kind: "event", detail: "event handler", insert_text: "v-on:click"}, {label: "v-on:input", kind: "event", detail: "event handler", insert_text: "v-on:input"}, {label: "v-on:change", kind: "event", detail: "event handler", insert_text: "v-on:change"}, {label: "v-on:submit", kind: "event", detail: "event handler", insert_text: "v-on:submit"}, {label: "v-on:keydown", kind: "event", detail: "event handler", insert_text: "v-on:keydown"}, {label: "v-on:keyup", kind: "event", detail: "event handler", insert_text: "v-on:keyup"}, {label: "v-on:focus", kind: "event", detail: "event handler", insert_text: "v-on:focus"}, {label: "v-on:blur", kind: "event", detail: "event handler", insert_text: "v-on:blur"}]
+      #|[{label: v-on:click, kind: event, detail: event handler, insert_text: v-on:click}, {label: v-on:input, kind: event, detail: event handler, insert_text: v-on:input}, {label: v-on:change, kind: event, detail: event handler, insert_text: v-on:change}, {label: v-on:submit, kind: event, detail: event handler, insert_text: v-on:submit}, {label: v-on:keydown, kind: event, detail: event handler, insert_text: v-on:keydown}, {label: v-on:keyup, kind: event, detail: event handler, insert_text: v-on:keyup}, {label: v-on:focus, kind: event, detail: event handler, insert_text: v-on:focus}, {label: v-on:blur, kind: event, detail: event handler, insert_text: v-on:blur}]
     ),
   )
   inspect(
@@ -393,7 +393,7 @@ test "snapshot lsp event and binding completion" {
       filename="examples/complete_attrs.mbtv",
     ).to_string(),
     content=(
-      #|[{label: ":class", kind: "binding", detail: "dynamic attribute", insert_text: ":class"}, {label: ":style", kind: "binding", detail: "dynamic attribute", insert_text: ":style"}, {label: ":key", kind: "binding", detail: "dynamic attribute", insert_text: ":key"}, {label: ":ref", kind: "binding", detail: "dynamic attribute", insert_text: ":ref"}, {label: ":value", kind: "binding", detail: "dynamic attribute", insert_text: ":value"}, {label: ":checked", kind: "binding", detail: "dynamic attribute", insert_text: ":checked"}, {label: ":disabled", kind: "binding", detail: "dynamic attribute", insert_text: ":disabled"}]
+      #|[{label: :class, kind: binding, detail: dynamic attribute, insert_text: :class}, {label: :style, kind: binding, detail: dynamic attribute, insert_text: :style}, {label: :key, kind: binding, detail: dynamic attribute, insert_text: :key}, {label: :ref, kind: binding, detail: dynamic attribute, insert_text: :ref}, {label: :value, kind: binding, detail: dynamic attribute, insert_text: :value}, {label: :checked, kind: binding, detail: dynamic attribute, insert_text: :checked}, {label: :disabled, kind: binding, detail: dynamic attribute, insert_text: :disabled}]
     ),
   )
   inspect(
@@ -404,7 +404,7 @@ test "snapshot lsp event and binding completion" {
       filename="examples/complete_attrs.mbtv",
     ).to_string(),
     content=(
-      #|[{label: "v-bind:class", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:class"}, {label: "v-bind:style", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:style"}, {label: "v-bind:key", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:key"}, {label: "v-bind:ref", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:ref"}, {label: "v-bind:value", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:value"}, {label: "v-bind:checked", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:checked"}, {label: "v-bind:disabled", kind: "binding", detail: "dynamic attribute", insert_text: "v-bind:disabled"}]
+      #|[{label: v-bind:class, kind: binding, detail: dynamic attribute, insert_text: v-bind:class}, {label: v-bind:style, kind: binding, detail: dynamic attribute, insert_text: v-bind:style}, {label: v-bind:key, kind: binding, detail: dynamic attribute, insert_text: v-bind:key}, {label: v-bind:ref, kind: binding, detail: dynamic attribute, insert_text: v-bind:ref}, {label: v-bind:value, kind: binding, detail: dynamic attribute, insert_text: v-bind:value}, {label: v-bind:checked, kind: binding, detail: dynamic attribute, insert_text: v-bind:checked}, {label: v-bind:disabled, kind: binding, detail: dynamic attribute, insert_text: v-bind:disabled}]
     ),
   )
 }
@@ -459,7 +459,7 @@ test "slot shorthand completion suggests default slot forms" {
       filename="examples/complete_slot_shorthand.mbtv",
     ).to_string(),
     content=(
-      #|[{label: "#default", kind: "directive", detail: "slot directive", insert_text: "#default"}]
+      #|[{label: #default, kind: directive, detail: slot directive, insert_text: #default}]
     ),
   )
 }

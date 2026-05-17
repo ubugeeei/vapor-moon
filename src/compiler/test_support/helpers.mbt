@@ -152,8 +152,60 @@ fn temp_name_list_contains(values : Array[String], target : String) -> Bool {
 
 ///|
 pub fn compile_error(source : String, filename : String) -> String {
-  let _ = compile(source, filename~) catch { err => return err.to_string() }
+  let _ = compile(source, filename~) catch {
+    err => return normalize_compiler_error_show(err.to_string())
+  }
   panic()
+}
+
+///|
+fn normalize_compiler_error_show(source : String) -> String {
+  for
+    prefix in [
+      "InvalidSfc(", "InvalidTemplate(", "InvalidDirective(", "InvalidScriptSetup(",
+      "InvalidScriptExtern(",
+    ] {
+    match normalize_single_string_error(source, prefix) {
+      Some(normalized) => return normalized
+      None => ()
+    }
+  }
+  source
+}
+
+///|
+fn normalize_single_string_error(source : String, prefix : String) -> String? {
+  if !source.has_prefix(prefix) || !source.has_suffix(")") {
+    return None
+  }
+  let inner = String::unsafe_substring(
+    source,
+    start=prefix.length(),
+    end=source.length() - 1,
+  )
+  if inner.has_prefix("\"") {
+    Some(source)
+  } else {
+    Some(prefix + quote_test_string(inner) + ")")
+  }
+}
+
+///|
+fn quote_test_string(source : String) -> String {
+  let sb = StringBuilder::new(size_hint=source.length() + 2)
+  sb.write_char('"')
+  for ch in source {
+    match ch {
+      '"' => sb.write_string("\\\"")
+      '\\' => sb.write_string("\\\\")
+      '\n' => sb.write_string("\\n")
+      '\r' => sb.write_string("\\r")
+      '\t' => sb.write_string("\\t")
+      _ => sb.write_char(ch)
+    }
+  }
+  sb.write_char('"')
+  sb.to_string()
 }
 
 ///|

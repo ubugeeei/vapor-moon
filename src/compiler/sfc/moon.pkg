@@ -3,6 +3,4 @@ import {
   "ubugeeei/vapor_moon/src/compiler/script_setup" @script_setup,
 }
 
-options(
-  "supported-targets": "all",
-)
+supported_targets = "all"

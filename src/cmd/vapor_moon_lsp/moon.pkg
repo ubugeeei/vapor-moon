@@ -3,7 +3,8 @@ import {
   "ubugeeei/vapor_moon/src/lsp" @lsp,
 }
 
+supported_targets = "js"
+
 options(
   "is-main": true,
-  "supported-targets": "js",
 )
