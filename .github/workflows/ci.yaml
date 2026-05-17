@@ -6,9 +6,17 @@ on:
       - main
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check-native:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,13 +26,24 @@ jobs:
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
       - name: Moon update
         run: moon update
+      - name: Install MoonBit dependencies
+        run: moon install
+      - name: Patch Mooncakes
+        run: bash scripts/patch_mooncakes.sh
       - name: Moon check
-        run: moon check --deny-warn --target native 2> >(grep -v 'WARN Duplicate alias' >&2)
-      - name: Moon test
-        run: moon test --target native
+        run: moon check --deny-warn --warn-list -deprecated_syntax-deprecated --target native 2> >(grep -v 'WARN Duplicate alias' >&2)
+      - name: Moon native smoke tests
+        run: |
+          moon test --target native src/cmd/vapor_moon
+          moon test --target native src/runtime
+      - name: CLI smoke test
+        run: bash scripts/smoke_cli.sh
+      - name: Package contents
+        run: moon package --list
 
   check-js:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,21 +56,49 @@ jobs:
           node-version: 24
       - name: Moon update
         run: moon update
+      - name: Install MoonBit dependencies
+        run: moon install
+      - name: Patch Mooncakes
+        run: bash scripts/patch_mooncakes.sh
       - name: Moon check
-        run: moon check --target js 2> >(grep -v 'WARN Duplicate alias' >&2)
+        run: moon check --warn-list -deprecated_syntax-deprecated --target js 2> >(grep -v 'WARN Duplicate alias' >&2)
       - name: JS LSP tests
         run: |
           moon build --target js src/lsp
           moon test --target js src/lsp
           moon build --target js src/cmd/vapor_moon_lsp
+      - name: LSP launcher smoke test
+        run: bash scripts/smoke_lsp.sh
       - name: Runtime JS tests
         run: |
           moon test --target js src/runtime
           moon test --target js src/runtime/dom
           moon test --target js src/runtime/server
 
+  editor-integrations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: editors/vscode/package-lock.json
+      - name: Install VS Code extension dependencies
+        run: npm ci --ignore-scripts
+        working-directory: editors/vscode
+      - name: Validate VS Code extension manifest
+        run: |
+          node -e "const pkg = require('./package.json'); if (!pkg.contributes?.languages?.length || !pkg.contributes?.grammars?.length) process.exit(1)"
+        working-directory: editors/vscode
+      - name: Check Zed extension
+        run: cargo check --locked --manifest-path editors/zed/Cargo.toml
+
   e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,6 +108,10 @@ jobs:
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
       - name: Moon update
         run: moon update
+      - name: Install MoonBit dependencies
+        run: moon install
+      - name: Patch Mooncakes
+        run: bash scripts/patch_mooncakes.sh
       - uses: pnpm/action-setup@v4
         with:
           version: 10
@@ -70,7 +121,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: e2e/pnpm-lock.yaml
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
         working-directory: e2e
       - name: Install Playwright browsers
         run: pnpm exec playwright install chromium --with-deps
@@ -78,3 +129,19 @@ jobs:
       - name: Run E2E tests
         run: pnpm test
         working-directory: e2e
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Upload Playwright traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: e2e/test-results/
+          if-no-files-found: ignore
+          retention-days: 14

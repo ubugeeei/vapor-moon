@@ -16,7 +16,7 @@ extern "c" fn watch_sleep_micros(microseconds : UInt64) -> Int = "usleep"
 fn main {
   let args = @env.args()
   if args.length() < 3 {
-    print_usage()
+    exit_usage()
     return
   }
   let command = args[1]
@@ -24,43 +24,44 @@ fn main {
   match command {
     "watch" => watch_directory(path)
     "compile" => {
-      let source = read_text(path)
+      let source = read_text_or_exit(path)
       let output = @compiler.compile(source, filename=path) catch {
         err => {
           println(err.to_string())
+          @sys.exit(1)
           return
         }
       }
       println(output.snapshot())
     }
     "analyze" => {
-      let source = read_text(path)
+      let source = read_text_or_exit(path)
       let analysis = @tooling.analyze(source, filename=path)
       println(analysis.to_string())
     }
     "diagnostics" => {
-      let source = read_text(path)
+      let source = read_text_or_exit(path)
       println(@tooling.diagnostics(source, filename=path).to_string())
     }
     "hover" =>
       if args.length() < 5 {
-        print_usage()
+        exit_usage()
       } else {
-        let source = read_text(path)
+        let source = read_text_or_exit(path)
         println(query_hover(source, path, args[3], args[4]))
       }
     "definition" =>
       if args.length() < 5 {
-        print_usage()
+        exit_usage()
       } else {
-        let source = read_text(path)
+        let source = read_text_or_exit(path)
         println(query_definition(source, path, args[3], args[4]))
       }
     "references" =>
       if args.length() < 5 {
-        print_usage()
+        exit_usage()
       } else {
-        let source = read_text(path)
+        let source = read_text_or_exit(path)
         let include_declaration = if args.length() >= 6 {
           parse_cli_bool(args[5])
         } else {
@@ -72,23 +73,29 @@ fn main {
       }
     "complete" =>
       if args.length() < 5 {
-        print_usage()
+        exit_usage()
       } else {
-        let source = read_text(path)
+        let source = read_text_or_exit(path)
         println(query_completion(source, path, args[3], args[4]))
       }
     "format" => {
-      let source = read_text(path)
+      let source = read_text_or_exit(path)
       println(query_format(source, path))
     }
-    _ => print_usage()
+    _ => exit_usage()
   }
 }
 
 ///|
-/// Read a UTF-8 source file, returning an empty string on failure.
-fn read_text(path : String) -> String {
-  let bytes = @fs.read_file_to_bytes(path) catch { _ => return "" }
+/// Read a UTF-8 source file, exiting nonzero when automation cannot trust input.
+fn read_text_or_exit(path : String) -> String {
+  let bytes = @fs.read_file_to_bytes(path) catch {
+    err => {
+      println("failed to read " + path + ": " + err.to_string())
+      @sys.exit(1)
+      return ""
+    }
+  }
   @utf8.decode_lossy(bytes[:])
 }
 
@@ -99,16 +106,19 @@ fn watch_directory(root : String) -> Unit {
   let resolved_root = root_dir.resolve().to_string()
   if not(@fs.path_exists(resolved_root)) {
     println("watch root does not exist: " + resolved_root)
+    @sys.exit(1)
     return
   }
   let is_dir = @fs.is_dir(resolved_root) catch {
     err => {
       println(err.to_string())
+      @sys.exit(1)
       return
     }
   }
   if not(is_dir) {
     println("watch root is not a directory: " + resolved_root)
+    @sys.exit(1)
     return
   }
   println("watching " + resolved_root)
@@ -117,6 +127,7 @@ fn watch_directory(root : String) -> Unit {
   let initial_sources = collect_watch_sources(resolved_root) catch {
     err => {
       println(err.to_string())
+      @sys.exit(1)
       return
     }
   }
@@ -502,10 +513,14 @@ pub fn query_format(source : String, path : String) -> String {
 }
 
 ///|
-/// Parse a CLI integer argument, defaulting to `0` when invalid.
+/// Parse a CLI integer argument, exiting nonzero when invalid.
 fn parse_cli_int(source : String) -> Int {
   @strconv.parse_int(source) catch {
-    _ => 0
+    _ => {
+      println("invalid integer argument: " + source)
+      @sys.exit(2)
+      0
+    }
   }
 }
 
@@ -516,6 +531,13 @@ pub fn parse_cli_bool(source : String) -> Bool {
     "false" | "0" | "no" => false
     _ => true
   }
+}
+
+///|
+/// Print usage and exit with the conventional command-line usage code.
+fn exit_usage() -> Unit {
+  print_usage()
+  @sys.exit(2)
 }
 
 ///|
