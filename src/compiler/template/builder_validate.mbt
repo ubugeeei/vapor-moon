@@ -204,9 +204,11 @@ fn validate_native_model_binding(
     }
     match find_static_attr_value(attrs, "type") {
       Some("radio") =>
-        raise CompilerError::InvalidDirective(
-          "v-model on <input type=\"radio\"> is not supported yet",
-        )
+        if has_model_modifier_name(model, "trim") {
+          raise CompilerError::InvalidDirective(
+            "unsupported v-model modifier `.trim` on <input type=\"radio\">",
+          )
+        }
       Some("file") =>
         raise CompilerError::InvalidDirective(
           "v-model on <input type=\"file\"> is not supported yet",
@@ -235,6 +237,19 @@ fn validate_native_model_binding(
 }
 
 ///|
+
+///|
+fn validate_component_model_binding(
+  tag : String,
+  model : TemplateModel,
+) -> Unit raise CompilerError {
+  for modifier in model.modifiers {
+    raise CompilerError::InvalidDirective(
+      "component v-model modifiers are not supported yet on <\{tag}>: `.\{modifier}`",
+    )
+  }
+}
+
 fn occupied_directive_value(target : String?) -> String? {
   match target {
     Some(_) => Some("used")
@@ -323,10 +338,7 @@ fn validate_component_bindings(
     None => ()
   }
   match model {
-    Some(_) =>
-      raise CompilerError::InvalidDirective(
-        "component v-model is not supported yet on <\{tag}>",
-      )
+    Some(binding) => validate_component_model_binding(tag, binding)
     None => ()
   }
 }

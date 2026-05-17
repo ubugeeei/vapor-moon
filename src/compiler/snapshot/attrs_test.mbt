@@ -242,3 +242,57 @@ test "v-model rewrites spaced getter targets from AST" {
   )
   assert_false(output.client_code.contains("get () ="))
 }
+
+///|
+test "component v-model compiles to modelValue prop" {
+  let source =
+    #|<script setup>
+    #|import {
+    #|  "mizchi/luna/js/resource" @reactivity,
+    #|  let signal = @reactivity.signal,
+    #|}
+    #|
+    #|let name = signal("hello")
+    #|</script>
+    #|
+    #|<template>
+    #|  <MyInput v-model='name.get()' />
+    #|</template>
+  let output = compile(source, filename="examples/component_model.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("(\"modelValue\", fn() { name.get().to_string() })"))
+  assert_true(output.server_code.contains("(\"modelValue\", name.get().to_string())"))
+}
+
+///|
+test "snapshot v-model radio compile" {
+  let source =
+    #|<script setup>
+    #|import {
+    #|  "mizchi/luna/js/resource" @reactivity,
+    #|  let signal = @reactivity.signal,
+    #|}
+    #|
+    #|let picked = signal("b")
+    #|</script>
+    #|
+    #|<template>
+    #|  <form>
+    #|    <input type='radio' value='a' v-model='picked.get()' />
+    #|    <input type='radio' value='b' v-model='picked.get()' />
+    #|  </form>
+    #|</template>
+  let output = compile(source, filename="examples/model_radio.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(output.client_code.contains("(\"checked\", @dom.dynAttr(fn() { if picked.get().to_string() == \"a\" { \"true\" } else { \"false\" } }))"))
+  assert_true(output.client_code.contains("(\"checked\", @dom.dynAttr(fn() { if picked.get().to_string() == \"b\" { \"true\" } else { \"false\" } }))"))
+  assert_true(output.client_code.contains("picked.set(_event._get(\"target\")._get(\"value\").cast())"))
+}
