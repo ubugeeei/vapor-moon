@@ -1,0 +1,44 @@
+name: Release Verify
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install MoonBit CLI
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Moon update
+        run: moon update
+      - name: Install MoonBit dependencies
+        run: moon install
+      - name: Patch Mooncakes
+        run: bash scripts/patch_mooncakes.sh
+      - name: Moon check
+        run: moon check --deny-warn --warn-list -deprecated_syntax-deprecated --target native 2> >(grep -v 'WARN Duplicate alias' >&2)
+      - name: Moon native smoke tests
+        run: |
+          moon test --target native src/cmd/vapor_moon
+          moon test --target native src/runtime
+      - name: CLI smoke test
+        run: bash scripts/smoke_cli.sh
+      - name: Package contents
+        run: moon package --list
+      - name: Publish dry run
+        run: bash scripts/verify_publish_dry_run.sh

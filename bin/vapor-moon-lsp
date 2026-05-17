@@ -4,4 +4,10 @@ set -eu
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$ROOT"
 
+REQUIRE_SHIM='data:text/javascript,import{createRequire}from%22node:module%22;globalThis.require=createRequire(process.cwd()+%22/%22);'
+case " ${NODE_OPTIONS:-} " in
+  *"--import=$REQUIRE_SHIM"*) ;;
+  *) export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--import=$REQUIRE_SHIM" ;;
+esac
+
 exec moon run --target js src/cmd/vapor_moon_lsp -- "$@"

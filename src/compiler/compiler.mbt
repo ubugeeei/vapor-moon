@@ -623,10 +623,7 @@ fn impl_contains_legacy_emit_call(
     TopImpl(body~, ..) => decl_body_contains_legacy_emit_call(body, binding)
     TopView(body~, ..) => expr_contains_legacy_emit_call(body, binding)
     TopTypeDef(_)
-    | TopFuncAlias(..)
     | TopTrait(_)
-    | TopBatchTypeAlias(..)
-    | TopBatchTraitAlias(..)
     | TopImplRelation(..)
     | _ => false
   }

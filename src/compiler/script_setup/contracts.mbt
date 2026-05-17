@@ -10,7 +10,8 @@ fn ScriptSetupSource::parse_contract_type_decl(
   type_decl : @mbt_syntax.TypeDecl,
 ) -> ScriptSetupContractType {
   let fields = match type_decl.components {
-    Record(field_decls) => Some(self.parse_contract_type_fields(field_decls))
+    Record(fields=field_decls, ..) =>
+      Some(self.parse_contract_type_fields(field_decls))
     _ => None
   }
   { name: type_decl.tycon, fields }

@@ -7,6 +7,8 @@ The launcher currently shells out to `moon run --target js src/cmd/vapor_moon_ls
 - `moon` on `PATH`
 - a JS runtime such as `node`, `bun`, or `deno` on `PATH`
 
+Run `bash scripts/smoke_lsp.sh` from the repository root to verify the launcher can answer an LSP `initialize` request.
+
 ## VS Code
 
 - Extension source lives in [`editors/vscode`](./vscode)

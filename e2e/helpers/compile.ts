@@ -1,5 +1,7 @@
-import { execSync } from "child_process";
-import { resolve } from "path";
+import { mkdtempSync, rmSync, writeFileSync } from "fs";
+import { tmpdir } from "os";
+import { join, resolve } from "path";
+import { spawnSync } from "child_process";
 
 export interface CompileOutput {
   client_code: string;
@@ -12,11 +14,7 @@ const ROOT = resolve(__dirname, "../..");
 
 export function compileFile(filePath: string): CompileOutput {
   const absPath = resolve(ROOT, filePath);
-  const raw = execSync(`moon run src/cmd/vapor_moon -- compile ${absPath}`, {
-    cwd: ROOT,
-    encoding: "utf-8",
-    stdio: ["pipe", "pipe", "pipe"],
-  });
+  const raw = runCompiler(absPath, { allowFailure: false });
 
   return parseCompileOutput(raw);
 }
@@ -25,26 +23,39 @@ export function compileSource(
   source: string,
   filename: string
 ): CompileOutput {
-  // Write source to a temp file, compile, clean up
-  const { writeFileSync, unlinkSync, mkdtempSync } = require("fs");
-  const { join } = require("path");
-  const tmpDir = mkdtempSync(join(require("os").tmpdir(), "vapor-moon-e2e-"));
+  const tmpDir = mkdtempSync(join(tmpdir(), "vapor-moon-e2e-"));
   const tmpFile = join(tmpDir, filename);
   writeFileSync(tmpFile, source);
   try {
-    const raw = execSync(
-      `moon run src/cmd/vapor_moon -- compile ${tmpFile}`,
-      {
-        cwd: ROOT,
-        encoding: "utf-8",
-        stdio: ["pipe", "pipe", "pipe"],
-      }
-    );
+    const raw = runCompiler(tmpFile, { allowFailure: true });
     return parseCompileOutput(raw);
   } finally {
-    unlinkSync(tmpFile);
-    require("fs").rmdirSync(tmpDir);
+    rmSync(tmpDir, { recursive: true, force: true });
   }
+}
+
+function runCompiler(
+  filePath: string,
+  options: { allowFailure: boolean }
+): string {
+  const result = spawnSync(
+    "moon",
+    ["run", "src/cmd/vapor_moon", "--", "compile", filePath],
+    {
+      cwd: ROOT,
+      encoding: "utf-8",
+    }
+  );
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  if (result.status !== 0 && !options.allowFailure) {
+    throw new Error(result.stderr || result.stdout);
+  }
+
+  return result.stdout || result.stderr || "";
 }
 
 function parseCompileOutput(raw: string): CompileOutput {

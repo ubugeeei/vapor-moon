@@ -450,9 +450,12 @@ moon test src/tooling
 moon build --target js src/lsp
 moon test --target js src/lsp
 moon build --target js src/cmd/vapor_moon_lsp
+bash scripts/smoke_cli.sh
+bash scripts/smoke_lsp.sh
 ```
 
 `bash scripts/patch_mooncakes.sh` reapplies a small local patch for a known `moonbitlang/yacc` dependency warning, and the repo-local pre-commit hook runs it automatically before the test suite.
+The smoke scripts cover CLI exit-code behavior and the shipped editor LSP launcher path used by VS Code, Zed, and Neovim.
 
 ## Publishing
 
@@ -473,6 +476,7 @@ Before publishing:
 - review the packaged files with `moon package --list`; this repository uses `exclude` in `moon.mod.json` to keep editor fixtures, examples, scripts, and test files out of the published archive
 
 On newer MoonBit toolchains, `moon publish --dry-run` is also useful before the real publish.
+The `Release Verify` GitHub Actions workflow runs the release gate for tags and manual dispatches, including `moon package --list` and `moon publish --dry-run`.
 
 ## Git Setup
 
