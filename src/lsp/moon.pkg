@@ -9,6 +9,4 @@ import {
   "ubugeeei/vapor_moon/src/tooling" @tooling,
 }
 
-options(
-  "supported-targets": "js",
-)
+supported_targets = "js"

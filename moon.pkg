@@ -4,6 +4,4 @@ import {
   "ubugeeei/vapor_moon/src/tooling" @tooling,
 }
 
-options(
-  "supported-targets": "all",
-)
+supported_targets = "all"

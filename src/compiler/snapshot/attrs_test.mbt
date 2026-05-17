@@ -264,8 +264,14 @@ test "component v-model compiles to modelValue prop" {
       panic()
     }
   }
-  assert_true(output.client_code.contains("(\"modelValue\", fn() { name.get().to_string() })"))
-  assert_true(output.server_code.contains("(\"modelValue\", name.get().to_string())"))
+  assert_true(
+    output.client_code.contains(
+      "(\"modelValue\", fn() { name.get().to_string() })",
+    ),
+  )
+  assert_true(
+    output.server_code.contains("(\"modelValue\", name.get().to_string())"),
+  )
 }
 
 ///|
@@ -292,7 +298,19 @@ test "snapshot v-model radio compile" {
       panic()
     }
   }
-  assert_true(output.client_code.contains("(\"checked\", @dom.dynAttr(fn() { if picked.get().to_string() == \"a\" { \"true\" } else { \"false\" } }))"))
-  assert_true(output.client_code.contains("(\"checked\", @dom.dynAttr(fn() { if picked.get().to_string() == \"b\" { \"true\" } else { \"false\" } }))"))
-  assert_true(output.client_code.contains("picked.set(_event._get(\"target\")._get(\"value\").cast())"))
+  assert_true(
+    output.client_code.contains(
+      "(\"checked\", @dom.dynAttr(fn() { if picked.get().to_string() == \"a\" { \"true\" } else { \"false\" } }))",
+    ),
+  )
+  assert_true(
+    output.client_code.contains(
+      "(\"checked\", @dom.dynAttr(fn() { if picked.get().to_string() == \"b\" { \"true\" } else { \"false\" } }))",
+    ),
+  )
+  assert_true(
+    output.client_code.contains(
+      "picked.set(_event._get(\"target\")._get(\"value\").cast())",
+    ),
+  )
 }

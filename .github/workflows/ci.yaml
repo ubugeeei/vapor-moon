@@ -32,10 +32,8 @@ jobs:
         run: bash scripts/patch_mooncakes.sh
       - name: Moon check
         run: moon check --deny-warn --warn-list -deprecated_syntax-deprecated --target native 2> >(grep -v 'WARN Duplicate alias' >&2)
-      - name: Moon native smoke tests
-        run: |
-          moon test --target native src/cmd/vapor_moon
-          moon test --target native src/runtime
+      - name: Moon native tests
+        run: moon test --target native
       - name: CLI smoke test
         run: bash scripts/smoke_cli.sh
       - name: Package contents

@@ -4,7 +4,7 @@ _build/
 editors/zed/target/
 node_modules/
 dist/
-coverage/
+/coverage/
 e2e/test-results/
 *.log
 *.tmp

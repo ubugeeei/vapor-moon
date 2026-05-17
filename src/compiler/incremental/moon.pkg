@@ -8,6 +8,4 @@ import {
   "moonbitlang/core/bench" @bench,
 } for "test"
 
-options(
-  "supported-targets": "native",
-)
+supported_targets = "native"

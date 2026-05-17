@@ -1,0 +1,52 @@
+<script setup>
+let msg = "deep, global, slotted"
+</script>
+
+<template>
+  <div class="wrapper">
+    <h1>{{ msg }}</h1>
+  </div>
+</template>
+
+<style>
+.wrapper {
+  padding: 1rem;
+}
+
+.wrapper :deep(.child) {
+  color: red;
+}
+
+.wrapper :deep(.child .grandchild) {
+  font-weight: bold;
+}
+
+:global(.global-reset) {
+  margin: 0;
+  padding: 0;
+}
+
+.wrapper :global(.external-lib) {
+  border: none;
+}
+
+:slotted(div) {
+  background: #f0f0f0;
+}
+
+:slotted(.slot-item):hover {
+  background: #e0e0e0;
+}
+
+@supports (display: grid) {
+  .wrapper {
+    display: grid;
+  }
+}
+</style>
+
+<style scoped="false">
+.unscoped-text {
+  font-style: italic;
+}
+</style>

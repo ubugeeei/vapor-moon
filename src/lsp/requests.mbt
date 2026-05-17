@@ -85,7 +85,11 @@ pub fn request_document_position(params : @js.Any?) -> (String, Int, Int)? {
               int_prop(position, "character"),
             ) {
             (Some(uri), Some(line), Some(character)) =>
-              Some((uri, line, character))
+              if line >= 0 && character >= 0 {
+                Some((uri, line, character))
+              } else {
+                None
+              }
             _ => None
           }
         _ => None

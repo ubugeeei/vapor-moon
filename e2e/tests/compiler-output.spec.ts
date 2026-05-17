@@ -53,6 +53,37 @@ test.describe("compiler output correctness", () => {
     expect(output.client_code).toContain(scopeId!);
   });
 
+  test("scoped style handles vize-inspired deep global slotted selectors", () => {
+    const output = compileFile("examples/scoped_edge_cases.mbtv");
+    const scopeId = output.meta.scope;
+    const css = output.css_output.replace(/\s+/g, " ");
+
+    expect(scopeId).toBeTruthy();
+    expect(css).toContain(
+      `[data-vm-scope="${scopeId}"] .wrapper .child`
+    );
+    expect(css).toContain(
+      `[data-vm-scope="${scopeId}"] .wrapper .child .grandchild`
+    );
+    expect(css).toContain(".global-reset { margin: 0; padding: 0; }");
+    expect(css).toContain(
+      `[data-vm-scope="${scopeId}"] .wrapper .external-lib`
+    );
+    expect(css).toContain(
+      `[data-vm-scope="${scopeId}"] div { background: #f0f0f0; }`
+    );
+    expect(css).toContain(
+      `[data-vm-scope="${scopeId}"] .slot-item:hover`
+    );
+    expect(css).toContain(
+      `@supports (display: grid) { [data-vm-scope="${scopeId}"] .wrapper { display: grid; } }`
+    );
+    expect(css).toContain(".unscoped-text { font-style: italic; }");
+    expect(output.css_output).not.toContain(":deep(");
+    expect(output.css_output).not.toContain(":global(");
+    expect(output.css_output).not.toContain(":slotted(");
+  });
+
   test("no style block produces empty css", () => {
     const output = compileSource(
       `<script setup>

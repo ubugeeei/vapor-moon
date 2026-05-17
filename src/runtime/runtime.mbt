@@ -28,6 +28,12 @@ pub fn client_module_path(component_name : String) -> String {
 }
 
 ///|
+/// Map a component name to the Web Components island host tag.
+pub fn client_element_name(component_name : String) -> String {
+  "vm-" + sanitize_component_name(component_name).to_lower()
+}
+
+///|
 /// Build the deterministic `data-vm-scope` suffix for one component.
 pub fn make_scope_id(component_name : String) -> String {
   "vm-" + hash_string(component_name)
@@ -273,9 +279,14 @@ fn scope_css_rules(css : String, scope_id : String) -> String {
       for selector in selectors {
         let trimmed = selector.trim().to_string()
         if trimmed.length() > 0 {
-          scoped_selectors.push(
-            "[data-vm-scope=\"" + scope_id + "\"] " + trimmed,
-          )
+          let rewritten = rewrite_scoped_selector(trimmed)
+          if rewritten.unscoped {
+            scoped_selectors.push(rewritten.selector)
+          } else {
+            scoped_selectors.push(
+              "[data-vm-scope=\"" + scope_id + "\"] " + rewritten.selector,
+            )
+          }
         }
       }
       if not(scoped_selectors.is_empty()) {
@@ -405,6 +416,144 @@ fn split_css_selector_list(source : String) -> Array[String] {
   }
   selectors.push(String::unsafe_substring(source, start~, end=source.length()))
   selectors
+}
+
+///|
+priv struct ScopedSelector {
+  selector : String
+  unscoped : Bool
+}
+
+///|
+fn rewrite_scoped_selector(selector : String) -> ScopedSelector {
+  let normalized = rewrite_scoped_pseudo_functions(selector).trim().to_owned()
+  if selector_is_pure_pseudo(selector, ":global") {
+    { selector: normalized, unscoped: true }
+  } else {
+    { selector: normalized, unscoped: false }
+  }
+}
+
+///|
+fn rewrite_scoped_pseudo_functions(selector : String) -> String {
+  let sb = StringBuilder::new()
+  let mut index = 0
+  while index < selector.length() {
+    match scoped_pseudo_name_at(selector, index) {
+      Some(name) => {
+        let open_index = index + name.length()
+        match matching_close_paren(selector, open_index) {
+          Some(close_index) => {
+            let inner = String::unsafe_substring(
+              selector,
+              start=open_index + 1,
+              end=close_index,
+            )
+            sb.write_string(inner.trim().to_owned())
+            index = close_index + 1
+          }
+          None => {
+            sb.write_string(
+              String::unsafe_substring(selector, start=index, end=index + 1),
+            )
+            index += 1
+          }
+        }
+      }
+      None => {
+        sb.write_string(
+          String::unsafe_substring(selector, start=index, end=index + 1),
+        )
+        index += 1
+      }
+    }
+  }
+  normalize_selector_spacing(sb.to_string())
+}
+
+///|
+fn scoped_pseudo_name_at(selector : String, index : Int) -> String? {
+  if selector_has_prefix_at(selector, ":deep(", index) {
+    Some(":deep")
+  } else if selector_has_prefix_at(selector, ":global(", index) {
+    Some(":global")
+  } else if selector_has_prefix_at(selector, ":slotted(", index) {
+    Some(":slotted")
+  } else {
+    None
+  }
+}
+
+///|
+fn selector_is_pure_pseudo(selector : String, pseudo : String) -> Bool {
+  let trimmed = selector.trim().to_owned()
+  if !trimmed.has_prefix(pseudo + "(") {
+    return false
+  }
+  match matching_close_paren(trimmed, pseudo.length()) {
+    Some(close_index) => close_index == trimmed.length() - 1
+    None => false
+  }
+}
+
+///|
+fn selector_has_prefix_at(
+  selector : String,
+  prefix : String,
+  index : Int,
+) -> Bool {
+  if index + prefix.length() > selector.length() {
+    return false
+  }
+  String::unsafe_substring(selector, start=index, end=index + prefix.length()) ==
+  prefix
+}
+
+///|
+fn matching_close_paren(selector : String, open_index : Int) -> Int? {
+  if open_index >= selector.length() || selector[open_index] != '(' {
+    return None
+  }
+  let mut index = open_index + 1
+  let mut depth = 1
+  let mut in_string : UInt16? = None
+  let mut escaped = false
+  while index < selector.length() {
+    let ch = selector[index]
+    match in_string {
+      Some(quote) =>
+        if escaped {
+          escaped = false
+        } else if ch == '\\' {
+          escaped = true
+        } else if ch == quote {
+          in_string = None
+        }
+      None =>
+        if ch == '"' || ch == '\'' {
+          in_string = Some(ch)
+        } else if ch == '(' {
+          depth += 1
+        } else if ch == ')' {
+          depth -= 1
+          if depth == 0 {
+            return Some(index)
+          }
+        }
+    }
+    index += 1
+  }
+  None
+}
+
+///|
+fn normalize_selector_spacing(selector : String) -> String {
+  selector
+  .replace_all(old="  ", new=" ")
+  .replace_all(old=" >", new=">")
+  .replace_all(old="> ", new=">")
+  .trim()
+  .to_owned()
 }
 
 ///|
