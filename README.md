@@ -52,6 +52,32 @@ Current scope intentionally excludes or leaves unfinished:
 - `v-model` modifiers (`.lazy`, `.number`, `.trim`) outside the text-input paths where they currently work
 - LSP rename / codeAction implementations beyond Phase 1 stubs ([#86](https://github.com/ubugeeei/vapor-moon/issues/86) Phase 2)
 
+## Quickstart
+
+```bash
+# 1. Install MoonBit (Linux / macOS).
+curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+export PATH="$HOME/.moon/bin:$PATH"
+
+# 2. Clone and resolve dependencies.
+git clone https://github.com/ubugeeei/vapor-moon
+cd vapor-moon
+moon update && moon install
+
+# 3. Compile an example to inspect generated client / server / CSS.
+moon run src/cmd/vapor_moon -- compile examples/basic.mbtv
+
+# 4. Run the test suite (or `make ci` for the same gates CI uses).
+make test
+```
+
+Open the repo in [GitHub Codespaces](https://github.com/codespaces) for a
+zero-install environment via the bundled [`.devcontainer/`](.devcontainer/devcontainer.json).
+
+Editor support: VS Code (`editors/vscode`), Zed (`editors/zed`), Neovim
+(`editors/nvim`). The stdio LSP server lives in `src/cmd/vapor_moon_lsp`
+and is the common backend for all three.
+
 ## Authoring Model
 
 The default SFC shape is intentionally small:
