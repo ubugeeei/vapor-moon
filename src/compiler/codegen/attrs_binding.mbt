@@ -105,6 +105,17 @@ fn render_client_model_attrs(
   let parts : Array[String] = []
   match element.model {
     Some(model) if not(element.is_component) => {
+      if is_select_multiple_model(element) {
+        parts.push(
+          "(\"change\", @dom.on(fn(_event) { " +
+          render_model_write_expr(
+            model.expression,
+            "@dom.selectedOptionValues(_event._get(\"target\"))",
+          ) +
+          " }))",
+        )
+        return parts
+      }
       let checked = infer_model_checked(element)
       let radio = is_radio_model(element)
       let event_name = render_model_event_name(element, model, checked || radio)
@@ -149,6 +160,9 @@ fn render_server_model_attrs(
   let parts : Array[String] = []
   match element.model {
     Some(model) if not(element.is_component) => {
+      if is_select_multiple_model(element) {
+        return parts
+      }
       let checked = infer_model_checked(element)
       let radio = is_radio_model(element)
       let attr_name = if checked || radio { "checked" } else { "value" }
@@ -181,12 +195,125 @@ fn render_server_model_attrs(
 }
 
 ///|
+fn render_client_select_option_model_attrs(
+  element : TemplateElement,
+  select_multiple_model : TemplateModel?,
+  static_mode : Bool,
+) -> Array[String] {
+  let parts : Array[String] = []
+  match select_multiple_model {
+    Some(model) if element.tag == "option" => {
+      let selected_expr = render_select_option_selected_expr(element, model)
+      if static_mode {
+        parts.push("(\"selected\", @dom.attr(" + selected_expr + "))")
+      } else {
+        parts.push(
+          "(\"selected\", @dom.dynAttr(fn() { " + selected_expr + " }))",
+        )
+      }
+    }
+    _ => ()
+  }
+  parts
+}
+
+///|
+fn render_server_select_option_model_attrs(
+  element : TemplateElement,
+  select_multiple_model : TemplateModel?,
+  static_mode : Bool,
+) -> Array[String] {
+  let parts : Array[String] = []
+  match select_multiple_model {
+    Some(model) if element.tag == "option" => {
+      let selected_expr = render_select_option_selected_expr(element, model)
+      if static_mode {
+        parts.push(
+          "(\"selected\", @luna_core.attr_static(" + selected_expr + "))",
+        )
+      } else {
+        parts.push(
+          "(\"selected\", @luna_core.attr_dynamic(fn() { " +
+          selected_expr +
+          " }))",
+        )
+      }
+    }
+    _ => ()
+  }
+  parts
+}
+
+///|
+fn render_select_option_selected_expr(
+  element : TemplateElement,
+  model : TemplateModel,
+) -> String {
+  "if @hlp.stringArrayContains(" +
+  model.expression +
+  ", " +
+  render_select_option_value_expr(element) +
+  ") { \"\" } else { \"__remove__\" }"
+}
+
+///|
+fn render_select_option_value_expr(element : TemplateElement) -> String {
+  for attr in element.attrs {
+    if attr.name == "value" {
+      match attr.kind {
+        Static => return quote(attr.value)
+        Dynamic => return attr.value + ".to_string()"
+        _ => ()
+      }
+    }
+  }
+  match static_option_text(element.children) {
+    Some(text) => quote(text)
+    None => "\"\""
+  }
+}
+
+///|
+fn static_option_text(children : Array[TemplateNode]) -> String? {
+  let parts : Array[String] = []
+  for child in children {
+    match child {
+      Text(content) => parts.push(content)
+      _ => return None
+    }
+  }
+  if parts.is_empty() {
+    None
+  } else {
+    Some(parts.join(""))
+  }
+}
+
+///|
+fn is_select_multiple_model(element : TemplateElement) -> Bool {
+  if element.tag != "select" || element.model is None {
+    return false
+  }
+  has_codegen_attr(element.attrs, "multiple")
+}
+
+///|
 fn is_radio_model(element : TemplateElement) -> Bool {
   if element.tag != "input" {
     return false
   }
   for attr in element.attrs {
     if attr.name == "type" && attr.kind == Static && attr.value == "radio" {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn has_codegen_attr(attrs : Array[TemplateAttr], name : String) -> Bool {
+  for attr in attrs {
+    if attr.name == name {
       return true
     }
   }

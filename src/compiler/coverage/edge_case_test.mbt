@@ -890,21 +890,40 @@ test "radio v-model lowers checked state and change handler" {
 }
 
 ///|
-test "rejects unsupported file v-model" {
+test "select multiple v-model writes assignable array targets" {
   let source =
-    #|<template><input type='file' v-model='file' /></template>
-  assert_eq(
-    compile_error(source, "invalid/v_model_file.mbtv"),
-    "InvalidDirective(\"v-model on <input type=\\\"file\\\"> is not supported yet\")",
+    #|<template>
+    #|  <select multiple v-model='selected'>
+    #|    <option value='a'>Alpha</option>
+    #|  </select>
+    #|</template>
+  let output = compile(
+    source,
+    filename="examples/v_model_select_multiple_assignable.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(
+    output.client_code.contains(
+      "selected = @dom.selectedOptionValues(_event._get(\"target\"))",
+    ),
+  )
+  assert_true(
+    output.client_code.contains(
+      "if @hlp.stringArrayContains(selected, \"a\") { \"\" } else { \"__remove__\" }",
+    ),
   )
 }
 
 ///|
-test "rejects unsupported select multiple v-model" {
+test "rejects invalid file v-model" {
   let source =
-    #|<template><select multiple v-model='selected'></select></template>
+    #|<template><input type='file' v-model='file' /></template>
   assert_eq(
-    compile_error(source, "invalid/v_model_select_multiple.mbtv"),
-    "InvalidDirective(\"v-model on <select multiple> is not supported yet\")",
+    compile_error(source, "invalid/v_model_file.mbtv"),
+    "InvalidDirective(\"v-model on <input type=\\\"file\\\"> is invalid because browsers only let users set selected files; use @change to read target.files\")",
   )
 }

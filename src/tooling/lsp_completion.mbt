@@ -33,7 +33,7 @@ fn directive_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
     ("v-show", "toggle visibility via CSS display"),
     ("v-unsafe-html", "render unsafe raw HTML content"),
     (
-      "v-model", "two-way binding on input/textarea/select and component props; file input/select multiple unsupported",
+      "v-model", "two-way binding on input/textarea/select, including select multiple arrays; file inputs use @change",
     ),
     ("v-once", "render once (skip reactivity)"),
     ("v-match", "pattern matching on an expression"),

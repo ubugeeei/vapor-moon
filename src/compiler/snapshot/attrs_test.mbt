@@ -314,3 +314,45 @@ test "snapshot v-model radio compile" {
     ),
   )
 }
+
+///|
+test "snapshot v-model select multiple compile" {
+  let source =
+    #|<script setup>
+    #|import {
+    #|  "mizchi/luna/js/resource" @reactivity,
+    #|  let signal = @reactivity.signal,
+    #|}
+    #|
+    #|let selected = signal(["a", "c"])
+    #|</script>
+    #|
+    #|<template>
+    #|  <select multiple v-model='selected.get()'>
+    #|    <option value='a'>Alpha</option>
+    #|    <option value='b'>Beta</option>
+    #|    <option value='c'>Gamma</option>
+    #|  </select>
+    #|</template>
+  let output = compile(source, filename="examples/model_select_multiple.mbtv") catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(
+    output.client_code.contains(
+      "(\"selected\", @dom.dynAttr(fn() { if @hlp.stringArrayContains(selected.get(), \"a\") { \"\" } else { \"__remove__\" } }))",
+    ),
+  )
+  assert_true(
+    output.client_code.contains(
+      "selected.set(@dom.selectedOptionValues(_event._get(\"target\")))",
+    ),
+  )
+  assert_true(
+    output.server_code.contains(
+      "(\"selected\", @luna_core.attr_dynamic(fn() { if @hlp.stringArrayContains(selected.get(), \"c\") { \"\" } else { \"__remove__\" } }))",
+    ),
+  )
+}

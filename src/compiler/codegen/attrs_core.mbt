@@ -3,6 +3,7 @@ fn collect_client_attr_entries(
   element : TemplateElement,
   scope_id : String?,
   static_mode : Bool,
+  select_multiple_model : TemplateModel?,
 ) -> Array[String] {
   let parts : Array[String] = []
   for attr in element.attrs {
@@ -15,6 +16,12 @@ fn collect_client_attr_entries(
   push_if_some(parts, render_client_key_attr(element))
   push_if_some(parts, render_client_ref_attr(element))
   push_if_some(parts, render_client_html_attr(element, static_mode))
+  for
+    attr in render_client_select_option_model_attrs(
+      element, select_multiple_model, static_mode,
+    ) {
+    parts.push(attr)
+  }
   for attr in render_client_model_attrs(element, static_mode) {
     parts.push(attr)
   }
@@ -30,6 +37,7 @@ fn render_server_attrs(
   element : TemplateElement,
   scope_id : String?,
   static_mode : Bool,
+  select_multiple_model : TemplateModel?,
 ) -> String {
   let parts : Array[String] = []
   for attr in element.attrs {
@@ -44,6 +52,12 @@ fn render_server_attrs(
   push_if_some(parts, render_server_style_attr(element, static_mode))
   push_if_some(parts, render_server_key_attr(element))
   push_if_some(parts, render_server_ref_attr(element))
+  for
+    attr in render_server_select_option_model_attrs(
+      element, select_multiple_model, static_mode,
+    ) {
+    parts.push(attr)
+  }
   for attr in render_server_model_attrs(element, static_mode) {
     parts.push(attr)
   }

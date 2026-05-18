@@ -52,6 +52,23 @@ pub fn use_id(component_name : String, index : Int) -> String {
 }
 
 ///|
+/// Test whether a string array contains a value.
+pub fn string_array_contains(values : Array[String], target : String) -> Bool {
+  for value in values {
+    if value == target {
+      return true
+    }
+  }
+  false
+}
+
+///|
+/// Generated-code alias for `string_array_contains`.
+pub fn stringArrayContains(values : Array[String], target : String) -> Bool {
+  string_array_contains(values, target)
+}
+
+///|
 /// Expose the raw template-ref lookup key.
 pub fn[T] TemplateRef::name(self : TemplateRef[T]) -> String {
   self.name

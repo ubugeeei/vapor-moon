@@ -5,14 +5,19 @@ fn render_client_element(
   scope_id : String?,
   node_counter : Array[Int],
   static_mode : Bool,
+  select_multiple_model : TemplateModel?,
 ) -> String {
   let node_name = next_client_node_name(node_counter)
   let statements : Array[String] = [
     "let " + node_name + " = @dom.el(" + quote(element.tag) + ")",
   ]
-  for attr in collect_client_attr_entries(element, scope_id, static_mode) {
+  for
+    attr in collect_client_attr_entries(
+      element, scope_id, static_mode, select_multiple_model,
+    ) {
     statements.push("@dom.setAttr(" + node_name + ", " + attr + ")")
   }
+  let child_select_multiple_model = child_select_multiple_model(element)
   if element.html_expr is None && not(element.children.is_empty()) {
     for
       statement in render_client_append_statements(
@@ -22,6 +27,7 @@ fn render_client_element(
         scope_id,
         node_counter,
         static_mode,
+        child_select_multiple_model,
       ) {
       statements.push(statement)
     }
@@ -36,8 +42,12 @@ fn render_server_element(
   indent : Int,
   scope_id : String?,
   static_mode : Bool,
+  select_multiple_model : TemplateModel?,
 ) -> String {
-  let attrs = render_server_attrs(element, scope_id, static_mode)
+  let attrs = render_server_attrs(
+    element, scope_id, static_mode, select_multiple_model,
+  )
+  let child_select_multiple_model = child_select_multiple_model(element)
   let children = match element.html_expr {
     Some(expr) => "[@luna_core.raw_html(" + expr + ".to_string())]"
     None =>
@@ -46,6 +56,7 @@ fn render_server_element(
         indent + 2,
         scope_id,
         static_mode,
+        child_select_multiple_model,
       )
   }
   "@luna_core.h(" + quote(element.tag) + ", " + attrs + ", " + children + ")"
@@ -68,6 +79,7 @@ fn render_client_component(
       scope_id,
       node_counter,
       static_mode,
+      None,
     )
   } else {
     render_client_children(
@@ -76,6 +88,7 @@ fn render_client_component(
       scope_id,
       node_counter,
       static_mode,
+      None,
     )
   }
   match element.island_mode {
@@ -141,9 +154,16 @@ fn render_server_component(
       indent + 2,
       scope_id,
       static_mode,
+      None,
     )
   } else {
-    render_server_children(element.children, indent + 2, scope_id, static_mode)
+    render_server_children(
+      element.children,
+      indent + 2,
+      scope_id,
+      static_mode,
+      None,
+    )
   }
   match element.island_mode {
     Load | Idle | Visible | Media(_) | Only | ServerDefer =>
@@ -200,6 +220,7 @@ fn render_client_children(
   scope_id : String?,
   node_counter : Array[Int],
   static_mode : Bool,
+  select_multiple_model : TemplateModel?,
 ) -> String {
   if nodes.is_empty() {
     return "[]"
@@ -214,6 +235,7 @@ fn render_client_children(
           scope_id,
           node_counter,
           static_mode,
+          select_multiple_model,
         ),
         indent + 2,
       ),
@@ -228,6 +250,7 @@ fn render_server_children(
   indent : Int,
   scope_id : String?,
   static_mode : Bool,
+  select_multiple_model : TemplateModel?,
 ) -> String {
   if nodes.is_empty() {
     return "[]"
@@ -236,7 +259,13 @@ fn render_server_children(
   for node in nodes {
     lines.push(
       indent_text(
-        render_server_node(node, indent + 2, scope_id, static_mode),
+        render_server_node(
+          node,
+          indent + 2,
+          scope_id,
+          static_mode,
+          select_multiple_model,
+        ),
         indent + 2,
       ),
     )
@@ -363,6 +392,7 @@ fn render_client_slots_record(
   scope_id : String?,
   node_counter : Array[Int],
   static_mode : Bool,
+  select_multiple_model : TemplateModel?,
 ) -> String {
   let groups = group_children_by_slot(children)
   let sb = StringBuilder::new()
@@ -378,6 +408,7 @@ fn render_client_slots_record(
         scope_id,
         node_counter,
         static_mode,
+        select_multiple_model,
       ),
     )
     sb.write_string(" })")
@@ -396,6 +427,7 @@ fn render_server_slots_record(
   indent : Int,
   scope_id : String?,
   static_mode : Bool,
+  select_multiple_model : TemplateModel?,
 ) -> String {
   let groups = group_children_by_slot(children)
   let sb = StringBuilder::new()
@@ -405,7 +437,13 @@ fn render_server_slots_record(
     sb.write_string(group.name)
     sb.write_string(": Some(fn() { ")
     sb.write_string(
-      render_server_children(group.nodes, indent + 4, scope_id, static_mode),
+      render_server_children(
+        group.nodes,
+        indent + 4,
+        scope_id,
+        static_mode,
+        select_multiple_model,
+      ),
     )
     sb.write_string(" })")
     if i < groups.length() - 1 {
@@ -415,6 +453,17 @@ fn render_server_slots_record(
   }
   sb.write_string(spaces(indent) + "}")
   sb.to_string()
+}
+
+///|
+fn child_select_multiple_model(element : TemplateElement) -> TemplateModel? {
+  if element.tag == "select" {
+    if is_select_multiple_model(element) {
+      return element.model
+    }
+    return None
+  }
+  None
 }
 
 ///|

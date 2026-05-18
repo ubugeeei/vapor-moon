@@ -348,7 +348,7 @@ Today the template layer supports:
 - `v-for="item in items"` and `v-for="(item, index) in items"`
 - `v-show`
 - `v-unsafe-html`
-- `v-model` on native form controls such as `input`, `textarea`, and `select`
+- `v-model` on native form controls such as `input`, `textarea`, and `select`, including `Array[String]` bindings for `<select multiple>`
 - `v-once`
 - `v-match`, `v-case`, and `v-default`
 - `ref` and `:ref`
@@ -359,6 +359,10 @@ Today the template layer supports:
 `v-unsafe-html` is an explicit escape hatch. Vapor Moon does not sanitize this
 content; pass only trusted or already-sanitized HTML, and do not bind
 user-controlled strings directly to it.
+
+`v-model` is intentionally invalid on `<input type="file">` because browsers
+only let users set selected files. Use `@change` for file inputs and read
+`target.files` from the change event.
 
 Island and delivery directives are part of the template surface:
 

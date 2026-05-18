@@ -211,7 +211,7 @@ fn validate_native_model_binding(
         }
       Some("file") =>
         raise CompilerError::InvalidDirective(
-          "v-model on <input type=\"file\"> is not supported yet",
+          "v-model on <input type=\"file\"> is invalid because browsers only let users set selected files; use @change to read target.files",
         )
       Some("checkbox") =>
         if has_model_modifier_name(model, "trim") {
@@ -223,11 +223,6 @@ fn validate_native_model_binding(
     }
   }
   if tag == "select" {
-    if has_attr(attrs, "multiple") {
-      raise CompilerError::InvalidDirective(
-        "v-model on <select multiple> is not supported yet",
-      )
-    }
     if has_model_modifier_name(model, "trim") {
       raise CompilerError::InvalidDirective(
         "unsupported v-model modifier `.trim` on <select>",
@@ -387,16 +382,6 @@ fn validate_event_modifiers(
       "event modifiers `.passive` and `.prevent` cannot be combined on <\{tag}>",
     )
   }
-}
-
-///|
-fn has_attr(attrs : Array[TemplateAttr], name : String) -> Bool {
-  for attr in attrs {
-    if attr.name == name {
-      return true
-    }
-  }
-  false
 }
 
 ///|

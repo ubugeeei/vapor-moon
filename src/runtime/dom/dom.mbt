@@ -174,6 +174,23 @@ pub fn dynAttr(getter : () -> String) -> @luna_dom.AttrValue {
 }
 
 ///|
+/// Return the current selected option values from a native select element.
+pub fn selected_option_values(target : @js.Any) -> Array[String] {
+  read_selected_option_values(target)
+}
+
+///|
+/// Generated-code alias for `selected_option_values`.
+pub fn selectedOptionValues(target : @js.Any) -> Array[String] {
+  selected_option_values(target)
+}
+
+///|
+extern "js" fn read_selected_option_values(target : @js.Any) -> Array[String] =
+  #| (target) => Array.from(target?.selectedOptions ?? [])
+  #|   .map((option) => String(option.value))
+
+///|
 /// Wrap a DOM event handler as an attribute value.
 pub fn attr_handler(handler : (@js.Any) -> Unit) -> @luna_dom.AttrValue {
   @luna_dom.attr_handler(handler)
@@ -467,6 +484,14 @@ fn apply_static_attr(
   } else if name == "checked" {
     elem.as_any()._set("checked", @js.any(value == "true" || value == ""))
     |> ignore
+  } else if name == "selected" {
+    let enabled = value == "true" || value == ""
+    elem.as_any()._set("selected", @js.any(enabled)) |> ignore
+    if enabled {
+      elem.setAttribute("selected", "")
+    } else {
+      elem.removeAttribute("selected")
+    }
   } else if name == "disabled" {
     if value == "true" || value == "" {
       elem.setAttribute("disabled", "")

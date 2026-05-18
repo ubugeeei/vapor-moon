@@ -461,12 +461,14 @@ test "island dom meta renders hydration metadata and children" {
 test "apply_attr handles special attribute names and refs" {
   install_fake_dom()
   let elem = element("input")
+  let option = element("option")
   let refs : Array[String] = []
 
   apply_attr(elem, "class", attr_static("field"))
   apply_attr(elem, "value", attr_static("hello"))
   apply_attr(elem, "checked", attr_static("true"))
   apply_attr(elem, "disabled", attr_static("true"))
+  apply_attr(option, "selected", attr_static(""))
   apply_attr(elem, "__innerHTML", attr_static("<b>ok</b>"))
   apply_attr(
     elem,
@@ -478,12 +480,17 @@ test "apply_attr handles special attribute names and refs" {
   assert_eq(node_prop_string(elem.as_any(), "value"), "hello")
   assert_true(node_prop_bool(elem.as_any(), "checked"))
   assert_true(node_has_attr(elem.as_any(), "disabled"))
+  assert_true(node_prop_bool(option.as_any(), "selected"))
+  assert_true(node_has_attr(option.as_any(), "selected"))
   assert_eq(node_prop_string(elem.as_any(), "innerHTML"), "<b>ok</b>")
   assert_eq(refs, ["input"])
 
   apply_attr(elem, "disabled", attr_static("false"))
   apply_attr(elem, "checked", attr_static("false"))
+  apply_attr(option, "selected", attr_static("__remove__"))
 
   assert_false(node_has_attr(elem.as_any(), "disabled"))
   assert_false(node_prop_bool(elem.as_any(), "checked"))
+  assert_false(node_has_attr(option.as_any(), "selected"))
+  assert_false(node_prop_bool(option.as_any(), "selected"))
 }
