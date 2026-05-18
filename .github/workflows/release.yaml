@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 25
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install MoonBit CLI
         run: |
           curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
