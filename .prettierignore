@@ -1,0 +1,17 @@
+# MoonBit source — formatted via `moon fmt`, not prettier.
+**/*.mbt
+**/*.mbtv
+**/*.pkg
+**/moon.mod.json
+**/moon.pkg.json
+
+# Generated artifacts.
+_build/
+target/
+**/dist/
+**/*.vsix
+
+# Lockfiles — managed by their own tooling.
+**/Cargo.lock
+**/package-lock.json
+**/pnpm-lock.yaml
