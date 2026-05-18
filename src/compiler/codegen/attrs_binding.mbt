@@ -132,6 +132,12 @@ fn render_server_component_event_attr(attr : TemplateAttr) -> String {
 }
 
 ///|
+/// Lower a `v-unsafe-html` binding to the client `__innerHTML` attribute.
+///
+/// SECURITY: this is the client-side half of the `v-unsafe-html` escape
+/// hatch. The runtime's `apply_static_attr` writes the value straight onto
+/// `Element.innerHTML` (see `src/runtime/dom/dom.mbt`), with no escaping.
+/// Author responsibility — see README "Security Model" and SECURITY.md.
 fn render_client_html_attr(
   element : TemplateElement,
   static_mode : Bool,
@@ -157,6 +163,25 @@ fn render_client_model_attrs(
   let parts : Array[String] = []
   match element.model {
     Some(model) if !element.is_component => {
+      if is_select_multiple_model(element) {
+        // <select multiple v-model="xs">: lower to a runtime helper that
+        // walks <option> children and syncs `selected` from xs, and
+        // collects event.target.selectedOptions on change. We piggyback on
+        // the `__ref`-style Handler attribute so the helper fires once
+        // with the live element. See `bind_select_multiple_model` in
+        // src/runtime/dom/dom.mbt.
+        let setter = render_model_write_expr(
+          model.expression, "__vm_select_values",
+        )
+        parts.push(
+          "(\"__selectMultipleModel\", @dom.on(fn(__vm_select_elem) { @dom.bind_select_multiple_model(__vm_select_elem, fn() { " +
+          model.expression +
+          " }, fn(__vm_select_values) { " +
+          setter +
+          " }) }))",
+        )
+        return parts
+      }
       let checked = infer_model_checked(element)
       let radio = is_radio_model(element)
       let event_name = render_model_event_name(element, model, checked || radio)
@@ -201,6 +226,12 @@ fn render_server_model_attrs(
   let parts : Array[String] = []
   match element.model {
     Some(model) if !element.is_component => {
+      // SSR for <select multiple v-model> is intentionally a no-op for
+      // now: the multiple-select behavior (selected options) lives on
+      // the client and is applied on hydration. See bind_select_multiple_model.
+      if is_select_multiple_model(element) {
+        return parts
+      }
       let checked = infer_model_checked(element)
       let radio = is_radio_model(element)
       let attr_name = if checked || radio { "checked" } else { "value" }
@@ -230,6 +261,19 @@ fn render_server_model_attrs(
     _ => ()
   }
   parts
+}
+
+///|
+fn is_select_multiple_model(element : TemplateElement) -> Bool {
+  if element.tag != "select" {
+    return false
+  }
+  for attr in element.attrs {
+    if attr.name == "multiple" {
+      return true
+    }
+  }
+  false
 }
 
 ///|

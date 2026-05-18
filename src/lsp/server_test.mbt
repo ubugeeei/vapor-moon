@@ -248,7 +248,92 @@ test "initialize advertises hover definition completion references and formattin
     result.messages[0].contains("\"documentFormattingProvider\":true"),
   )
   assert_true(result.messages[0].contains("\"completionProvider\""))
+  assert_true(result.messages[0].contains("\"renameProvider\""))
+  assert_true(result.messages[0].contains("\"prepareProvider\":true"))
+  assert_true(result.messages[0].contains("\"codeActionProvider\""))
+  assert_true(result.messages[0].contains("\"quickfix\""))
   assert_true(result.messages[0].contains("\"positionEncoding\":\"utf-16\""))
+  assert_true(
+    result.messages[0].contains(
+      "\"version\":\"" + @compiler_common.VERSION + "\"",
+    ),
+  )
+}
+
+///|
+test "prepareRename, rename, and codeAction return graceful empty responses" {
+  let state = ServerState::new()
+  let no_diagnostics : Array[@js.Any] = []
+  ignore(
+    handle_message(
+      state,
+      open_request("file:///Component.mbtv", component_source()),
+    ),
+  )
+  let prepare = handle_message(
+    state,
+    position_request(10, "textDocument/prepareRename", 0, 0),
+  )
+  assert_true(prepare.messages[0].contains("\"result\":null"))
+  let rename = handle_message(
+    state,
+    stringify_json(
+      json_object([
+        ("jsonrpc", @js.any("2.0")),
+        ("id", @js.any(11)),
+        ("method", @js.any("textDocument/rename")),
+        (
+          "params",
+          json_object([
+            (
+              "textDocument",
+              json_object([("uri", @js.any("file:///Component.mbtv"))]),
+            ),
+            (
+              "position",
+              json_object([("line", @js.any(0)), ("character", @js.any(0))]),
+            ),
+            ("newName", @js.any("renamed")),
+          ]),
+        ),
+      ]),
+    ),
+  )
+  assert_true(rename.messages[0].contains("\"changes\":{}"))
+  let code_action = handle_message(
+    state,
+    stringify_json(
+      json_object([
+        ("jsonrpc", @js.any("2.0")),
+        ("id", @js.any(12)),
+        ("method", @js.any("textDocument/codeAction")),
+        (
+          "params",
+          json_object([
+            (
+              "textDocument",
+              json_object([("uri", @js.any("file:///Component.mbtv"))]),
+            ),
+            (
+              "range",
+              json_object([
+                (
+                  "start",
+                  json_object([("line", @js.any(0)), ("character", @js.any(0))]),
+                ),
+                (
+                  "end",
+                  json_object([("line", @js.any(0)), ("character", @js.any(0))]),
+                ),
+              ]),
+            ),
+            ("context", json_object([("diagnostics", @js.any(no_diagnostics))])),
+          ]),
+        ),
+      ]),
+    ),
+  )
+  assert_true(code_action.messages[0].contains("\"result\":[]"))
 }
 
 ///|

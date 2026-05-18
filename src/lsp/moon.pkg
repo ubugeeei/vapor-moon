@@ -6,6 +6,7 @@ import {
   "mizchi/js/node/stream" @stream,
   "mizchi/js/node/tty" @tty,
   "moonbitlang/core/strconv" @strconv,
+  "ubugeeei/vapor_moon/src/compiler/common" @compiler_common,
   "ubugeeei/vapor_moon/src/tooling" @tooling,
 }
 

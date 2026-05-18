@@ -390,6 +390,61 @@ Today the template layer supports:
 content; pass only trusted or already-sanitized HTML, and do not bind
 user-controlled strings directly to it.
 
+### `v-model` partial-support boundaries
+
+- **`<select multiple>`** — supported. Bind an `Array[String]` (assignable
+  or signal getter). The compiler lowers the binding to a runtime helper
+  that walks the option children on every render and feeds
+  `event.target.selectedOptions` back into the binding on `change`. SSR
+  for `<select multiple v-model>` is a no-op for now — the multiple
+  selection state hydrates on the client.
+- **`<input type="file">`** — the DOM `value` property is read-only for
+  security reasons. Vapor Moon will not accept `v-model` here. Use
+  `@change` and read `event.target.files` instead (typically into a
+  `signal[FileList?]`); reset the input through a `ref`. This rejection
+  is final, not provisional.
+- **`v-model` modifiers** (`.lazy`, `.number`, `.trim`) — supported only
+  where explicitly noted. `.trim` and `.lazy` are accepted for text
+  inputs; everywhere else they are rejected with a pointing error
+  message.
+
+## Security Model
+
+Vapor Moon's compiler and runtime split string interpolation into two
+classes: **escaped by default** and **explicitly opt-out**. Knowing which
+class a binding falls into is the contract for safe authoring.
+
+### Escaped by default
+
+The following forms HTML-escape their result on both the DOM client and the
+`luna` SSR target. Authors do not need to sanitize before passing
+user-controlled values:
+
+- `{{ expression }}` text interpolation inside `<template>`.
+- The `v-text` directive.
+- Dynamic attribute bindings via `:attr="expr"` and `v-bind:attr="expr"`.
+- Generated `class` and `style` bindings.
+- Component placeholder `data-prop-*` metadata attributes.
+
+### Explicit opt-out
+
+- `v-unsafe-html="expr"` — lowers `expr` directly into `@luna_core.raw_html`
+  with no sanitization. The compiler rejects this directive on void
+  elements, component tags, and elements that already have child nodes
+  (see [#62](https://github.com/ubugeeei/vapor-moon/issues/62)), but it
+  intentionally cannot reason about the safety of `expr` itself.
+
+  Recommended pattern: sanitize at the call site with an established HTML
+  sanitizer before binding the result to `v-unsafe-html`. Never pass raw
+  user input to it.
+
+### Reporting issues
+
+Please report suspected vulnerabilities privately through
+[GitHub Security Advisories](https://github.com/ubugeeei/vapor-moon/security/advisories/new).
+See [SECURITY.md](./SECURITY.md) for the full disclosure policy and
+in-scope surfaces.
+
 Island and delivery directives are part of the template surface:
 
 - `client:load`
@@ -446,6 +501,12 @@ The CLI currently exposes:
 - `references <file.mbtv> <line> <character> [includeDeclaration]`
 - `complete <file.mbtv> <line> <character>`
 - `format <file.mbtv>`
+- `watch <directory>`
+
+Top-level flags:
+
+- `--help` / `-h` / `help` — print the structured help message.
+- `--version` / `-V` — print the package version.
 
 ## Editor Integrations
 
@@ -465,6 +526,13 @@ So editor integrations expect:
 
 - `moon` on `PATH`
 - a JS runtime such as `node`, `bun`, or `deno` on `PATH`
+
+## Contributing
+
+- See [CONTRIBUTING.md](./CONTRIBUTING.md) for the contributor workflow, local
+  commands, conventional-commit prefixes, and PR checklist.
+- See [SECURITY.md](./SECURITY.md) for the vulnerability disclosure policy.
+- See [CHANGELOG.md](./CHANGELOG.md) for release notes.
 
 ## Development
 

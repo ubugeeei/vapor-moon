@@ -31,9 +31,12 @@ fn directive_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
     ("v-else", "fallback branch (requires preceding v-if or v-else-if)"),
     ("v-for", "list rendering"),
     ("v-show", "toggle visibility via CSS display"),
-    ("v-unsafe-html", "render unsafe raw HTML content"),
+    ("v-unsafe-html", "render unsafe raw HTML content (no sanitization)"),
     (
-      "v-model", "two-way binding on input/textarea/select and component props; file input/select multiple unsupported",
+      "v-model", "two-way binding (supported: text/checkbox/radio input, textarea, select, select multiple via Array[String], component modelValue; unsupported: file input (use @change + event.target.files), .number/.trim modifiers outside text inputs)",
+    ),
+    (
+      "v-model:prop", "two-way binding to a named component prop (lowers to :prop + @update:prop; no modifiers yet)",
     ),
     ("v-once", "render once (skip reactivity)"),
     ("v-match", "pattern matching on an expression"),

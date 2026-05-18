@@ -955,16 +955,50 @@ test "rejects unsupported file v-model" {
     #|<template><input type='file' v-model='file' /></template>
   assert_eq(
     compile_error(source, "invalid/v_model_file.mbtv"),
-    "InvalidDirective(\"v-model on <input type=\\\"file\\\"> is not supported yet\")",
+    "InvalidDirective(\"v-model is not supported on <input type=\\\"file\\\">; bind `@change` and read `event.target.files` instead\")",
   )
 }
 
 ///|
-test "rejects unsupported select multiple v-model" {
+test "select multiple v-model lowers to bind_select_multiple_model" {
   let source =
-    #|<template><select multiple v-model='selected'></select></template>
+    #|<script setup>
+    #|let selected : Array[String] = []
+    #|</script>
+    #|<template>
+    #|  <select multiple v-model='selected'>
+    #|    <option value='a'>A</option>
+    #|    <option value='b'>B</option>
+    #|  </select>
+    #|</template>
+  let output = compile(source, filename="examples/v_model_select_multiple.mbtv")
+  let client = output.client_code
+  assert_true(client.contains("__selectMultipleModel"))
+  assert_true(client.contains("@dom.bind_select_multiple_model"))
+  assert_true(client.contains("selected"))
+  // SSR is a no-op for multiple-select v-model — the helper only runs
+  // on the client. Make sure we did not emit a `value` attribute that
+  // would clash with the hydration logic.
+  let server = output.server_code
+  assert_true(not(server.contains("__selectMultipleModel")))
+}
+
+///|
+test "select multiple v-model rejects unsupported .trim modifier" {
+  let source =
+    #|<template><select multiple v-model.trim='selected'></select></template>
   assert_eq(
-    compile_error(source, "invalid/v_model_select_multiple.mbtv"),
-    "InvalidDirective(\"v-model on <select multiple> is not supported yet\")",
+    compile_error(source, "invalid/v_model_select_multiple_trim.mbtv"),
+    "InvalidDirective(\"unsupported v-model modifier `.trim` on <select>\")",
+  )
+}
+
+///|
+test "select multiple v-model rejects unsupported .lazy modifier" {
+  let source =
+    #|<template><select multiple v-model.lazy='selected'></select></template>
+  assert_eq(
+    compile_error(source, "invalid/v_model_select_multiple_lazy.mbtv"),
+    "InvalidDirective(\"unsupported v-model modifier `.lazy` on <select multiple>\")",
   )
 }

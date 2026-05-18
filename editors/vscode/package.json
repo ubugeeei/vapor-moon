@@ -2,19 +2,45 @@
   "name": "vapor-moon",
   "displayName": "Vapor Moon",
   "description": "Language support and LSP client for Vapor Moon .mbtv components.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "ubugeeei",
   "license": "MIT",
+  "author": {
+    "name": "ubugeeei"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ubugeeei/vapor-moon.git",
+    "directory": "editors/vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/ubugeeei/vapor-moon/issues"
+  },
+  "homepage": "https://github.com/ubugeeei/vapor-moon#readme",
+  "keywords": [
+    "moonbit",
+    "mbtv",
+    "vapor",
+    "vue",
+    "sfc",
+    "single-file-component"
+  ],
   "engines": {
     "vscode": "^1.90.0"
   },
   "categories": [
-    "Programming Languages"
+    "Programming Languages",
+    "Snippets",
+    "Linters"
   ],
   "activationEvents": [
     "onLanguage:vapor-moon"
   ],
   "main": "./extension.js",
+  "scripts": {
+    "package": "vsce package --no-dependencies",
+    "publish": "vsce publish --no-dependencies"
+  },
   "contributes": {
     "languages": [
       {

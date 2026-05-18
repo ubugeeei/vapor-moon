@@ -64,13 +64,18 @@ pub fn initialize_payload() -> @js.Any {
             ("triggerCharacters", @js.any([".", ":", "-", "@", "#"])),
           ]),
         ),
+        ("renameProvider", json_object([("prepareProvider", @js.any(true))])),
+        (
+          "codeActionProvider",
+          json_object([("codeActionKinds", @js.any(["quickfix", "refactor"]))]),
+        ),
       ]),
     ),
     (
       "serverInfo",
       json_object([
         ("name", @js.any("Vapor Moon LSP")),
-        ("version", @js.any("0.1.0")),
+        ("version", @js.any(@compiler_common.VERSION)),
       ]),
     ),
     ("positionEncoding", @js.any("utf-16")),
@@ -147,6 +152,21 @@ pub fn formatting_payload(edits : Array[@tooling.ToolingTextEdit]) -> @js.Any {
       ]),
     )
   }
+  @js.any(payload)
+}
+
+///|
+/// Phase 1 rename payload: an empty `WorkspaceEdit` keeps the editor in the
+/// rename code path without applying any document changes.
+pub fn empty_workspace_edit() -> @js.Any {
+  json_object([("changes", json_object([]))])
+}
+
+///|
+/// Phase 1 codeAction payload: an empty list signals "no quick fixes here"
+/// without surfacing a method-not-found error.
+pub fn empty_code_action_list() -> @js.Any {
+  let payload : Array[@js.Any] = []
   @js.any(payload)
 }
 

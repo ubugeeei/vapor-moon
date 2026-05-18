@@ -39,3 +39,21 @@ moon run src/cmd/vapor_moon -- compile "$ROOT/examples/basic.mbtv" >"$OUT"
 grep -q "=== client ===" "$OUT"
 grep -q "=== server ===" "$OUT"
 grep -q "component=Basic" "$OUT"
+
+# --help / -h / help exit 0 and surface the structured help.
+for flag in --help -h help; do
+  moon run src/cmd/vapor_moon -- "$flag" >"$OUT"
+  grep -q "^USAGE:" "$OUT"
+  grep -q "^COMMANDS:" "$OUT"
+done
+
+# --version / -V exit 0 and print the package version that matches moon.mod.json.
+expected_version="$(grep -m1 '"version"' "$ROOT/moon.mod.json" | sed -E 's/.*"version"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/')"
+if [ -z "$expected_version" ]; then
+  echo "could not read version from moon.mod.json"
+  exit 1
+fi
+for flag in --version -V; do
+  moon run src/cmd/vapor_moon -- "$flag" >"$OUT"
+  grep -q "^vapor-moon ${expected_version}$" "$OUT"
+done

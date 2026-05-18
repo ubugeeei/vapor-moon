@@ -47,6 +47,9 @@ fn dispatch_request(
     "textDocument/references" => handle_references(state, request)
     "textDocument/completion" => handle_completion(state, request)
     "textDocument/formatting" => handle_formatting(state, request)
+    "textDocument/prepareRename" => handle_prepare_rename(request)
+    "textDocument/rename" => handle_rename(request)
+    "textDocument/codeAction" => handle_code_action(request)
     _ => reply_missing_method(request)
   }
 }
@@ -233,6 +236,29 @@ fn handle_formatting(
         request, invalid_params_code, "formatting requires textDocument.uri",
       )
   }
+}
+
+///|
+/// Phase 1 rename support: tell the editor the position is not renameable yet.
+/// Returning `null` is the LSP-blessed way to decline rename without surfacing
+/// an "unsupported method" error.
+fn handle_prepare_rename(request : RequestMessage) -> ServerResult {
+  reply_ok(request, json_null())
+}
+
+///|
+/// Phase 1 rename support: respond with an empty `WorkspaceEdit` so editors
+/// keep rename available in their command palette without producing edits.
+fn handle_rename(request : RequestMessage) -> ServerResult {
+  reply_ok(request, empty_workspace_edit())
+}
+
+///|
+/// Phase 1 codeAction support: advertise the capability and return an empty
+/// list. Real quick-fixes will be wired from the diagnostics layer in a
+/// follow-up issue.
+fn handle_code_action(request : RequestMessage) -> ServerResult {
+  reply_ok(request, empty_code_action_list())
 }
 
 ///|
