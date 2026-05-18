@@ -182,6 +182,50 @@ let visible = true
   });
 });
 
+test.describe("component v-model directive", () => {
+  test("default v-model lowers to modelValue prop", () => {
+    const output = compileSource(
+      `<script setup>
+let value = "initial"
+</script>
+
+<template>
+  <TextInput v-model='value' />
+</template>`,
+      "ComponentVModelDefault.mbtv"
+    );
+
+    expect(output.client_code).toContain('@dom.component("TextInput"');
+    expect(output.client_code).toContain(
+      '("modelValue", fn() { value.to_string() })'
+    );
+    expect(output.server_code).toContain('@vm_server.component_ssr("TextInput"');
+    expect(output.server_code).toContain('("modelValue", value.to_string())');
+  });
+
+  test("argument v-model lowers to named prop", () => {
+    const output = compileSource(
+      `<script setup>
+let title = "Initial title"
+</script>
+
+<template>
+  <TitleInput v-model:title='title' />
+</template>`,
+      "ComponentVModelArgument.mbtv"
+    );
+
+    expect(output.client_code).toContain('@dom.component("TitleInput"');
+    expect(output.client_code).toContain(
+      '("title", fn() { title.to_string() })'
+    );
+    expect(output.client_code).not.toContain('"modelValue"');
+    expect(output.server_code).toContain('@vm_server.component_ssr("TitleInput"');
+    expect(output.server_code).toContain('("title", title.to_string())');
+    expect(output.server_code).not.toContain('"modelValue"');
+  });
+});
+
 test.describe("v-unsafe-html directive", () => {
   test("v-unsafe-html generates raw html rendering", () => {
     const output = compileSource(
