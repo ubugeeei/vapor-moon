@@ -59,7 +59,7 @@ jobs:
       - name: Patch Mooncakes
         run: bash scripts/patch_mooncakes.sh
       - name: Moon check
-        run: moon check --warn-list -deprecated_syntax-deprecated --target js 2> >(grep -v 'WARN Duplicate alias' >&2)
+        run: moon check --deny-warn --warn-list -deprecated_syntax-deprecated --target js 2> >(grep -v 'WARN Duplicate alias' >&2)
       - name: JS LSP tests
         run: |
           moon build --target js src/lsp
