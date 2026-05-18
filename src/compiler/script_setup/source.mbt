@@ -56,9 +56,7 @@ fn ScriptSetupSource::split_top_level_statements(
     bracket_depth = depths.1
     brace_depth = depths.2
     if (current == '\n' || current == ';') &&
-      not(
-        self.continues_top_level_statement(start, cursor, cursor + 1, current),
-      ) &&
+      !self.continues_top_level_statement(start, cursor, cursor + 1, current) &&
       paren_depth == 0 &&
       bracket_depth == 0 &&
       brace_depth == 0 {
@@ -177,7 +175,7 @@ fn ScriptSetupSource::starts_with_continuation_word(
   start : Int,
   expected : String,
 ) -> Bool {
-  if not(self.starts_with(start, expected)) {
+  if !self.starts_with(start, expected) {
     return false
   }
   let end_ = start + expected.length()

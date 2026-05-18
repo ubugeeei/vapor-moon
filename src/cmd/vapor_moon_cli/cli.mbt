@@ -118,7 +118,7 @@ fn read_text_or_exit(path : String) -> String {
 fn watch_directory(root : String) -> Unit {
   let root_dir : @path.Path = root
   let resolved_root = root_dir.resolve().to_string()
-  if not(@fs.path_exists(resolved_root)) {
+  if !@fs.path_exists(resolved_root) {
     println("watch root does not exist: " + resolved_root)
     @sys.exit(1)
     return
@@ -130,7 +130,7 @@ fn watch_directory(root : String) -> Unit {
       return
     }
   }
-  if not(is_dir) {
+  if !is_dir {
     println("watch root is not a directory: " + resolved_root)
     @sys.exit(1)
     return
@@ -334,7 +334,7 @@ pub fn generated_output_paths(source_path : String) -> GeneratedOutputPaths {
 ///|
 /// Strip the trailing `.mbtv` extension used by Vapor Moon source files.
 fn strip_watch_source_extension(path : String) -> String {
-  if not(path.has_suffix(".mbtv")) {
+  if !path.has_suffix(".mbtv") {
     return path
   }
   String::unsafe_substring(path, start=0, end=path.length() - 5)
@@ -372,7 +372,7 @@ pub fn remove_generated_outputs(source_path : String) -> Unit {
 ///|
 /// Best-effort file removal helper used during watch cleanup.
 fn remove_file_if_exists(path : String) -> Unit {
-  if not(@fs.path_exists(path)) {
+  if !@fs.path_exists(path) {
     return
   }
   ignore(@fs.remove_file(path) catch { _ => () })

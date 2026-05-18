@@ -195,6 +195,31 @@ let props : Props = defineProps({
 - runtime declaration literals are intentionally unsupported
 - `useId()` and `useTemplateRef("name")` are supported inside setup scope
 
+## Provide / Inject (Phase 1)
+
+Vapor Moon ships a minimal `provide` / `inject` registry for app-wide
+singletons like theme, locale, or a router handle. Phase 1 lives in
+`src/runtime/context/` and is intentionally flat — every `provide`
+overwrites the previous value for that key within the JS realm, and
+`inject` returns the most recently provided value.
+
+```moonbit
+import {
+  "ubugeeei/vapor_moon/src/runtime/context" @context,
+}
+
+let theme = @context.provide("theme", "dark")
+let resolved : String? = @context.inject("theme")
+let with_default = @context.inject_or("locale", "en")
+```
+
+True ancestor scoping — where a `provide` is only visible to descendant
+components — requires a scope stack with `push_scope` / `pop_scope`
+lifecycle calls that the compiler wraps around each generated
+`render_dom` / `render_ssr`. That work is tracked in
+[#14](https://github.com/ubugeeei/vapor-moon/issues/14). Until Phase 2
+lands, use `provide` only for values that are logically singletons.
+
 ## Generic Components
 
 Vue-style generic declarations are supported on `<script>`:

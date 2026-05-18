@@ -162,7 +162,7 @@ fn render_client_model_attrs(
 ) -> Array[String] {
   let parts : Array[String] = []
   match element.model {
-    Some(model) if not(element.is_component) => {
+    Some(model) if !element.is_component => {
       if is_select_multiple_model(element) {
         // <select multiple v-model="xs">: lower to a runtime helper that
         // walks <option> children and syncs `selected` from xs, and
@@ -171,8 +171,7 @@ fn render_client_model_attrs(
         // with the live element. See `bind_select_multiple_model` in
         // src/runtime/dom/dom.mbt.
         let setter = render_model_write_expr(
-          model.expression,
-          "__vm_select_values",
+          model.expression, "__vm_select_values",
         )
         parts.push(
           "(\"__selectMultipleModel\", @dom.on(fn(__vm_select_elem) { @dom.bind_select_multiple_model(__vm_select_elem, fn() { " +
@@ -226,7 +225,7 @@ fn render_server_model_attrs(
 ) -> Array[String] {
   let parts : Array[String] = []
   match element.model {
-    Some(model) if not(element.is_component) => {
+    Some(model) if !element.is_component => {
       // SSR for <select multiple v-model> is intentionally a no-op for
       // now: the multiple-select behavior (selected options) lives on
       // the client and is applied on hydration. See bind_select_multiple_model.
@@ -347,7 +346,7 @@ fn render_model_read_expr(model : TemplateModel, checked : Bool) -> String {
   } else {
     "_event._get(\"target\")._get(\"value\").cast()"
   }
-  if not(checked) && has_model_modifier(model, "trim") {
+  if !checked && has_model_modifier(model, "trim") {
     value_expr = "(" + value_expr + ").trim().to_string()"
   }
   value_expr
@@ -378,7 +377,7 @@ fn signal_getter_receiver(target : String) -> String? {
     wrapped,
     name="__vm_model_target__.mbt",
   )
-  if not(reports.is_empty()) {
+  if !reports.is_empty() {
     return None
   }
   for impl_ in impls {
@@ -416,7 +415,7 @@ fn getter_receiver_from_apply_model(
   args : @list.List[@mbt_syntax.Argument],
   source : String,
 ) -> String? {
-  if not(argument_list_is_empty_model(args)) {
+  if !argument_list_is_empty_model(args) {
     return None
   }
   let func = unwrap_group_expr_model(func)

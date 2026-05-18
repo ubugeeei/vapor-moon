@@ -148,7 +148,7 @@ fn ScriptSetupModule::analyze_contracts(
           MacroExpr(macro_) =>
             match macro_.name {
               "defineProps" =>
-                if props_binding is Some(_) || not(props.is_empty()) {
+                if props_binding is Some(_) || !props.is_empty() {
                   raise CompilerError::InvalidScriptSetup(
                     "duplicate defineProps() in \{resolver.filename}",
                   )
@@ -161,7 +161,7 @@ fn ScriptSetupModule::analyze_contracts(
                   )
                 }
               "defineEmits" =>
-                if emits_binding is Some(_) || not(emits.is_empty()) {
+                if emits_binding is Some(_) || !emits.is_empty() {
                   raise CompilerError::InvalidScriptSetup(
                     "duplicate defineEmits() in \{resolver.filename}",
                   )
@@ -169,7 +169,7 @@ fn ScriptSetupModule::analyze_contracts(
                   emits = resolver.resolve_macro_fields(macro_, None)
                 }
               "defineSlots" =>
-                if slots_binding is Some(_) || not(slots.is_empty()) {
+                if slots_binding is Some(_) || !slots.is_empty() {
                   raise CompilerError::InvalidScriptSetup(
                     "duplicate defineSlots() in \{resolver.filename}",
                   )
@@ -177,7 +177,7 @@ fn ScriptSetupModule::analyze_contracts(
                   slots = resolver.resolve_macro_fields(macro_, None)
                 }
               "defineExpose" =>
-                if expose_binding is Some(_) || not(expose.is_empty()) {
+                if expose_binding is Some(_) || !expose.is_empty() {
                   raise CompilerError::InvalidScriptSetup(
                     "duplicate defineExpose() in \{resolver.filename}",
                   )
@@ -321,7 +321,7 @@ fn ScriptSetupModule::import_entries(self : ScriptSetupModule) -> Array[String] 
     match statement {
       ImportStatement(parts) =>
         for entry in parts {
-          if not(array_contains(entries, entry)) {
+          if !array_contains(entries, entry) {
             entries.push(entry)
           }
         }

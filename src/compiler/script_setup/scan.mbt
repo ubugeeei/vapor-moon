@@ -17,7 +17,7 @@ fn ScriptSetupSource::parse_module_with_contracts(
       continue
     }
     let (impls, reports) = @mbt_parser.parse_string(trimmed, name=self.filename)
-    if not(reports.is_empty()) {
+    if !reports.is_empty() {
       raise CompilerError::InvalidScriptSetup(reports[0].to_string())
     }
     for impl_ in impls {
