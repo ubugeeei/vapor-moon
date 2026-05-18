@@ -1,0 +1,47 @@
+name: Stale issues and pull requests
+
+on:
+  schedule:
+    # Run once a day at 03:00 JST (18:00 UTC the previous day).
+    - cron: "0 18 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  issues: write
+  pull-requests: write
+
+# Tunable knobs — kept generous so genuine open work doesn't get nuked.
+# Anything labeled `production-readiness`, `security`, or `pinned` is
+# never marked stale (those represent intentional follow-ups).
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v10
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          days-before-issue-stale: 90
+          days-before-issue-close: 30
+          stale-issue-label: stale
+          stale-issue-message: >
+            This issue has had no activity for 90 days. It will be closed in
+            30 days if no further activity occurs. If it is still relevant,
+            drop a comment to keep it open.
+          close-issue-message: >
+            Closing as stale. Reopen with a fresh comment if it's still
+            relevant — no offense intended; we just don't want the tracker
+            to drift.
+          exempt-issue-labels: "pinned,production-readiness,security,roadmap"
+
+          days-before-pr-stale: 45
+          days-before-pr-close: 14
+          stale-pr-label: stale
+          stale-pr-message: >
+            This pull request has had no activity for 45 days. It will be
+            closed in 14 days unless someone pushes a commit or comments.
+          close-pr-message: >
+            Closing as stale. Push a fresh commit or comment to reopen.
+          exempt-pr-labels: "pinned,security,wip,blocked"
+
+          operations-per-run: 100
+          ascending: true
