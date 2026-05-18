@@ -318,17 +318,11 @@ test "prepareRename, rename, and codeAction return graceful empty responses" {
               json_object([
                 (
                   "start",
-                  json_object([
-                    ("line", @js.any(0)),
-                    ("character", @js.any(0)),
-                  ]),
+                  json_object([("line", @js.any(0)), ("character", @js.any(0))]),
                 ),
                 (
                   "end",
-                  json_object([
-                    ("line", @js.any(0)),
-                    ("character", @js.any(0)),
-                  ]),
+                  json_object([("line", @js.any(0)), ("character", @js.any(0))]),
                 ),
               ]),
             ),

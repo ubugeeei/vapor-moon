@@ -64,15 +64,10 @@ pub fn initialize_payload() -> @js.Any {
             ("triggerCharacters", @js.any([".", ":", "-", "@", "#"])),
           ]),
         ),
-        (
-          "renameProvider",
-          json_object([("prepareProvider", @js.any(true))]),
-        ),
+        ("renameProvider", json_object([("prepareProvider", @js.any(true))])),
         (
           "codeActionProvider",
-          json_object([
-            ("codeActionKinds", @js.any(["quickfix", "refactor"])),
-          ]),
+          json_object([("codeActionKinds", @js.any(["quickfix", "refactor"]))]),
         ),
       ]),
     ),

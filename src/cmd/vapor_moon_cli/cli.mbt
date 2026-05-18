@@ -574,15 +574,33 @@ fn print_help() -> Unit {
   println("  vapor-moon --version | -V")
   println("")
   println("COMMANDS:")
-  println("  compile     <file.mbtv>                            Compile one .mbtv file and print client/server/css snapshot.")
-  println("  watch       <directory>                            Recompile .mbtv files in <directory> on change.")
-  println("  analyze     <file.mbtv>                            Print the analyzed SFC structure.")
-  println("  diagnostics <file.mbtv>                            Print diagnostics for one file.")
-  println("  hover       <file.mbtv> <line> <character>         Print the hover result at a position.")
-  println("  definition  <file.mbtv> <line> <character>         Print the definition at a position.")
-  println("  references  <file.mbtv> <line> <character> [bool]  Print references at a position; final arg toggles includeDeclaration (default true).")
-  println("  complete    <file.mbtv> <line> <character>         Print completion items at a position.")
-  println("  format      <file.mbtv>                            Print the formatted source.")
+  println(
+    "  compile     <file.mbtv>                            Compile one .mbtv file and print client/server/css snapshot.",
+  )
+  println(
+    "  watch       <directory>                            Recompile .mbtv files in <directory> on change.",
+  )
+  println(
+    "  analyze     <file.mbtv>                            Print the analyzed SFC structure.",
+  )
+  println(
+    "  diagnostics <file.mbtv>                            Print diagnostics for one file.",
+  )
+  println(
+    "  hover       <file.mbtv> <line> <character>         Print the hover result at a position.",
+  )
+  println(
+    "  definition  <file.mbtv> <line> <character>         Print the definition at a position.",
+  )
+  println(
+    "  references  <file.mbtv> <line> <character> [bool]  Print references at a position; final arg toggles includeDeclaration (default true).",
+  )
+  println(
+    "  complete    <file.mbtv> <line> <character>         Print completion items at a position.",
+  )
+  println(
+    "  format      <file.mbtv>                            Print the formatted source.",
+  )
   println("")
   println("Positions are zero-based (LSP semantics).")
 }
