@@ -96,9 +96,12 @@ When opening a PR, make sure:
 
 ## Releasing
 
-1. Bump `version` in `moon.mod.json` and `editors/vscode/package.json`
-   (plus `package-lock.json`); also update the `VERSION` constant in
-   `src/compiler/common/version.mbt`.
+1. Bump `version` in all of these so they stay in sync:
+   - `moon.mod.json`
+   - `src/compiler/common/version.mbt` (the `VERSION` constant)
+   - `editors/vscode/package.json` and `editors/vscode/package-lock.json`
+   - `editors/zed/extension.toml`, `editors/zed/Cargo.toml`, and the
+     `zed_vapor_moon` entry in `editors/zed/Cargo.lock`.
 2. Update `CHANGELOG.md`: rename the `[Unreleased]` section to the new
    version + date and add a fresh `[Unreleased]` block.
 3. Tag `vX.Y.Z` on `main`. The `Release Verify` workflow runs the
