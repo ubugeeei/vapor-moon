@@ -1,0 +1,74 @@
+<script>
+// Phase 1 of #14: provide / inject backed by the JS-realm-wide
+// runtime context registry. Phase 2 will add per-component scoping;
+// today, treat keys as app-wide singletons.
+
+import {
+  "mizchi/luna/js/resource" @reactivity,
+  let signal = @reactivity.signal,
+  "ubugeeei/vapor_moon/src/runtime/context" @context,
+}
+
+struct Theme {
+  name : String
+  tone : String
+}
+
+// Provide once at module scope, then inject anywhere downstream.
+let theme = @context.provide("theme", { name: "midnight", tone: "#5b3df5" })
+let injected : Theme? = @context.inject("theme")
+let fallback : String = @context.inject_or("locale", "en")
+let count = signal(0)
+</script>
+
+<template>
+  <article class='card' :style='"--tone: " + theme.tone'>
+    <header>
+      <h1>{{ theme.name }}</h1>
+      <p class='card__locale'>locale: {{ fallback }}</p>
+    </header>
+
+    <p v-if='injected.is_some()'>
+      Theme injected from context.
+    </p>
+    <p v-else>
+      No theme provided.
+    </p>
+
+    <button type='button' @click='count.update(fn(n) { n + 1 })'>
+      Bump ({{ count.get().to_string() }})
+    </button>
+  </article>
+</template>
+
+<style>
+.card {
+  font-family: system-ui, -apple-system, sans-serif;
+  max-width: 420px;
+  margin: 24px auto;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--tone, #ccc);
+  background: color-mix(in srgb, var(--tone) 8%, white);
+}
+
+.card header {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.card__locale {
+  font-size: 12px;
+  color: #666;
+}
+
+.card button {
+  margin-top: 12px;
+  padding: 8px 16px;
+  border: 1px solid var(--tone);
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+</style>
