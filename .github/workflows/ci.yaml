@@ -82,6 +82,7 @@ jobs:
       - name: Runtime JS tests
         run: |
           moon test --target js src/runtime
+          moon test --target js src/runtime/context
           moon test --target js src/runtime/dom
           moon test --target js src/runtime/server
 
