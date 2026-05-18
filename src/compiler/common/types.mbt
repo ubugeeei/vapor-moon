@@ -173,6 +173,7 @@ pub(all) enum IslandMode {
 ///|
 pub(all) struct TemplateElement {
   tag : String
+  component_name_expr : String?
   attrs : Array[TemplateAttr]
   children : Array[TemplateNode]
   is_component : Bool
