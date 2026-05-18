@@ -495,7 +495,7 @@ fn script_setup_contains_legacy_emit_call(
   filename : String,
 ) -> Bool {
   let (impls, reports) = @mbt_parser.parse_string(source, name=filename)
-  if !(reports.is_empty()) {
+  if !reports.is_empty() {
     return false
   }
   for impl_ in impls {
@@ -516,7 +516,7 @@ fn parse_template_expr_ast(
     wrapped,
     name=filename + "#template-expr",
   )
-  if !(reports.is_empty()) {
+  if !reports.is_empty() {
     raise CompilerError::InvalidTemplate(
       invalid_template_expression_message(expr, filename, reports[0].msg),
     )
@@ -587,7 +587,7 @@ fn is_field_getter_call_model_target(
   func : @mbt_syntax.Expr,
   args : @list.List[@mbt_syntax.Argument],
 ) -> Bool {
-  if !(argument_list_is_empty_model_target(args)) {
+  if !argument_list_is_empty_model_target(args) {
     return false
   }
   let func = unwrap_group_expr_local(func)

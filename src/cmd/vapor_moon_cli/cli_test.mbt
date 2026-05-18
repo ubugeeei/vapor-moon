@@ -19,7 +19,7 @@ fn cleanup_command_test_dir(root : String) -> Unit {
 
 ///|
 fn cleanup_command_test_tree(path : String) -> Unit {
-  if !(@fs.path_exists(path)) {
+  if !@fs.path_exists(path) {
     return
   }
   let is_dir = @fs.is_dir(path) catch { _ => false }

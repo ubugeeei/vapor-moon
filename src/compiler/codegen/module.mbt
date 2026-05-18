@@ -23,7 +23,7 @@ pub fn emit_client_module(
   sb.write_string(emit_component_contracts(doc, component_name, true))
   sb.write_string(render_component_signature(doc, component_name, true))
   if doc.script_setup_transformed is Some(script_setup) &&
-    !(script_setup.trim().is_empty()) {
+    !script_setup.trim().is_empty() {
     sb.write_string(indent_block(script_setup.trim().to_string(), 2))
     sb.write_string("\n")
   }
@@ -70,7 +70,7 @@ pub fn emit_server_module(
   sb.write_string(emit_component_contracts(doc, component_name, false))
   sb.write_string(render_component_signature(doc, component_name, false))
   if doc.script_setup_transformed is Some(script_setup) &&
-    !(script_setup.trim().is_empty()) {
+    !script_setup.trim().is_empty() {
     sb.write_string(indent_block(script_setup.trim().to_string(), 2))
     sb.write_string("\n")
   }
@@ -98,12 +98,12 @@ fn emit_import_block(
 ) -> String {
   let merged : Array[String] = []
   for entry in base_entries {
-    if !(string_array_contains(merged, entry)) {
+    if !string_array_contains(merged, entry) {
       merged.push(entry)
     }
   }
   for entry in extra_entries {
-    if !(string_array_contains(merged, entry)) {
+    if !string_array_contains(merged, entry) {
       merged.push(entry)
     }
   }
@@ -120,7 +120,7 @@ fn emit_import_block(
 
 ///|
 fn emit_extern_script(sb : StringBuilder, doc : SfcDocument) -> Unit {
-  if doc.script_transformed is Some(script) && !(script.trim().is_empty()) {
+  if doc.script_transformed is Some(script) && !script.trim().is_empty() {
     sb.write_string(script.trim().to_string())
     sb.write_string("\n\n")
   }
@@ -133,12 +133,12 @@ fn merge_import_entries(
 ) -> Array[String] {
   let merged : Array[String] = []
   for entry in first {
-    if !(string_array_contains(merged, entry)) {
+    if !string_array_contains(merged, entry) {
       merged.push(entry)
     }
   }
   for entry in second {
-    if !(string_array_contains(merged, entry)) {
+    if !string_array_contains(merged, entry) {
       merged.push(entry)
     }
   }

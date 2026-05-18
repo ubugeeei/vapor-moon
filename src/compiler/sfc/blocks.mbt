@@ -34,7 +34,7 @@ fn parse_blocks(
     }
     match read_start_tag(source, chars, cursor, filename) {
       Some((tag, attrs, tag_end, self_closing)) => {
-        if !(is_top_level_tag(tag)) {
+        if !is_top_level_tag(tag) {
           raise CompilerError::InvalidSfc(
             "unexpected top-level tag <\{tag}> in \{filename}",
           )

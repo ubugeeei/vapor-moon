@@ -97,7 +97,7 @@ fn ScriptSetupContractResolver::validate_interface_fields(
 ) -> Array[MacroField] raise CompilerError {
   let validated : Array[MacroField] = []
   for field in fields {
-    if !(is_identifier_literal(field.name)) {
+    if !is_identifier_literal(field.name) {
       raise CompilerError::InvalidScriptSetup(
         "\{macro_name}() entries must be identifier-like for typed interfaces in \{self.filename}: \{field.name}",
       )

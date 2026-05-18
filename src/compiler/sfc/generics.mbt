@@ -255,16 +255,14 @@ fn is_identifier_literal(source : String) -> Bool {
     return false
   }
   let first = source[0].to_int()
-  if !(
-      (first >= 'a'.to_int() && first <= 'z'.to_int()) ||
-      (first >= 'A'.to_int() && first <= 'Z'.to_int()) ||
-      first == '_'.to_int() ||
-      first == '$'.to_int(),
-    ) {
+  if !((first >= 'a'.to_int() && first <= 'z'.to_int()) ||
+    (first >= 'A'.to_int() && first <= 'Z'.to_int()) ||
+    first == '_'.to_int() ||
+    first == '$'.to_int()) {
     return false
   }
   for i in 1..<source.length() {
-    if !(is_identifier_charcode(source[i].to_int())) {
+    if !is_identifier_charcode(source[i].to_int()) {
       return false
     }
   }

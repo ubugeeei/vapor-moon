@@ -23,7 +23,7 @@ fn find_template_block_close(
               return Some(cursor)
             }
             nested_template_depth -= 1
-          } else if !(self_closing) {
+          } else if !self_closing {
             nested_template_depth += 1
           }
         }
@@ -81,11 +81,9 @@ fn find_raw_block_close(
 
 ///|
 fn starts_raw_multiline_string_line(chars : Array[Char], start : Int) -> Bool {
-  if !(
-      start + 1 < chars.length() &&
-      chars[start] == '#' &&
-      chars[start + 1] == '|',
-    ) {
+  if !(start + 1 < chars.length() &&
+    chars[start] == '#' &&
+    chars[start + 1] == '|') {
     return false
   }
   let mut cursor = start

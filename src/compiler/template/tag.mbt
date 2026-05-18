@@ -52,7 +52,7 @@ fn parse_template_attr(
   let mut cursor = start
   let name_start = cursor
   if cursor >= chars.length() ||
-    !(is_template_attr_name_start_char(chars[cursor])) {
+    !is_template_attr_name_start_char(chars[cursor]) {
     raise CompilerError::InvalidTemplate(
       "expected attribute name in start tag <\{tag}>",
     )
@@ -109,9 +109,9 @@ fn read_template_attr_value(
   }
   let mut cursor = start
   while cursor < chars.length() &&
-        !(is_space(chars[cursor])) &&
+        !is_space(chars[cursor]) &&
         chars[cursor] != '>' &&
-        !(is_self_closing_value_boundary(chars, cursor)) {
+        !is_self_closing_value_boundary(chars, cursor) {
     cursor += 1
   }
   if cursor == start {

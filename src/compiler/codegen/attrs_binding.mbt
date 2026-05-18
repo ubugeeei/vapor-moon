@@ -156,7 +156,7 @@ fn render_client_model_attrs(
 ) -> Array[String] {
   let parts : Array[String] = []
   match element.model {
-    Some(model) if !(element.is_component) => {
+    Some(model) if !element.is_component => {
       let checked = infer_model_checked(element)
       let radio = is_radio_model(element)
       let event_name = render_model_event_name(element, model, checked || radio)
@@ -200,7 +200,7 @@ fn render_server_model_attrs(
 ) -> Array[String] {
   let parts : Array[String] = []
   match element.model {
-    Some(model) if !(element.is_component) => {
+    Some(model) if !element.is_component => {
       let checked = infer_model_checked(element)
       let radio = is_radio_model(element)
       let attr_name = if checked || radio { "checked" } else { "value" }
@@ -302,7 +302,7 @@ fn render_model_read_expr(model : TemplateModel, checked : Bool) -> String {
   } else {
     "_event._get(\"target\")._get(\"value\").cast()"
   }
-  if !(checked) && has_model_modifier(model, "trim") {
+  if !checked && has_model_modifier(model, "trim") {
     value_expr = "(" + value_expr + ").trim().to_string()"
   }
   value_expr
@@ -333,7 +333,7 @@ fn signal_getter_receiver(target : String) -> String? {
     wrapped,
     name="__vm_model_target__.mbt",
   )
-  if !(reports.is_empty()) {
+  if !reports.is_empty() {
     return None
   }
   for impl_ in impls {
@@ -371,7 +371,7 @@ fn getter_receiver_from_apply_model(
   args : @list.List[@mbt_syntax.Argument],
   source : String,
 ) -> String? {
-  if !(argument_list_is_empty_model(args)) {
+  if !argument_list_is_empty_model(args) {
     return None
   }
   let func = unwrap_group_expr_model(func)

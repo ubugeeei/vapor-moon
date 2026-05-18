@@ -204,7 +204,7 @@ fn scope_css_rules(css : String, scope_id : String) -> String {
           }
         }
       }
-      if !(scoped_selectors.is_empty()) {
+      if !scoped_selectors.is_empty() {
         scoped_chunks.push(
           wrap_css_block(scoped_selectors.join(", "), body.trim().to_string()),
         )
@@ -497,13 +497,11 @@ fn skip_css_comment(source : String, start : Int) -> Int {
 
 ///|
 fn scopes_nested_css_rules(header : String) -> Bool {
-  !(
-    header.has_prefix("@keyframes") ||
-    header.has_prefix("@-webkit-keyframes") ||
-    header.has_prefix("@font-face") ||
-    header.has_prefix("@page") ||
-    header.has_prefix("@property"),
-  )
+  !(header.has_prefix("@keyframes") ||
+  header.has_prefix("@-webkit-keyframes") ||
+  header.has_prefix("@font-face") ||
+  header.has_prefix("@page") ||
+  header.has_prefix("@property"))
 }
 
 ///|

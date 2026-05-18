@@ -1,6 +1,6 @@
 ///|
 fn ScriptSetupSource::is_import_statement(self : ScriptSetupSource) -> Bool {
-  if !(self.source.has_prefix("import")) {
+  if !self.source.has_prefix("import") {
     return false
   }
   if self.chars.length() == 6 {
@@ -24,7 +24,7 @@ fn ScriptSetupSource::expand_import_statement(
       local_aliases.push(entry)
     }
   }
-  if !(import_entries.is_empty()) {
+  if !import_entries.is_empty() {
     statements.push(ImportStatement(import_entries))
   }
   for local_binding in local_aliases {

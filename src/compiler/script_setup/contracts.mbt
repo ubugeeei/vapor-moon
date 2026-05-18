@@ -109,7 +109,7 @@ fn is_unit_type_name(
   constr_id : @mbt_syntax.ConstrId,
   tys : @list.List[@mbt_syntax.Type],
 ) -> Bool {
-  if !(tys.is_empty()) {
+  if !tys.is_empty() {
     return false
   }
   match constr_id.id {
@@ -155,7 +155,7 @@ fn type_identifier_name(constr_id : @mbt_syntax.ConstrId) -> String {
 
 ///|
 fn push_type_identifier(identifiers : Array[String], name : String) -> Unit {
-  if !(contains_type_identifier(identifiers, name)) {
+  if !contains_type_identifier(identifiers, name) {
     identifiers.push(name)
   }
 }

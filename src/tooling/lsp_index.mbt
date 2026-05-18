@@ -539,12 +539,12 @@ fn infer_component_template_ref_target(
   filename : String,
 ) -> (String, Array[@compiler.MacroField]) {
   for path in component_template_ref_candidate_paths(filename, tag) {
-    if !(@fs.path_exists(path)) {
+    if !@fs.path_exists(path) {
       continue
     }
     let source = @fs.read_file_to_string(path) catch { _ => continue }
     let doc = @compiler.parse_sfc(source, filename=path) catch { _ => continue }
-    if !(doc.expose.is_empty()) || doc.expose_binding is Some(_) {
+    if !doc.expose.is_empty() || doc.expose_binding is Some(_) {
       return (tag + " expose", doc.expose)
     }
     return ("component " + tag, [])

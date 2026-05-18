@@ -4,7 +4,7 @@ fn validate_finalized_element(
   children : Array[TemplateNode],
 ) -> Unit raise CompilerError {
   if is_void_html_tag(element.tag) {
-    if !(children.is_empty()) {
+    if !children.is_empty() {
       raise CompilerError::InvalidTemplate(
         "void element <\{element.tag}> cannot have children",
       )
@@ -15,7 +15,7 @@ fn validate_finalized_element(
       raise CompilerError::InvalidDirective(
         "v-unsafe-html is not supported on void elements: <\{element.tag}>",
       )
-    Some(_) if !(children.is_empty()) =>
+    Some(_) if !children.is_empty() =>
       raise CompilerError::InvalidDirective(
         "v-unsafe-html cannot be combined with child nodes on <\{element.tag}>",
       )
@@ -43,7 +43,7 @@ fn expect_attr_value(
   attr : ParsedTemplateAttr,
   tag : String,
 ) -> String raise CompilerError {
-  if attr.has_value && !(attr.value.trim().is_empty()) {
+  if attr.has_value && !attr.value.trim().is_empty() {
     return attr.value
   }
   raise CompilerError::InvalidDirective(
@@ -68,7 +68,7 @@ fn validate_element_tag_form(
   tag : String,
   self_closing : Bool,
 ) -> Unit raise CompilerError {
-  if is_void_html_tag(tag) && !(self_closing) {
+  if is_void_html_tag(tag) && !self_closing {
     raise CompilerError::InvalidTemplate(
       "void element <\{tag}> must be self closing",
     )
@@ -94,7 +94,7 @@ fn validate_normalized_attr(
         )
       }
       validate_event_modifiers(attr, tag)
-      if !(raw_attr.has_value) || raw_attr.value.trim().is_empty() {
+      if !raw_attr.has_value || raw_attr.value.trim().is_empty() {
         raise CompilerError::InvalidDirective(
           "`\{raw_attr.name}` requires an expression",
         )
@@ -135,7 +135,7 @@ fn validate_normalized_attr_conflict(
         )
       }
     _ =>
-      if !(is_mergeable_attr_name(attr.name)) &&
+      if !is_mergeable_attr_name(attr.name) &&
         has_non_event_attr(attrs, attr.name) {
         raise CompilerError::InvalidDirective(
           "duplicate attribute `\{attr.name}` on <\{tag}>",
@@ -310,17 +310,17 @@ fn validate_component_bindings(
       "`<component>` requires `:is` or `v-bind:is`",
     )
   }
-  if tag == "Teleport" && !(has_non_event_attr(attrs, "to")) {
+  if tag == "Teleport" && !has_non_event_attr(attrs, "to") {
     raise CompilerError::InvalidDirective("`<Teleport>` requires a `to` prop")
   }
   match island_directive {
-    Some(_) if !(is_component) =>
+    Some(_) if !is_component =>
       raise CompilerError::InvalidDirective(
         "island directives can only be used on component tags: <\{tag}>",
       )
     _ => ()
   }
-  if !(is_component) {
+  if !is_component {
     match html_expr {
       Some(_) if is_void_html_tag(tag) =>
         raise CompilerError::InvalidDirective(
@@ -373,7 +373,7 @@ fn validate_event_modifiers(
   let mut has_passive = false
   let mut has_prevent = false
   for modifier in attr.modifiers {
-    if !(is_supported_event_modifier(modifier)) {
+    if !is_supported_event_modifier(modifier) {
       raise CompilerError::InvalidDirective(
         "unsupported event modifier `.\{modifier}` on <\{tag}>",
       )
