@@ -13,7 +13,7 @@ fn render_client_element(
   for attr in collect_client_attr_entries(element, scope_id, static_mode) {
     statements.push("@dom.setAttr(" + node_name + ", " + attr + ")")
   }
-  if element.html_expr is None && not(element.children.is_empty()) {
+  if element.html_expr is None && !element.children.is_empty() {
     for
       statement in render_client_append_statements(
         node_name + ".as_node()",
@@ -386,7 +386,7 @@ fn collect_node_islands(node : TemplateNode, result : Array[String]) -> Unit {
     Element(element) => {
       match element.island_mode {
         Load | Idle | Visible | Media(_) | Only | ServerDefer =>
-          if not(local_string_array_contains(result, element.tag)) {
+          if !local_string_array_contains(result, element.tag) {
             result.push(element.tag)
           }
         None => ()
@@ -443,7 +443,7 @@ fn group_children_by_slot(children : Array[TemplateNode]) -> Array[SlotGroup] {
                 break
               }
             }
-            if not(found) {
+            if !found {
               let nodes : Array[TemplateNode] = []
               for inner in element.children {
                 nodes.push(inner)
@@ -456,7 +456,7 @@ fn group_children_by_slot(children : Array[TemplateNode]) -> Array[SlotGroup] {
       _ => default_nodes.push(child)
     }
   }
-  if not(default_nodes.is_empty()) {
+  if !default_nodes.is_empty() {
     let mut has_default = false
     for group in groups {
       if group.name == "default" {
@@ -467,7 +467,7 @@ fn group_children_by_slot(children : Array[TemplateNode]) -> Array[SlotGroup] {
         break
       }
     }
-    if not(has_default) {
+    if !has_default {
       groups.push({ name: "default", nodes: default_nodes })
     }
   }

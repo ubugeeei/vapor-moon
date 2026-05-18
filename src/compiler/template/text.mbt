@@ -47,11 +47,9 @@ fn starts_template_multiline_string_line(
   chars : Array[Char],
   start : Int,
 ) -> Bool {
-  if not(
-      start + 1 < chars.length() &&
-      chars[start] == '#' &&
-      chars[start + 1] == '|',
-    ) {
+  if !(start + 1 < chars.length() &&
+    chars[start] == '#' &&
+    chars[start + 1] == '|') {
     return false
   }
   let mut cursor = start
@@ -303,7 +301,7 @@ fn html_entity_digit_value(c : Char, is_hex : Bool) -> Int? {
   if c >= '0' && c <= '9' {
     return Some(c.to_int() - '0'.to_int())
   }
-  if not(is_hex) {
+  if !is_hex {
     return None
   }
   if c >= 'a' && c <= 'f' {
@@ -317,7 +315,7 @@ fn html_entity_digit_value(c : Char, is_hex : Bool) -> Int? {
 
 ///|
 fn is_valid_html_entity_codepoint(value : Int) -> Bool {
-  value > 0 && value <= 0x10FFFF && not(value >= 0xD800 && value <= 0xDFFF)
+  value > 0 && value <= 0x10FFFF && !(value >= 0xD800 && value <= 0xDFFF)
 }
 
 ///|
