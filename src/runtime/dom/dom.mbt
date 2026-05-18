@@ -292,6 +292,45 @@ pub fn componentMeta(
 }
 
 ///|
+extern "js" fn query_selector(selector : String) -> @js.Any =
+  #| (selector) => globalThis.document?.querySelector?.(selector) ?? null
+
+///|
+/// Render children into a target outside the current DOM subtree.
+pub fn teleport(
+  target : String,
+  children : Array[@luna_dom.DomNode],
+) -> @luna_dom.DomNode {
+  let frag = @js_dom.document().createDocumentFragment()
+  let mount = query_selector(target)
+  if @js.is_nullish(mount) {
+    append_children(frag.as_node(), children)
+  } else {
+    let target_node : @js_dom.Node = mount.cast()
+    for child in children {
+      target_node.appendChild(child.to_dom()) |> ignore
+    }
+  }
+  @luna_dom.dom_node(frag.as_node())
+}
+
+///|
+/// Render Transition and TransitionGroup as a stable client-side transition shell.
+pub fn transition(
+  kind : String,
+  name : String,
+  children : Array[@luna_dom.DomNode],
+) -> @luna_dom.DomNode {
+  let elem = element("vm-transition")
+  apply_attr(elem, "data-vm-transition", attr_static(kind))
+  if name.length() > 0 {
+    apply_attr(elem, "data-vm-transition-name", attr_static(name))
+  }
+  append_children(elem.as_node(), children)
+  to_node(elem)
+}
+
+///|
 /// Render an island placeholder element for client-side hydration.
 pub fn island_dom(
   name : String,
