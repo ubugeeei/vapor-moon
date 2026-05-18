@@ -26,4 +26,9 @@ if grep -q "duplicated with an existing version" "$OUT"; then
   exit 0
 fi
 
+if grep -q "failed to open credentials file" "$OUT"; then
+  echo "::warning::moon publish --dry-run requires MoonBit credentials; skipping registry dry-run in this environment."
+  exit 0
+fi
+
 exit "$status"

@@ -5,9 +5,19 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+env:
+  MOONBIT_VERSION: latest
+  NODE_VERSION: "24"
+  PNPM_VERSION: "10"
+
+defaults:
+  run:
+    shell: bash
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -20,16 +30,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Install MoonBit CLI
-        run: |
-          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
-          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
-      - name: Moon update
-        run: moon update
-      - name: Install MoonBit dependencies
-        run: moon install
-      - name: Patch Mooncakes
-        run: bash scripts/patch_mooncakes.sh
+        with:
+          persist-credentials: false
+      - name: Setup MoonBit
+        uses: ./.github/actions/setup-moonbit
+        with:
+          version: ${{ env.MOONBIT_VERSION }}
       - name: Moon check
         run: moon check --deny-warn --warn-list -deprecated_syntax-deprecated --target native 2> >(grep -v 'WARN Duplicate alias' >&2)
       - name: Moon native tests
@@ -45,19 +51,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Install MoonBit CLI
-        run: |
-          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
-          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
-      - uses: actions/setup-node@v6
         with:
-          node-version: 24
-      - name: Moon update
-        run: moon update
-      - name: Install MoonBit dependencies
-        run: moon install
-      - name: Patch Mooncakes
-        run: bash scripts/patch_mooncakes.sh
+          persist-credentials: false
+      - name: Setup MoonBit
+        uses: ./.github/actions/setup-moonbit
+        with:
+          version: ${{ env.MOONBIT_VERSION }}
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
       - name: Moon check
         run: moon check --deny-warn --warn-list -deprecated_syntax-deprecated --target js 2> >(grep -v 'WARN Duplicate alias' >&2)
       - name: JS LSP tests
@@ -79,9 +82,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
         with:
-          node-version: 24
+          persist-credentials: false
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: editors/vscode/package-lock.json
       - name: Install VS Code extension dependencies
@@ -100,26 +106,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Install MoonBit CLI
-        run: |
-          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
-          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
-      - name: Moon update
-        run: moon update
-      - name: Install MoonBit dependencies
-        run: moon install
-      - name: Patch Mooncakes
-        run: bash scripts/patch_mooncakes.sh
-      - uses: pnpm/action-setup@v6
         with:
-          version: 10
-      - uses: actions/setup-node@v6
+          persist-credentials: false
+      - name: Setup MoonBit
+        uses: ./.github/actions/setup-moonbit
         with:
-          node-version: 24
+          version: ${{ env.MOONBIT_VERSION }}
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
           cache-dependency-path: e2e/pnpm-lock.yaml
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
         working-directory: e2e
       - name: Install Playwright browsers
         run: pnpm exec playwright install chromium --with-deps
