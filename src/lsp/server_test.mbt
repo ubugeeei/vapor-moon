@@ -263,6 +263,7 @@ test "initialize advertises hover definition completion references and formattin
 ///|
 test "prepareRename, rename, and codeAction return graceful empty responses" {
   let state = ServerState::new()
+  let no_diagnostics : Array[@js.Any] = []
   ignore(
     handle_message(
       state,
@@ -326,7 +327,10 @@ test "prepareRename, rename, and codeAction return graceful empty responses" {
                 ),
               ]),
             ),
-            ("context", json_object([("diagnostics", @js.any([]))])),
+            (
+              "context",
+              json_object([("diagnostics", @js.any(no_diagnostics))]),
+            ),
           ]),
         ),
       ]),
