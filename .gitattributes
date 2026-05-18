@@ -1,6 +1,27 @@
+# Force LF line endings on every text file so cross-platform contributors
+# (especially Windows) don't accidentally land CRLF into the tree.
 * text=auto eol=lf
-*.mbt text eol=lf
-*.pkg text eol=lf
-*.json text eol=lf
-*.md text eol=lf
+
+# Explicit text classifications for non-obvious extensions used in this repo.
+*.mbt   text eol=lf
+*.mbtv  text eol=lf
+*.pkg   text eol=lf
+*.json  text eol=lf
+*.md    text eol=lf
 *.vmoon text eol=lf
+
+# Treat binary artifacts as binary so `git diff` doesn't try to render them
+# as text.
+*.vsix  binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
+
+# Mark generated lockfiles so GitHub collapses them in PR diffs.
+editors/zed/Cargo.lock         linguist-generated=true
+editors/vscode/package-lock.json linguist-generated=true
+e2e/pnpm-lock.yaml              linguist-generated=true
