@@ -9,6 +9,13 @@ on:
 permissions:
   contents: read
 
+env:
+  MOONBIT_VERSION: latest
+
+defaults:
+  run:
+    shell: bash
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
@@ -20,16 +27,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Install MoonBit CLI
-        run: |
-          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
-          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
-      - name: Moon update
-        run: moon update
-      - name: Install MoonBit dependencies
-        run: moon install
-      - name: Patch Mooncakes
-        run: bash scripts/patch_mooncakes.sh
+        with:
+          persist-credentials: false
+      - name: Setup MoonBit
+        uses: ./.github/actions/setup-moonbit
+        with:
+          version: ${{ env.MOONBIT_VERSION }}
       - name: Moon check
         run: moon check --deny-warn --warn-list -deprecated_syntax-deprecated --target native 2> >(grep -v 'WARN Duplicate alias' >&2)
       - name: Moon native smoke tests
