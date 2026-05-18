@@ -30,6 +30,8 @@ This repository already includes:
 - server code generation for `luna` SSR output
 - typed `defineProps()`, `defineEmits()`, and `defineSlots()` contracts
 - scoped styles by default
+- dynamic components with `<component :is="...">`
+- built-in `<Teleport>`, `<Transition>`, and `<TransitionGroup>` shells
 - diagnostics, hover, definition, references, formatting, and completion queries for editor tooling
 - a stdio JSON-RPC LSP server plus VS Code, Zed, and Neovim integrations
 - ripple-backed incremental compilation infrastructure
@@ -353,6 +355,9 @@ Today the template layer supports:
 - `v-match`, `v-case`, and `v-default`
 - `ref` and `:ref`
 - named slots with `v-slot`, `v-slot:name`, and `#name`
+- dynamic components with `<component :is="...">`
+- `<Teleport to="...">` for rendering children outside the current DOM subtree
+- `<Transition>` and `<TransitionGroup>` shells with optional `name`
 - component-looking tags via uppercase names
 - scoped styles
 

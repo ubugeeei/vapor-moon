@@ -106,6 +106,7 @@ fn on_end_tag(
 priv struct TemplateElementBuildState {
   tag : String
   is_component : Bool
+  component_name_expr : String?
   self_closing : Bool
   if_expr : String?
   else_if_expr : String?
@@ -136,6 +137,7 @@ fn new_template_element_build_state(
   {
     tag,
     is_component,
+    component_name_expr: None,
     self_closing,
     if_expr: None,
     else_if_expr: None,
@@ -167,7 +169,7 @@ fn build_template_element(
   self_closing : Bool,
 ) -> TemplateElement raise CompilerError {
   validate_element_tag_form(tag, self_closing)
-  let is_component = is_component_name(tag)
+  let is_component = is_component_name(tag) || tag == "component"
   let mut state = new_template_element_build_state(
     tag, is_component, self_closing,
   )
@@ -359,6 +361,19 @@ fn apply_element_meta_directive(
       ensure_empty_expr_directive(state.html_expr, attr, tag)
       Some({ ..state, html_expr: Some(expect_attr_value(attr, tag)) })
     }
+    "is" if tag == "component" => {
+      ensure_empty_expr_directive(state.component_name_expr, attr, tag)
+      Some({
+        ..state,
+        component_name_expr: Some(
+          quote_template_literal(expect_attr_value(attr, tag)),
+        ),
+      })
+    }
+    ":is" | "v-bind:is" if tag == "component" => {
+      ensure_empty_expr_directive(state.component_name_expr, attr, tag)
+      Some({ ..state, component_name_expr: Some(expect_attr_value(attr, tag)) })
+    }
     "v-once" => {
       reject_unexpected_attr_value(attr, tag)
       if state.once {
@@ -475,6 +490,7 @@ fn finish_template_element(
     state.tag,
     state.is_component,
     final_attrs,
+    state.component_name_expr,
     state.model,
     state.island_directive,
     state.show_expr,
@@ -482,6 +498,7 @@ fn finish_template_element(
   )
   {
     tag: state.tag,
+    component_name_expr: state.component_name_expr,
     attrs: final_attrs,
     children: [],
     is_component: state.is_component,

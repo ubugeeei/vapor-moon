@@ -30,6 +30,35 @@ pub fn component_ssr_meta(
 }
 
 ///|
+/// Preserve server-rendered Teleport content with its target metadata.
+pub fn teleport_ssr(
+  target : String,
+  children : Array[@luna_core.StaticDomNode],
+) -> @luna_core.StaticDomNode {
+  @luna_core.h(
+    "vm-teleport",
+    [("data-vm-to", @luna_core.attr_static(target))],
+    children,
+  )
+}
+
+///|
+/// Preserve Transition and TransitionGroup boundaries in SSR output.
+pub fn transition_ssr(
+  kind : String,
+  name : String,
+  children : Array[@luna_core.StaticDomNode],
+) -> @luna_core.StaticDomNode {
+  let attrs : Array[(String, @luna_core.Attr[Unit, String])] = [
+    ("data-vm-transition", @luna_core.attr_static(kind)),
+  ]
+  if name.length() > 0 {
+    attrs.push(("data-vm-transition-name", @luna_core.attr_static(name)))
+  }
+  @luna_core.h("vm-transition", attrs, children)
+}
+
+///|
 /// Render an island shell for the requested hydration mode.
 pub fn island_ssr(
   name : String,

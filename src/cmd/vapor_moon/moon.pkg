@@ -1,13 +1,6 @@
 import {
-  "ubugeeei/vapor_moon/src/compiler" @compiler,
-  "ubugeeei/vapor_moon/src/compiler/incremental" @incremental,
-  "ubugeeei/vapor_moon/src/tooling" @tooling,
+  "ubugeeei/vapor_moon/src/cmd/vapor_moon_cli" @cli,
   "moonbitlang/core/env" @env,
-  "moonbitlang/core/encoding/utf8" @utf8,
-  "moonbitlang/core/strconv" @strconv,
-  "moonbitlang/x/fs" @fs,
-  "moonbitlang/x/path" @path,
-  "moonbitlang/x/sys" @sys,
 }
 
 supported_targets = "native"

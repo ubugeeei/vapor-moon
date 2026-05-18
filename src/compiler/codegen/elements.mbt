@@ -70,8 +70,19 @@ fn render_client_component(
   node_counter : Array[Int],
   static_mode : Bool,
 ) -> String {
+  if element.tag == "Teleport" {
+    return render_client_teleport(
+      element, indent, scope_id, node_counter, static_mode,
+    )
+  }
+  if element.tag == "Transition" || element.tag == "TransitionGroup" {
+    return render_client_transition(
+      element, indent, scope_id, node_counter, static_mode,
+    )
+  }
   let props = render_client_component_props(element, static_mode)
   let meta_attrs = render_client_component_meta_attrs(element)
+  let component_name = render_component_name_expr(element)
   let children = if has_named_slots(element.children) {
     render_client_slots_record(
       element.children,
@@ -95,7 +106,7 @@ fn render_client_component(
     Load | Idle | Visible | Media(_) | Only | ServerDefer =>
       if meta_attrs == "[]" {
         "@dom.island(" +
-        quote(element.tag) +
+        component_name +
         ", " +
         render_mode_expr(element.island_mode) +
         ", " +
@@ -105,7 +116,7 @@ fn render_client_component(
         ")"
       } else {
         "@dom.islandMeta(" +
-        quote(element.tag) +
+        component_name +
         ", " +
         render_mode_expr(element.island_mode) +
         ", " +
@@ -119,7 +130,7 @@ fn render_client_component(
     None =>
       if meta_attrs == "[]" {
         "@dom.component(" +
-        quote(element.tag) +
+        component_name +
         ", " +
         props +
         ", " +
@@ -127,7 +138,7 @@ fn render_client_component(
         ")"
       } else {
         "@dom.componentMeta(" +
-        quote(element.tag) +
+        component_name +
         ", " +
         props +
         ", " +
@@ -146,8 +157,15 @@ fn render_server_component(
   scope_id : String?,
   static_mode : Bool,
 ) -> String {
+  if element.tag == "Teleport" {
+    return render_server_teleport(element, indent, scope_id, static_mode)
+  }
+  if element.tag == "Transition" || element.tag == "TransitionGroup" {
+    return render_server_transition(element, indent, scope_id, static_mode)
+  }
   let props = render_server_component_props(element, static_mode)
   let meta_attrs = render_server_component_meta_attrs(element)
+  let component_name = render_component_name_expr(element)
   let children = if has_named_slots(element.children) {
     render_server_slots_record(
       element.children,
@@ -169,7 +187,7 @@ fn render_server_component(
     Load | Idle | Visible | Media(_) | Only | ServerDefer =>
       if meta_attrs == "[]" {
         "@vm_server.island_ssr(" +
-        quote(element.tag) +
+        component_name +
         ", " +
         props +
         ", " +
@@ -179,7 +197,7 @@ fn render_server_component(
         ")"
       } else {
         "@vm_server.island_ssr_meta(" +
-        quote(element.tag) +
+        component_name +
         ", " +
         props +
         ", " +
@@ -193,7 +211,7 @@ fn render_server_component(
     None =>
       if meta_attrs == "[]" {
         "@vm_server.component_ssr(" +
-        quote(element.tag) +
+        component_name +
         ", " +
         props +
         ", " +
@@ -201,7 +219,7 @@ fn render_server_component(
         ")"
       } else {
         "@vm_server.component_ssr_meta(" +
-        quote(element.tag) +
+        component_name +
         ", " +
         props +
         ", " +
@@ -211,6 +229,106 @@ fn render_server_component(
         ")"
       }
   }
+}
+
+///|
+fn render_component_name_expr(element : TemplateElement) -> String {
+  match element.component_name_expr {
+    Some(expr) => expr + ".to_string()"
+    None => quote(element.tag)
+  }
+}
+
+///|
+fn render_client_teleport(
+  element : TemplateElement,
+  indent : Int,
+  scope_id : String?,
+  node_counter : Array[Int],
+  static_mode : Bool,
+) -> String {
+  "@dom.teleport(" +
+  render_builtin_string_attr(element, "to", "body") +
+  ", " +
+  render_client_children(
+    element.children,
+    indent + 2,
+    scope_id,
+    node_counter,
+    static_mode,
+  ) +
+  ")"
+}
+
+///|
+fn render_server_teleport(
+  element : TemplateElement,
+  indent : Int,
+  scope_id : String?,
+  static_mode : Bool,
+) -> String {
+  "@vm_server.teleport_ssr(" +
+  render_builtin_string_attr(element, "to", "body") +
+  ", " +
+  render_server_children(element.children, indent + 2, scope_id, static_mode) +
+  ")"
+}
+
+///|
+fn render_client_transition(
+  element : TemplateElement,
+  indent : Int,
+  scope_id : String?,
+  node_counter : Array[Int],
+  static_mode : Bool,
+) -> String {
+  "@dom.transition(" +
+  quote(element.tag) +
+  ", " +
+  render_builtin_string_attr(element, "name", "") +
+  ", " +
+  render_client_children(
+    element.children,
+    indent + 2,
+    scope_id,
+    node_counter,
+    static_mode,
+  ) +
+  ")"
+}
+
+///|
+fn render_server_transition(
+  element : TemplateElement,
+  indent : Int,
+  scope_id : String?,
+  static_mode : Bool,
+) -> String {
+  "@vm_server.transition_ssr(" +
+  quote(element.tag) +
+  ", " +
+  render_builtin_string_attr(element, "name", "") +
+  ", " +
+  render_server_children(element.children, indent + 2, scope_id, static_mode) +
+  ")"
+}
+
+///|
+fn render_builtin_string_attr(
+  element : TemplateElement,
+  name : String,
+  fallback : String,
+) -> String {
+  for attr in element.attrs {
+    if attr.name == name {
+      match attr.kind {
+        Static | Boolean => return quote(attr.value)
+        Dynamic => return attr.value + ".to_string()"
+        Event => ()
+      }
+    }
+  }
+  quote(fallback)
 }
 
 ///|

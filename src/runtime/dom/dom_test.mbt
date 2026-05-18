@@ -86,7 +86,11 @@ extern "js" fn install_fake_dom() -> Unit =
   #|     createDocumentFragment() {
   #|       return makeNode(11, "#fragment", doc);
   #|     },
+  #|     querySelector(selector) {
+  #|       return this.targets?.[selector] ?? null;
+  #|     },
   #|   };
+  #|   doc.targets = Object.create(null);
   #|   globalThis.document = doc;
   #|   delete globalThis.__vaporMoonEventDelegator;
   #|   delete globalThis.__vaporMoonTemplateRefs;
@@ -219,6 +223,15 @@ extern "js" fn node_prop_bool(node : @js.Any, name : String) -> Bool =
 ///|
 extern "js" fn node_child_count(node : @js.Any) -> Int =
   #| (node) => node.children?.length ?? 0
+
+///|
+extern "js" fn register_fake_target(
+  selector : String,
+  target : @js.Any,
+) -> Unit =
+  #| (selector, target) => {
+  #|   globalThis.document.targets[selector] = target;
+  #| }
 
 ///|
 extern "js" fn node_child_text(node : @js.Any, index : Int) -> String =
@@ -455,6 +468,44 @@ test "island dom meta renders hydration metadata and children" {
   assert_eq(node_attr(elem.as_any(), "data-prop-count"), "2")
   assert_eq(node_attr(elem.as_any(), "data-extra"), "yes")
   assert_eq(node_child_text(elem.as_any(), 0), "fallback")
+}
+
+///|
+test "teleport moves children into target when it exists" {
+  install_fake_dom()
+  let target = element("aside")
+  register_fake_target("#modal", target.as_any())
+
+  let node = teleport("#modal", [text("modal")])
+  let placeholder = node.to_dom()
+
+  assert_eq(node_tag(placeholder.as_any()), "#fragment")
+  assert_eq(node_child_count(placeholder.as_any()), 0)
+  assert_eq(node_child_count(target.as_any()), 1)
+  assert_eq(node_child_text(target.as_any(), 0), "modal")
+}
+
+///|
+test "teleport keeps children in fragment when target is missing" {
+  install_fake_dom()
+  let node = teleport("#missing", [text("fallback")])
+  let placeholder = node.to_dom()
+
+  assert_eq(node_tag(placeholder.as_any()), "#fragment")
+  assert_eq(node_child_count(placeholder.as_any()), 1)
+  assert_eq(node_child_text(placeholder.as_any(), 0), "fallback")
+}
+
+///|
+test "transition renders metadata shell" {
+  install_fake_dom()
+  let node = transition("Transition", "fade", [text("content")])
+  let elem = node.to_dom()
+
+  assert_eq(node_tag(elem.as_any()), "vm-transition")
+  assert_eq(node_attr(elem.as_any(), "data-vm-transition"), "Transition")
+  assert_eq(node_attr(elem.as_any(), "data-vm-transition-name"), "fade")
+  assert_eq(node_child_text(elem.as_any(), 0), "content")
 }
 
 ///|
