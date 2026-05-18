@@ -356,6 +356,10 @@ Today the template layer supports:
 - component-looking tags via uppercase names
 - scoped styles
 
+`v-unsafe-html` is an explicit escape hatch. Vapor Moon does not sanitize this
+content; pass only trusted or already-sanitized HTML, and do not bind
+user-controlled strings directly to it.
+
 Island and delivery directives are part of the template surface:
 
 - `client:load`
