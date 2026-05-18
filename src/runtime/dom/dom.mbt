@@ -238,6 +238,60 @@ pub fn dynStyle(getter : () -> String) -> @luna_dom.AttrValue {
 }
 
 ///|
+extern "js" fn apply_select_multiple_selected(
+  elem : @js.Any,
+  values : Array[String],
+) -> Unit =
+  #| (elem, values) => {
+  #|   const want = new Set(values);
+  #|   const options = elem.options;
+  #|   if (!options) return;
+  #|   for (let i = 0; i < options.length; i++) {
+  #|     options[i].selected = want.has(options[i].value);
+  #|   }
+  #| }
+
+///|
+extern "js" fn install_select_multiple_listener(
+  elem : @js.Any,
+  setter : (Array[String]) -> Unit,
+) -> Unit =
+  #| (elem, setter) => {
+  #|   const onChange = () => {
+  #|     const collected = [];
+  #|     const selected = elem.selectedOptions;
+  #|     if (selected) {
+  #|       for (let i = 0; i < selected.length; i++) {
+  #|         collected.push(selected[i].value);
+  #|       }
+  #|     }
+  #|     setter(collected);
+  #|   };
+  #|   elem.addEventListener("change", onChange);
+  #| }
+
+///|
+/// Lower a `<select multiple v-model="xs">` binding to a runtime loop:
+///
+/// - on every render effect, walk the option children and set their
+///   `selected` property from `getter()`;
+/// - on each `change` event, collect `event.target.selectedOptions` and
+///   feed them back through `setter`.
+///
+/// The compiler emits one call to this function per `<select multiple>`
+/// element through the `__selectMultipleModel` sentinel attribute name.
+pub fn bind_select_multiple_model(
+  elem : @js.Any,
+  getter : () -> Array[String],
+  setter : (Array[String]) -> Unit,
+) -> Unit {
+  install_select_multiple_listener(elem, setter)
+  let _ = @resource.render_effect(fn() {
+    apply_select_multiple_selected(elem, getter())
+  })
+}
+
+///|
 /// Render a component placeholder element for client-side hydration.
 pub fn component_dom(
   name : String,
@@ -482,7 +536,11 @@ pub fn apply_attr(
       })
     }
     @luna_dom.Handler(handler) =>
-      if name == "__ref" {
+      // `__ref` and `__selectMultipleModel` are compiler-internal sentinel
+      // attribute names that piggyback on the Handler variant so the runtime
+      // can invoke a closure once with the live DOM element. They are not
+      // actually written to the DOM.
+      if name == "__ref" || name == "__selectMultipleModel" {
         handler(elem.as_any())
       } else {
         bind_event_handler(elem, name, handler)

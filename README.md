@@ -365,6 +365,24 @@ Today the template layer supports:
 content; pass only trusted or already-sanitized HTML, and do not bind
 user-controlled strings directly to it.
 
+### `v-model` partial-support boundaries
+
+- **`<select multiple>`** — supported. Bind an `Array[String]` (assignable
+  or signal getter). The compiler lowers the binding to a runtime helper
+  that walks the option children on every render and feeds
+  `event.target.selectedOptions` back into the binding on `change`. SSR
+  for `<select multiple v-model>` is a no-op for now — the multiple
+  selection state hydrates on the client.
+- **`<input type="file">`** — the DOM `value` property is read-only for
+  security reasons. Vapor Moon will not accept `v-model` here. Use
+  `@change` and read `event.target.files` instead (typically into a
+  `signal[FileList?]`); reset the input through a `ref`. This rejection
+  is final, not provisional.
+- **`v-model` modifiers** (`.lazy`, `.number`, `.trim`) — supported only
+  where explicitly noted. `.trim` and `.lazy` are accepted for text
+  inputs; everywhere else they are rejected with a pointing error
+  message.
+
 ## Security Model
 
 Vapor Moon's compiler and runtime split string interpolation into two

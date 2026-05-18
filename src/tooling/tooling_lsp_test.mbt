@@ -232,7 +232,7 @@ test "snapshot lsp completion" {
   inspect(
     complete_at(source, 10, 28, filename="examples/complete.mbtv").to_string(),
     content=(
-      #|[{label: v-if, kind: directive, detail: conditional rendering, insert_text: v-if}, {label: v-else-if, kind: directive, detail: conditional branch (requires preceding v-if), insert_text: v-else-if}, {label: v-else, kind: directive, detail: fallback branch (requires preceding v-if or v-else-if), insert_text: v-else}, {label: v-for, kind: directive, detail: list rendering, insert_text: v-for}, {label: v-show, kind: directive, detail: toggle visibility via CSS display, insert_text: v-show}, {label: v-unsafe-html, kind: directive, detail: render unsafe raw HTML content (no sanitization), insert_text: v-unsafe-html}, {label: v-model, kind: directive, detail: two-way binding (supported: text/checkbox/radio input, textarea, select, component modelValue; unsupported: file input #65, select multiple #64, .lazy/.number/.trim modifiers), insert_text: v-model}, {label: v-model:prop, kind: directive, detail: two-way binding to a named component prop (lowers to :prop + @update:prop; no modifiers yet), insert_text: v-model:prop}, {label: v-once, kind: directive, detail: render once (skip reactivity), insert_text: v-once}, {label: v-match, kind: directive, detail: pattern matching on an expression, insert_text: v-match}, {label: v-case, kind: directive, detail: match branch pattern (inside v-match), insert_text: v-case}, {label: v-default, kind: directive, detail: default match branch (inside v-match), insert_text: v-default}]
+      #|[{label: v-if, kind: directive, detail: conditional rendering, insert_text: v-if}, {label: v-else-if, kind: directive, detail: conditional branch (requires preceding v-if), insert_text: v-else-if}, {label: v-else, kind: directive, detail: fallback branch (requires preceding v-if or v-else-if), insert_text: v-else}, {label: v-for, kind: directive, detail: list rendering, insert_text: v-for}, {label: v-show, kind: directive, detail: toggle visibility via CSS display, insert_text: v-show}, {label: v-unsafe-html, kind: directive, detail: render unsafe raw HTML content (no sanitization), insert_text: v-unsafe-html}, {label: v-model, kind: directive, detail: two-way binding (supported: text/checkbox/radio input, textarea, select, select multiple via Array[String], component modelValue; unsupported: file input (use @change + event.target.files), .number/.trim modifiers outside text inputs), insert_text: v-model}, {label: v-model:prop, kind: directive, detail: two-way binding to a named component prop (lowers to :prop + @update:prop; no modifiers yet), insert_text: v-model:prop}, {label: v-once, kind: directive, detail: render once (skip reactivity), insert_text: v-once}, {label: v-match, kind: directive, detail: pattern matching on an expression, insert_text: v-match}, {label: v-case, kind: directive, detail: match branch pattern (inside v-match), insert_text: v-case}, {label: v-default, kind: directive, detail: default match branch (inside v-match), insert_text: v-default}]
     ),
   )
 }
@@ -257,9 +257,8 @@ test "v-model completion detail mentions partial-support boundaries" {
       saw_v_model = true
       assert_true(item.detail.contains("supported"))
       assert_true(item.detail.contains("unsupported"))
-      assert_true(item.detail.contains("file input #65"))
-      assert_true(item.detail.contains("select multiple #64"))
-      assert_true(item.detail.contains(".lazy"))
+      assert_true(item.detail.contains("select multiple via Array[String]"))
+      assert_true(item.detail.contains("file input"))
     }
     if item.label == "v-model:prop" {
       saw_v_model_prop = true
