@@ -5,7 +5,19 @@ inputs:
   version:
     description: MoonBit installer version argument.
     required: false
-    default: 0.1.20260512
+    default: latest
+  expected-version:
+    description: Expected `moon version` CLI version. Leave empty to skip the version guard.
+    required: false
+    default: "0.1.20260512"
+  archive-sha256:
+    description: Expected SHA-256 for the MoonBit toolchain archive. Leave empty to skip archive checksum verification.
+    required: false
+    default: ""
+  core-sha256:
+    description: Expected SHA-256 for the MoonBit core archive. Leave empty to skip core checksum verification.
+    required: false
+    default: ""
   update-dependencies:
     description: Run moon update before installing dependencies. Keep false for reproducible verification.
     required: false
@@ -22,7 +34,68 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        curl --proto '=https' --tlsv1.2 -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s -- "${{ inputs.version }}"
+        target=""
+        case "$(uname -ms)" in
+          "Darwin arm64") target="darwin-aarch64" ;;
+          "Linux x86_64") target="linux-x86_64" ;;
+          "Linux aarch64") target="linux-aarch64" ;;
+          *) echo "Unsupported platform: $(uname -ms)" >&2; exit 1 ;;
+        esac
+
+        verify_sha256() {
+          local file="$1"
+          local expected="$2"
+          if [[ -z "$expected" ]]; then
+            return 0
+          fi
+          local actual
+          if command -v sha256sum >/dev/null 2>&1; then
+            actual="$(sha256sum "$file" | awk '{print $1}')"
+          else
+            actual="$(shasum -a 256 "$file" | awk '{print $1}')"
+          fi
+          if [[ "$actual" != "$expected" ]]; then
+            echo "SHA-256 mismatch for $file: expected $expected, got $actual" >&2
+            exit 1
+          fi
+        }
+
+        version_uri="${{ inputs.version }}"
+        version_uri="${version_uri//+/%2B}"
+        moon_home="${MOON_HOME:-$HOME/.moon}"
+        bin_dir="$moon_home/bin"
+        lib_dir="$moon_home/lib"
+        tmp_dir="$(mktemp -d)"
+        trap 'rm -rf "$tmp_dir"' EXIT
+
+        moonbit_archive="$tmp_dir/moonbit.tar.gz"
+        core_archive="$tmp_dir/core.tar.gz"
+        curl --proto '=https' --tlsv1.2 -fsSL \
+          "https://cli.moonbitlang.com/binaries/$version_uri/moonbit-$target.tar.gz" \
+          -o "$moonbit_archive"
+        verify_sha256 "$moonbit_archive" "${{ inputs.archive-sha256 }}"
+
+        mkdir -p "$moon_home"
+        rm -rf "${moon_home:?}/lib" "${moon_home:?}/include"
+        tar xf "$moonbit_archive" --directory="$moon_home"
+
+        pushd "$bin_dir" >/dev/null
+        for tool in *; do
+          chmod +x "$tool"
+        done
+        chmod +x ./internal/tcc
+        popd >/dev/null
+
+        mkdir -p "$lib_dir"
+        curl --proto '=https' --tlsv1.2 -fsSL \
+          "https://cli.moonbitlang.com/cores/core-$version_uri.tar.gz" \
+          -o "$core_archive"
+        verify_sha256 "$core_archive" "${{ inputs.core-sha256 }}"
+        rm -rf "$lib_dir/core"
+        tar xf "$core_archive" --directory="$lib_dir"
+
+        PATH="$bin_dir:$PATH" "$bin_dir/moon" -C "$lib_dir/core" bundle --warn-list -a --all
+        PATH="$bin_dir:$PATH" "$bin_dir/moon" -C "$lib_dir/core" bundle --warn-list -a --target wasm-gc --quiet
         echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
 
     - name: Show MoonBit version
@@ -31,8 +104,8 @@ runs:
         set -euo pipefail
         moon version
         actual_version="$(moon version | sed -n 's/^moon \([^ ]*\).*/\1/p')"
-        if [[ "${{ inputs.version }}" != "latest" && "$actual_version" != "${{ inputs.version }}" ]]; then
-          echo "Expected MoonBit ${{ inputs.version }}, got $actual_version" >&2
+        if [[ -n "${{ inputs.expected-version }}" && "$actual_version" != "${{ inputs.expected-version }}" ]]; then
+          echo "Expected MoonBit ${{ inputs.expected-version }}, got $actual_version" >&2
           exit 1
         fi
 

@@ -440,7 +440,7 @@ So editor integrations expect:
 
 Requirements:
 
-- MoonBit toolchain on `PATH`; CI currently uses MoonBit `0.1.20260512`
+- MoonBit toolchain on `PATH`; CI currently verifies MoonBit `0.1.20260512` from pinned `latest` archive checksums
 - `node` on `PATH` for JS-targeted LSP tests and the editor-facing LSP server
 
 Useful commands:
@@ -463,14 +463,15 @@ The smoke scripts cover CLI exit-code behavior and the shipped editor LSP launch
 
 ### MoonBit CI Toolchain
 
-CI and release verification pin the MoonBit CLI through `MOONBIT_VERSION` in `.github/workflows/ci.yaml` and `.github/workflows/release.yaml`. The shared setup action also defaults to the same version, and verifies the installed CLI before running checks.
+CI and release verification install the MoonBit `latest` distribution archive, pin the downloaded archive and core package with SHA-256 checksums, and verify that `moon version` reports `0.1.20260512` before running checks. The shared setup action defaults to the same expected CLI version, while the workflows pass explicit checksums for the Ubuntu runner archives.
 
 To upgrade the CI toolchain:
 
 1. Install the intended MoonBit CLI locally and confirm `moon version`.
-2. Update `MOONBIT_VERSION` in both workflows and the default `version` in `.github/actions/setup-moonbit/action.yml`.
-3. Run `moon update` only when intentionally refreshing the MoonBit registry/dependencies, then review and commit any resulting dependency changes.
-4. Run the relevant `moon check`, `moon test`, smoke, and package commands before opening the upgrade PR.
+2. Download the matching `moonbit-linux-x86_64.tar.gz` and `core-latest.tar.gz` archives, then record their SHA-256 values.
+3. Update `MOONBIT_EXPECTED_VERSION`, `MOONBIT_ARCHIVE_SHA256`, and `MOONBIT_CORE_SHA256` in both workflows, plus the default `expected-version` in `.github/actions/setup-moonbit/action.yml` when the expected CLI changes.
+4. Run `moon update` only when intentionally refreshing the MoonBit registry/dependencies, then review and commit any resulting dependency changes.
+5. Run the relevant `moon check`, `moon test`, smoke, and package commands before opening the upgrade PR.
 
 CI and release jobs do not run `moon update` by default. Manual `workflow_dispatch` runs expose `update_moonbit_dependencies` for intentional dependency refresh checks without changing the normal verification path.
 
