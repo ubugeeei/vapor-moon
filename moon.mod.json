@@ -1,6 +1,6 @@
 {
   "name": "ubugeeei/vapor_moon",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "deps": {
     "mizchi/js": "0.10.17",
     "mizchi/luna": "0.23.0",
@@ -22,6 +22,7 @@
     "scripts",
     "testdata",
     "README.mbt.md",
+    "src/compiler/coverage",
     "src/compiler/script_setup_test",
     "src/compiler/snapshot",
     "src/compiler/test_support",

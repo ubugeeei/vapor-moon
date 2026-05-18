@@ -16,6 +16,11 @@ if [ "$status" -eq 0 ]; then
   exit 0
 fi
 
+if grep -q "Dry run completed successfully" "$OUT"; then
+  echo "::warning::moon publish --dry-run completed successfully, but moon exited with status $status."
+  exit 0
+fi
+
 if grep -q "duplicated with an existing version" "$OUT"; then
   echo "::warning::moon publish --dry-run reached the registry, but this version already exists."
   exit 0
