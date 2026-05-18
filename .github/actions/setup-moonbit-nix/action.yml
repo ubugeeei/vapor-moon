@@ -1,0 +1,67 @@
+name: Setup MoonBit via Nix
+description: |
+  Install MoonBit through the repo's Nix flake. Activates the
+  `devShells.default` and runs `moonbit-install` so the toolchain
+  matches the version pinned in flake.nix. Slower cold-start than the
+  binary `setup-moonbit` action, but a single source of truth for
+  contributors and CI.
+
+inputs:
+  patch-mooncakes:
+    description: Reapply the repository mooncakes patch after dependency install.
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@v17
+      with:
+        extra-conf: |
+          experimental-features = nix-command flakes
+
+    - name: Cache Nix store
+      uses: DeterminateSystems/magic-nix-cache-action@v9
+
+    - name: Cache MoonBit toolchain
+      uses: actions/cache@v4
+      with:
+        # MOON_HOME is XDG_DATA_HOME/moonbit per the flake's shellHook.
+        # We also cache nix profile state so the devShell rebuilds
+        # incrementally.
+        path: |
+          ~/.local/share/moonbit/bin
+          ~/.local/share/moonbit/lib
+          ~/.local/share/moonbit/include
+        key: moonbit-nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.nix') }}
+        restore-keys: |
+          moonbit-nix-${{ runner.os }}-${{ runner.arch }}-
+
+    - name: Install MoonBit via flake
+      shell: bash
+      run: |
+        set -euo pipefail
+        nix develop --command moonbit-install
+        echo "$HOME/.local/share/moonbit/bin" >> "$GITHUB_PATH"
+
+    - name: Show MoonBit version
+      shell: bash
+      run: nix develop --command moon version
+
+    - name: Update MoonBit registry index
+      shell: bash
+      run: nix develop --command moon update
+
+    - name: Install MoonBit dependencies
+      shell: bash
+      run: nix develop --command moon install
+
+    - name: Verify MoonBit manifest unchanged
+      shell: bash
+      run: git diff --exit-code -- moon.mod.json moon.pkg
+
+    - name: Patch Mooncakes
+      if: ${{ inputs.patch-mooncakes == 'true' }}
+      shell: bash
+      run: nix develop --command bash scripts/patch_mooncakes.sh

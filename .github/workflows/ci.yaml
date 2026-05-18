@@ -29,6 +29,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Phase 4 experimental gate: run the same native checks through the
+  # Nix flake instead of the binary setup-moonbit action. Kept
+  # non-required while we shake out cache hit-rate and timing; once
+  # this leg stays under the binary install's wall-clock, the matrix
+  # legs can be flipped over.
+  check-native-nix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Setup MoonBit via Nix
+        uses: ./.github/actions/setup-moonbit-nix
+      - name: Moon check
+        run: nix develop --command moon check --deny-warn --warn-list -deprecated_syntax-deprecated --target native 2> >(grep -v 'WARN Duplicate alias' >&2)
+      - name: Moon native tests
+        run: nix develop --command moon test --target native
+      - name: CLI smoke test
+        run: nix develop --command bash scripts/smoke_cli.sh
+
   check-native-matrix:
     name: check-native (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
