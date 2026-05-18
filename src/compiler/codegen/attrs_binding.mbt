@@ -132,6 +132,12 @@ fn render_server_component_event_attr(attr : TemplateAttr) -> String {
 }
 
 ///|
+/// Lower a `v-unsafe-html` binding to the client `__innerHTML` attribute.
+///
+/// SECURITY: this is the client-side half of the `v-unsafe-html` escape
+/// hatch. The runtime's `apply_static_attr` writes the value straight onto
+/// `Element.innerHTML` (see `src/runtime/dom/dom.mbt`), with no escaping.
+/// Author responsibility — see README "Security Model" and SECURITY.md.
 fn render_client_html_attr(
   element : TemplateElement,
   static_mode : Bool,

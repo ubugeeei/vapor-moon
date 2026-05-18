@@ -500,6 +500,10 @@ fn apply_static_attr(
   if name == "className" || name == "class" {
     elem.setClassName(value)
   } else if name == "__innerHTML" {
+    // SECURITY: `__innerHTML` is the client lowering target for the
+    // compiler's `v-unsafe-html` directive. It writes the value straight onto
+    // `Element.innerHTML` with no sanitization. Callers must pre-escape or
+    // sanitize. See README "Security Model" and SECURITY.md.
     elem.as_any()._set("innerHTML", @js.any(value)) |> ignore
   } else if name == "value" {
     elem.as_any()._set("value", @js.any(value)) |> ignore

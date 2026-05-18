@@ -245,7 +245,10 @@ test "v-model completion detail mentions partial-support boundaries" {
     #|</template>
   let (line, character) = line_character_at(source, "v- />")
   let completions = complete_at(
-    source, line, character + 2, filename="examples/complete_v_model.mbtv",
+    source,
+    line,
+    character + 2,
+    filename="examples/complete_v_model.mbtv",
   )
   let mut saw_v_model = false
   let mut saw_v_model_prop = false

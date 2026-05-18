@@ -1,4 +1,18 @@
 ///|
+/// Final structural checks once an element's children are known.
+///
+/// SECURITY: this is the placement guard for the `v-unsafe-html` escape
+/// hatch. The directive bypasses HTML escaping at the runtime, so the
+/// compiler intentionally narrows the set of elements where it is legal:
+///
+/// - void elements (e.g. `<br>`, `<img>`) — innerHTML has no meaning;
+/// - elements that already declare children — silently swapping them with
+///   raw HTML would surprise the author.
+///
+/// Component tags get a dedicated rejection in `validate_directive_modifiers`
+/// below. Together these checks keep the trust boundary explicit — escape is
+/// always opt-in through `v-unsafe-html`, never an accident. See README
+/// "Security Model" and SECURITY.md.
 fn validate_finalized_element(
   element : TemplateElement,
   children : Array[TemplateNode],

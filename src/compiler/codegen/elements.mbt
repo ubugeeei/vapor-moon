@@ -31,6 +31,17 @@ fn render_client_element(
 }
 
 ///|
+/// Render a host element on the SSR target.
+///
+/// SECURITY: when `element.html_expr` is `Some(expr)`, the element carries a
+/// `v-unsafe-html` binding. We deliberately lower the expression into
+/// `@luna_core.raw_html` without escaping — this is the documented escape
+/// hatch (see README "Security Model" and SECURITY.md). The directive name
+/// keeps the boundary visible to authors; the compiler's only safety
+/// guarantee is the placement check in
+/// `src/compiler/template/builder_validate.mbt` (void elements, components,
+/// and elements with existing children are rejected). Sanitization is the
+/// caller's responsibility.
 fn render_server_element(
   element : TemplateElement,
   indent : Int,
