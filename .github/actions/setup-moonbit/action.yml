@@ -38,17 +38,22 @@ runs:
           *) echo "Unsupported platform: $(uname -ms)" >&2; exit 1 ;;
         esac
 
+        # Compute the SHA-256 of `file` and either verify it against
+        # `expected` (when set) or just surface it as a workflow notice
+        # so the matrix leg's logs can be used to pin a new platform's
+        # checksum (see #83 Phase 2 follow-up).
         verify_sha256() {
           local file="$1"
           local expected="$2"
-          if [[ -z "$expected" ]]; then
-            return 0
-          fi
           local actual
           if command -v sha256sum >/dev/null 2>&1; then
             actual="$(sha256sum "$file" | awk '{print $1}')"
           else
             actual="$(shasum -a 256 "$file" | awk '{print $1}')"
+          fi
+          echo "::notice file=action.yml,title=SHA-256::$(basename "$file")=$actual"
+          if [[ -z "$expected" ]]; then
+            return 0
           fi
           if [[ "$actual" != "$expected" ]]; then
             echo "SHA-256 mismatch for $file: expected $expected, got $actual" >&2
