@@ -29,7 +29,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-native:
+  check-native-matrix:
     name: check-native (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
@@ -65,6 +65,17 @@ jobs:
         run: bash scripts/smoke_cli.sh
       - name: Package contents
         run: moon package --list
+
+  # Umbrella status check so the repo ruleset (which requires the bare
+  # name `check-native`) keeps matching once the underlying job moved to
+  # a per-OS matrix. Don't remove this without also updating the ruleset.
+  check-native:
+    name: check-native
+    runs-on: ubuntu-latest
+    needs: check-native-matrix
+    steps:
+      - name: All matrix legs succeeded
+        run: echo "check-native matrix passed on every os"
 
   check-js:
     runs-on: ubuntu-latest
