@@ -1,0 +1,62 @@
+# Path-based auto-labels applied by .github/workflows/labeler.yaml.
+# Each label name maps to a list of glob predicates; the action assigns
+# the label whenever a PR touches at least one matching path.
+
+compiler:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/compiler/**"
+
+runtime:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/runtime/**"
+
+lsp:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/lsp/**"
+          - "src/tooling/lsp_**"
+          - "src/cmd/vapor_moon_lsp/**"
+
+tooling:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/tooling/**"
+
+cli:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/cmd/vapor_moon/**"
+          - "src/cmd/vapor_moon_cli/**"
+
+editor:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "editors/**"
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".github/actions/**"
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "docs/**"
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*_test.mbt"
+          - "e2e/**"
+          - "scripts/smoke_*.sh"
+
+release:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/release.yaml"
+          - "CHANGELOG.md"
+          - "moon.mod.json"

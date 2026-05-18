@@ -1,4 +1,17 @@
 version: 2
+
+# Conventions
+# - All four ecosystems are grouped so each Monday produces at most one
+#   PR per package set instead of one PR per dependency.
+# - `dependencies` label is the GitHub standard; `codex` keeps the
+#   project's existing filter working.
+# - open-pull-requests-limit caps the active queue so Monday batches
+#   don't pile up indefinitely if a previous week's PR is still in
+#   review.
+# - Major version bumps are ignored by default — they almost always need
+#   a code change in the same PR, which Dependabot can't author. Bump
+#   majors by editing the lockfile manually and dropping the ignore.
+
 updates:
   - package-ecosystem: github-actions
     directory: /
@@ -9,10 +22,16 @@ updates:
       timezone: Asia/Tokyo
     labels:
       - codex
+      - dependencies
+      - github-actions
+    open-pull-requests-limit: 5
     groups:
       github-actions:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: npm
     directory: /e2e
@@ -23,10 +42,16 @@ updates:
       timezone: Asia/Tokyo
     labels:
       - codex
+      - dependencies
+      - javascript
+    open-pull-requests-limit: 5
     groups:
       e2e-node:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: npm
     directory: /editors/vscode
@@ -37,10 +62,17 @@ updates:
       timezone: Asia/Tokyo
     labels:
       - codex
+      - dependencies
+      - javascript
+      - editor
+    open-pull-requests-limit: 5
     groups:
       vscode-node:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: cargo
     directory: /editors/zed
@@ -51,7 +83,14 @@ updates:
       timezone: Asia/Tokyo
     labels:
       - codex
+      - dependencies
+      - rust
+      - editor
+    open-pull-requests-limit: 5
     groups:
       zed-rust:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
