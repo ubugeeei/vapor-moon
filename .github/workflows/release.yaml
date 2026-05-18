@@ -2,6 +2,12 @@ name: Release Verify
 
 on:
   workflow_dispatch:
+    inputs:
+      update_moonbit_dependencies:
+        description: Run moon update before installing dependencies for an intentional registry refresh.
+        required: false
+        default: false
+        type: boolean
   push:
     tags:
       - "v*"
@@ -10,7 +16,8 @@ permissions:
   contents: read
 
 env:
-  MOONBIT_VERSION: latest
+  MOONBIT_VERSION: 0.1.20260512
+  UPDATE_MOONBIT_DEPENDENCIES: ${{ github.event_name == 'workflow_dispatch' && inputs.update_moonbit_dependencies == true }}
 
 defaults:
   run:
@@ -33,6 +40,7 @@ jobs:
         uses: ./.github/actions/setup-moonbit
         with:
           version: ${{ env.MOONBIT_VERSION }}
+          update-dependencies: ${{ env.UPDATE_MOONBIT_DEPENDENCIES }}
       - name: Moon check
         run: moon check --deny-warn --warn-list -deprecated_syntax-deprecated --target native 2> >(grep -v 'WARN Duplicate alias' >&2)
       - name: Moon native smoke tests

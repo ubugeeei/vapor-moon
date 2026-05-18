@@ -440,7 +440,7 @@ So editor integrations expect:
 
 Requirements:
 
-- MoonBit toolchain on `PATH`
+- MoonBit toolchain on `PATH`; CI currently uses MoonBit `0.1.20260512`
 - `node` on `PATH` for JS-targeted LSP tests and the editor-facing LSP server
 
 Useful commands:
@@ -460,6 +460,19 @@ bash scripts/smoke_lsp.sh
 
 `bash scripts/patch_mooncakes.sh` reapplies a small local patch for a known `moonbitlang/yacc` dependency warning, and the repo-local pre-commit hook runs it automatically before the test suite.
 The smoke scripts cover CLI exit-code behavior and the shipped editor LSP launcher path used by VS Code, Zed, and Neovim.
+
+### MoonBit CI Toolchain
+
+CI and release verification pin the MoonBit CLI through `MOONBIT_VERSION` in `.github/workflows/ci.yaml` and `.github/workflows/release.yaml`. The shared setup action also defaults to the same version, and verifies the installed CLI before running checks.
+
+To upgrade the CI toolchain:
+
+1. Install the intended MoonBit CLI locally and confirm `moon version`.
+2. Update `MOONBIT_VERSION` in both workflows and the default `version` in `.github/actions/setup-moonbit/action.yml`.
+3. Run `moon update` only when intentionally refreshing the MoonBit registry/dependencies, then review and commit any resulting dependency changes.
+4. Run the relevant `moon check`, `moon test`, smoke, and package commands before opening the upgrade PR.
+
+CI and release jobs do not run `moon update` by default. Manual `workflow_dispatch` runs expose `update_moonbit_dependencies` for intentional dependency refresh checks without changing the normal verification path.
 
 ## Publishing
 

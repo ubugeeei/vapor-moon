@@ -5,7 +5,11 @@ inputs:
   version:
     description: MoonBit installer version argument.
     required: false
-    default: latest
+    default: 0.1.20260512
+  update-dependencies:
+    description: Run moon update before installing dependencies. Keep false for reproducible verification.
+    required: false
+    default: "false"
   patch-mooncakes:
     description: Reapply the repository mooncakes patch after dependency install.
     required: false
@@ -23,9 +27,17 @@ runs:
 
     - name: Show MoonBit version
       shell: bash
-      run: moon version
+      run: |
+        set -euo pipefail
+        moon version
+        actual_version="$(moon version | sed -n 's/^moon \([^ ]*\).*/\1/p')"
+        if [[ "${{ inputs.version }}" != "latest" && "$actual_version" != "${{ inputs.version }}" ]]; then
+          echo "Expected MoonBit ${{ inputs.version }}, got $actual_version" >&2
+          exit 1
+        fi
 
-    - name: Moon update
+    - name: Update MoonBit dependencies
+      if: ${{ inputs.update-dependencies == 'true' }}
       shell: bash
       run: moon update
 
