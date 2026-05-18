@@ -291,11 +291,20 @@ fn validate_component_bindings(
   tag : String,
   is_component : Bool,
   attrs : Array[TemplateAttr],
+  component_name_expr : String?,
   model : TemplateModel?,
   island_directive : String?,
   show_expr : String?,
   html_expr : String?,
 ) -> Unit raise CompilerError {
+  if tag == "component" && component_name_expr is None {
+    raise CompilerError::InvalidDirective(
+      "`<component>` requires `:is` or `v-bind:is`",
+    )
+  }
+  if tag == "Teleport" && not(has_non_event_attr(attrs, "to")) {
+    raise CompilerError::InvalidDirective("`<Teleport>` requires a `to` prop")
+  }
   match island_directive {
     Some(_) if not(is_component) =>
       raise CompilerError::InvalidDirective(
