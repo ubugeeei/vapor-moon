@@ -195,12 +195,20 @@ let value = "initial"
       "ComponentVModelDefault.mbtv"
     );
 
-    expect(output.client_code).toContain('@dom.component("TextInput"');
+    expect(output.client_code).toContain('@dom.componentMeta("TextInput"');
     expect(output.client_code).toContain(
       '("modelValue", fn() { value.to_string() })'
     );
-    expect(output.server_code).toContain('@vm_server.component_ssr("TextInput"');
+    expect(output.client_code).toContain(
+      '("update:modelValue", @dom.on(fn(_event) { value = _event._get("detail").cast() }))'
+    );
+    expect(output.server_code).toContain(
+      '@vm_server.component_ssr_meta("TextInput"'
+    );
     expect(output.server_code).toContain('("modelValue", value.to_string())');
+    expect(output.server_code).toContain(
+      '("update:modelValue", @luna_core.attr_static(""))'
+    );
   });
 
   test("argument v-model lowers to named prop", () => {
@@ -215,13 +223,21 @@ let title = "Initial title"
       "ComponentVModelArgument.mbtv"
     );
 
-    expect(output.client_code).toContain('@dom.component("TitleInput"');
+    expect(output.client_code).toContain('@dom.componentMeta("TitleInput"');
     expect(output.client_code).toContain(
       '("title", fn() { title.to_string() })'
     );
+    expect(output.client_code).toContain(
+      '("update:title", @dom.on(fn(_event) { title = _event._get("detail").cast() }))'
+    );
     expect(output.client_code).not.toContain('"modelValue"');
-    expect(output.server_code).toContain('@vm_server.component_ssr("TitleInput"');
+    expect(output.server_code).toContain(
+      '@vm_server.component_ssr_meta("TitleInput"'
+    );
     expect(output.server_code).toContain('("title", title.to_string())');
+    expect(output.server_code).toContain(
+      '("update:title", @luna_core.attr_static(""))'
+    );
     expect(output.server_code).not.toContain('"modelValue"');
   });
 });

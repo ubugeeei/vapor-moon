@@ -60,6 +60,13 @@ fn render_client_component_meta_attrs(element : TemplateElement) -> String {
   let parts : Array[String] = []
   push_if_some(parts, render_client_key_attr(element))
   push_if_some(parts, render_client_ref_attr(element))
+  for attr in element.attrs {
+    match attr.kind {
+      Event => parts.push(render_client_event_attr(attr))
+      _ => ()
+    }
+  }
+  push_if_some(parts, render_client_component_model_listener(element))
   if parts.is_empty() {
     "[]"
   } else {
@@ -72,11 +79,56 @@ fn render_server_component_meta_attrs(element : TemplateElement) -> String {
   let parts : Array[String] = []
   push_if_some(parts, render_server_key_attr(element))
   push_if_some(parts, render_server_ref_attr(element))
+  for attr in element.attrs {
+    match attr.kind {
+      Event => parts.push(render_server_component_event_attr(attr))
+      _ => ()
+    }
+  }
+  push_if_some(parts, render_server_component_model_listener(element))
   if parts.is_empty() {
     "[]"
   } else {
     "[" + parts.join(", ") + "]"
   }
+}
+
+///|
+fn render_client_component_model_listener(element : TemplateElement) -> String? {
+  match element.model {
+    Some(model) => {
+      let prop_name = model.argument.unwrap_or("modelValue")
+      Some(
+        "(\"update:" +
+        prop_name +
+        "\", @dom.on(fn(_event) { " +
+        render_model_write_expr(
+          model.expression,
+          "_event._get(\"detail\").cast()",
+        ) +
+        " }))",
+      )
+    }
+    None => None
+  }
+}
+
+///|
+fn render_server_component_model_listener(element : TemplateElement) -> String? {
+  match element.model {
+    Some(model) =>
+      Some(
+        "(\"update:" +
+        model.argument.unwrap_or("modelValue") +
+        "\", @luna_core.attr_static(\"\"))",
+      )
+    None => None
+  }
+}
+
+///|
+fn render_server_component_event_attr(attr : TemplateAttr) -> String {
+  "(\"" + attr.name + "\", @luna_core.attr_static(\"\"))"
 }
 
 ///|

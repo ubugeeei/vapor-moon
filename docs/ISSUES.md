@@ -4,7 +4,8 @@
 
 ## Shipped Locally
 
-- **Component `v-model` baseline**: shipped. Component tags accept `v-model` and lower the value into `modelValue` props; `v-model:prop` uses the named prop. Covered by `src/compiler/snapshot/attrs_test.mbt` and `src/compiler/coverage/edge_case_test.mbt`.
+- **Component `v-model`**: shipped. Component tags accept `v-model` and lower the value into `modelValue` props plus an `update:modelValue` listener; `v-model:prop` uses the named prop and `update:prop`. Covered by `src/compiler/snapshot/attrs_test.mbt` and `src/compiler/coverage/edge_case_test.mbt`.
+- **Component event listeners**: shipped. Component tags accept `@event` / `v-on:event` listeners and carry them through component placeholder metadata in client and server output. Covered by `src/compiler/coverage/edge_case_test.mbt`.
 - **`<input type="radio" v-model>`**: shipped. Radio inputs generate `checked` state and write the selected `value` on `change`. Covered by `src/compiler/snapshot/attrs_test.mbt` and `src/compiler/coverage/edge_case_test.mbt`; regression bug [#52](https://github.com/ubugeeei/vapor-moon/issues/52) is closed.
 
 ## Partial / Open Implementation

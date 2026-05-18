@@ -435,17 +435,28 @@ test "accepts member signal getter targets for v-model" {
 }
 
 ///|
-test "rejects component event listeners until component linking lands" {
+test "component event listeners lower to component metadata" {
   let source =
     #|<template><Panel @save='on_save()' /></template>
-  assert_eq(
-    compile_error(source, "invalid/component_event_listener.mbtv"),
-    "InvalidDirective(\"component event listeners are not supported yet on <Panel>\")",
+  let output = compile(
+    source,
+    filename="examples/component_event_listener.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(
+    output.client_code.contains("(\"save\", @dom.on(fn(_event) { on_save() }))"),
+  )
+  assert_true(
+    output.server_code.contains("(\"save\", @luna_core.attr_static(\"\"))"),
   )
 }
 
 ///|
-test "component v-model lowers to modelValue prop" {
+test "component v-model lowers to modelValue prop and update listener" {
   let source =
     #|<template><Panel v-model='value' /></template>
   let output = compile(source, filename="examples/component_v_model.mbtv") catch {
@@ -458,7 +469,56 @@ test "component v-model lowers to modelValue prop" {
     output.client_code.contains("(\"modelValue\", fn() { value.to_string() })"),
   )
   assert_true(
+    output.client_code.contains(
+      "(\"update:modelValue\", @dom.on(fn(_event) { value = _event._get(\"detail\").cast() }))",
+    ),
+  )
+  assert_true(
     output.server_code.contains("(\"modelValue\", value.to_string())"),
+  )
+  assert_true(
+    output.server_code.contains(
+      "(\"update:modelValue\", @luna_core.attr_static(\"\"))",
+    ),
+  )
+}
+
+///|
+test "component v-model argument lowers to named prop and update listener" {
+  let source =
+    #|<template><Panel v-model:title='title' /></template>
+  let output = compile(
+    source,
+    filename="examples/component_v_model_argument.mbtv",
+  ) catch {
+    err => {
+      ignore(err)
+      panic()
+    }
+  }
+  assert_true(
+    output.client_code.contains("(\"title\", fn() { title.to_string() })"),
+  )
+  assert_true(
+    output.client_code.contains(
+      "(\"update:title\", @dom.on(fn(_event) { title = _event._get(\"detail\").cast() }))",
+    ),
+  )
+  assert_true(output.server_code.contains("(\"title\", title.to_string())"))
+  assert_true(
+    output.server_code.contains(
+      "(\"update:title\", @luna_core.attr_static(\"\"))",
+    ),
+  )
+}
+
+///|
+test "rejects duplicate explicit component v-model update listener" {
+  let source =
+    #|<template><Panel v-model='value' @update:modelValue='save()' /></template>
+  assert_eq(
+    compile_error(source, "invalid/component_v_model_duplicate_update.mbtv"),
+    "InvalidDirective(\"duplicate event listener `update:modelValue` on <Panel>\")",
   )
 }
 

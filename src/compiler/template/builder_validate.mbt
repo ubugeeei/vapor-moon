@@ -241,11 +241,19 @@ fn validate_native_model_binding(
 ///|
 fn validate_component_model_binding(
   tag : String,
+  attrs : Array[TemplateAttr],
   model : TemplateModel,
 ) -> Unit raise CompilerError {
   for modifier in model.modifiers {
     raise CompilerError::InvalidDirective(
       "component v-model modifiers are not supported yet on <\{tag}>: `.\{modifier}`",
+    )
+  }
+  let prop_name = model.argument.unwrap_or("modelValue")
+  let event_name = "update:" + prop_name
+  if has_attr_with_kind(attrs, event_name, Event) {
+    raise CompilerError::InvalidDirective(
+      "duplicate event listener `\{event_name}` on <\{tag}>",
     )
   }
 }
@@ -333,13 +341,6 @@ fn validate_component_bindings(
       )
     None => ()
   }
-  for attr in attrs {
-    if attr.kind == Event {
-      raise CompilerError::InvalidDirective(
-        "component event listeners are not supported yet on <\{tag}>",
-      )
-    }
-  }
   match html_expr {
     Some(_) =>
       raise CompilerError::InvalidDirective(
@@ -348,7 +349,7 @@ fn validate_component_bindings(
     None => ()
   }
   match model {
-    Some(binding) => validate_component_model_binding(tag, binding)
+    Some(binding) => validate_component_model_binding(tag, attrs, binding)
     None => ()
   }
 }
