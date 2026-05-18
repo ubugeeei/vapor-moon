@@ -1,0 +1,23 @@
+# GitHub CODEOWNERS — reviewers automatically requested when these paths
+# change. Keep this list small; broad ownership claims slow reviews down.
+
+# Default owner for anything not matched below.
+*                                @ubugeeei
+
+# Compiler and runtime — the project core.
+/src/compiler/                   @ubugeeei @mizchi
+/src/runtime/                    @ubugeeei @mizchi
+
+# Editor integrations and tooling — generally OK for ubugeeei to land alone,
+# but mizchi has authored several pieces.
+/editors/                        @ubugeeei
+/src/lsp/                        @ubugeeei
+/src/tooling/                    @ubugeeei
+
+# Build, CI, and release infrastructure.
+/.github/                        @ubugeeei
+/scripts/                        @ubugeeei
+/moon.mod.json                   @ubugeeei
+/CHANGELOG.md                    @ubugeeei
+/CONTRIBUTING.md                 @ubugeeei
+/SECURITY.md                     @ubugeeei

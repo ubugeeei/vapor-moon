@@ -1,0 +1,29 @@
+# https://editorconfig.org
+# Keep editor behavior consistent with `moon fmt` (2-space indent, LF, UTF-8,
+# trim trailing whitespace, terminal newline).
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 100
+
+# Markdown — preserve trailing whitespace because two-space line breaks are
+# meaningful syntax.
+[*.md]
+trim_trailing_whitespace = false
+
+# Makefiles must use real tabs.
+[{Makefile,*.mk}]
+indent_style = tab
+
+# Generated lockfiles — leave alone.
+[{*.lock,Cargo.lock,package-lock.json,pnpm-lock.yaml}]
+insert_final_newline = unset
+trim_trailing_whitespace = unset
+indent_size = unset
