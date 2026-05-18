@@ -68,35 +68,70 @@ fn clear_done() -> Unit {
 </script>
 
 <template>
-  <section class="todo">
-    <header class="todo__header">
-      <h1>todo</h1>
-      <form @submit.prevent='add()'>
+  <section class='todo' aria-labelledby='todo-heading'>
+    <header class='todo__header'>
+      <h1 id='todo-heading'>todo</h1>
+      <form class='todo__form' @submit.prevent='add()'>
+        <label class='visually-hidden' for='todo-input'>New todo</label>
         <input
+          id='todo-input'
+          type='text'
           v-model='draft'
           placeholder='What needs doing?'
-          aria-label='New todo'
+          autocomplete='off'
         />
         <button type='submit'>Add</button>
       </form>
     </header>
 
     <ul class='todo__list'>
-      <li v-for='t in visible()' :key='t.id' :class='if t.done { "done" } else { "" }'>
-        <input type='checkbox' :checked='t.done' @change='toggle(t.id)' />
-        <span class='todo__text'>{{ t.text }}</span>
-        <button class='todo__remove' @click='remove(t.id)'>×</button>
+      <li
+        v-for='t in visible()'
+        :key='t.id'
+        :class='if t.done { "done" } else { "" }'
+      >
+        <label class='todo__row'>
+          <input
+            type='checkbox'
+            :checked='t.done'
+            @change='toggle(t.id)'
+          />
+          <span class='todo__text'>{{ t.text }}</span>
+        </label>
+        <button
+          type='button'
+          class='todo__remove'
+          :aria-label='"Delete: " + t.text'
+          @click='remove(t.id)'
+        >
+          <span aria-hidden='true'>×</span>
+        </button>
       </li>
     </ul>
 
     <footer class='todo__footer'>
-      <span>{{ remaining().to_string() }} left</span>
-      <nav class='todo__filters'>
-        <button :class='if filter_.get() == "all" { "active" } else { "" }' @click='filter_.set("all")'>All</button>
-        <button :class='if filter_.get() == "active" { "active" } else { "" }' @click='filter_.set("active")'>Active</button>
-        <button :class='if filter_.get() == "done" { "active" } else { "" }' @click='filter_.set("done")'>Done</button>
+      <span class='todo__count' aria-live='polite'>{{ remaining().to_string() }} left</span>
+      <nav class='todo__filters' aria-label='Filter todos'>
+        <button
+          type='button'
+          :class='if filter_.get() == "all" { "active" } else { "" }'
+          :aria-pressed='if filter_.get() == "all" { "true" } else { "false" }'
+          @click='filter_.set("all")'
+        >All</button>
+        <button
+          type='button'
+          :class='if filter_.get() == "active" { "active" } else { "" }'
+          :aria-pressed='if filter_.get() == "active" { "true" } else { "false" }'
+          @click='filter_.set("active")'
+        >Active</button>
+        <button
+          type='button'
+          :class='if filter_.get() == "done" { "active" } else { "" }'
+          :aria-pressed='if filter_.get() == "done" { "true" } else { "false" }'
+          @click='filter_.set("done")'
+        >Done</button>
       </nav>
-      <button @click='clear_done()'>Clear done</button>
+      <button type='button' @click='clear_done()'>Clear done</button>
     </footer>
   </section>
 </template>
@@ -111,12 +146,12 @@ fn clear_done() -> Unit {
   gap: 16px;
 }
 
-.todo__header form {
+.todo__form {
   display: flex;
   gap: 8px;
 }
 
-.todo__header input {
+.todo__form input {
   flex: 1;
   padding: 8px 12px;
   font-size: 16px;
@@ -132,12 +167,19 @@ fn clear_done() -> Unit {
 
 .todo__list li {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr auto;
   gap: 8px;
   align-items: center;
   padding: 8px;
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.04);
+}
+
+.todo__row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
 }
 
 .todo__list li.done .todo__text {
@@ -150,7 +192,22 @@ fn clear_done() -> Unit {
   background: transparent;
   cursor: pointer;
   font-size: 18px;
+  line-height: 1;
   color: #c0392b;
+}
+
+/* WCAG-friendly visually hidden — keeps the label addressable by
+   assistive tech while remaining invisible to sighted users. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .todo__footer {
