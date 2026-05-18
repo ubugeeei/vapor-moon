@@ -1,0 +1,22 @@
+{
+  "name": "vapor-moon-monorepo",
+  "private": true,
+  "description": "pnpm workspace root for the Vapor Moon JS surfaces (vite-plugin, vite-app example, e2e, VS Code extension).",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r --filter=./packages/* build",
+    "test": "pnpm -r --filter=./packages/* test",
+    "typecheck": "pnpm -r --filter=./packages/* typecheck",
+    "e2e": "pnpm --filter=./e2e test",
+    "format": "prettier --write \"**/*.{ts,js,json,md,yml,yaml}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.4.0"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=10"
+  },
+  "packageManager": "pnpm@10.0.0"
+}
