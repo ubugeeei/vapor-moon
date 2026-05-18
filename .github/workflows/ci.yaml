@@ -29,6 +29,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Nix flake gate — runs in parallel with the existing matrix legs.
+  # Phase 2 of the tooling migration: we verify the flake parses and
+  # the cheap `nix flake check` passes (shellcheck over scripts/) on
+  # every PR. A future PR will replace the per-os MoonBit install with
+  # a `nix develop --command` invocation; until then this is a
+  # zero-blocker gate.
+  nix-flake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v17
+        with:
+          extra-conf: |
+            experimental-features = nix-command flakes
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@v9
+      - name: flake check
+        run: nix flake check --print-build-logs
+      - name: dev shell smoke
+        run: |
+          nix develop --command bash -lc 'echo "node $(node --version)"; echo "pnpm $(pnpm --version)"; echo "cargo $(cargo --version)"'
+
   check-native-matrix:
     name: check-native (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
