@@ -244,7 +244,7 @@ test "v-model rewrites spaced getter targets from AST" {
 }
 
 ///|
-test "component v-model compiles to modelValue prop" {
+test "component v-model compiles to modelValue prop and update listener" {
   let source =
     #|<script setup>
     #|import {
@@ -270,7 +270,17 @@ test "component v-model compiles to modelValue prop" {
     ),
   )
   assert_true(
+    output.client_code.contains(
+      "(\"update:modelValue\", @dom.on(fn(_event) { name.set(_event._get(\"detail\").cast()) }))",
+    ),
+  )
+  assert_true(
     output.server_code.contains("(\"modelValue\", name.get().to_string())"),
+  )
+  assert_true(
+    output.server_code.contains(
+      "(\"update:modelValue\", @luna_core.attr_static(\"\"))",
+    ),
   )
 }
 
