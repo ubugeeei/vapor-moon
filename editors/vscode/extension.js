@@ -44,11 +44,24 @@ function deactivate() {
 
 function resolveDefaultCommand(extensionPath) {
   const executableName = process.platform === "win32" ? "vapor-moon-lsp.cmd" : "vapor-moon-lsp";
-  const repoCommand = path.resolve(extensionPath, "..", "..", "bin", executableName);
-  if (fs.existsSync(repoCommand)) {
-    return repoCommand;
+  const commands = [
+    path.join(extensionPath, "bin", executableName),
+    path.resolve(extensionPath, "..", "..", "bin", executableName),
+  ];
+  for (const command of commands) {
+    if (isFile(command)) {
+      return command;
+    }
   }
   return executableName;
+}
+
+function isFile(filePath) {
+  try {
+    return fs.statSync(filePath).isFile();
+  } catch {
+    return false;
+  }
 }
 
 module.exports = {
