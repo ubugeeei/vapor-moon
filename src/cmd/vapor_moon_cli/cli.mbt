@@ -14,6 +14,21 @@ extern "c" fn watch_sleep_micros(microseconds : UInt64) -> Int = "usleep"
 ///|
 /// Dispatch the small CLI surface used for local compiler and tooling experiments.
 pub fn run(args : Array[String]) -> Unit {
+  if args.length() < 2 {
+    exit_usage()
+    return
+  }
+  match args[1] {
+    "--help" | "-h" | "help" => {
+      print_help()
+      return
+    }
+    "--version" | "-V" => {
+      println("vapor-moon " + @compiler_common.VERSION)
+      return
+    }
+    _ => ()
+  }
   if args.length() < 3 {
     exit_usage()
     return
@@ -542,7 +557,32 @@ fn exit_usage() -> Unit {
 ///|
 /// Print the supported CLI command surface.
 fn print_usage() -> Unit {
-  println(
-    "Usage: moon run src/cmd/vapor_moon -- <compile|watch|analyze|diagnostics|hover|definition|references|complete|format> <file.mbtv|directory> [line] [character] [includeDeclaration]",
-  )
+  println("Usage: vapor-moon <command> <file.mbtv|directory> [args...]")
+  println("       vapor-moon --help | --version")
+  println("Run `vapor-moon --help` for the full command list.")
+}
+
+///|
+/// Print the full structured help, used by `--help`, `-h`, and `help`.
+fn print_help() -> Unit {
+  println("vapor-moon " + @compiler_common.VERSION)
+  println("MoonBit-first Single File Component compiler and tooling.")
+  println("")
+  println("USAGE:")
+  println("  vapor-moon <command> <file.mbtv|directory> [args...]")
+  println("  vapor-moon --help | -h")
+  println("  vapor-moon --version | -V")
+  println("")
+  println("COMMANDS:")
+  println("  compile     <file.mbtv>                            Compile one .mbtv file and print client/server/css snapshot.")
+  println("  watch       <directory>                            Recompile .mbtv files in <directory> on change.")
+  println("  analyze     <file.mbtv>                            Print the analyzed SFC structure.")
+  println("  diagnostics <file.mbtv>                            Print diagnostics for one file.")
+  println("  hover       <file.mbtv> <line> <character>         Print the hover result at a position.")
+  println("  definition  <file.mbtv> <line> <character>         Print the definition at a position.")
+  println("  references  <file.mbtv> <line> <character> [bool]  Print references at a position; final arg toggles includeDeclaration (default true).")
+  println("  complete    <file.mbtv> <line> <character>         Print completion items at a position.")
+  println("  format      <file.mbtv>                            Print the formatted source.")
+  println("")
+  println("Positions are zero-based (LSP semantics).")
 }

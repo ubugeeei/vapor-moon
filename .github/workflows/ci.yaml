@@ -13,6 +13,8 @@ permissions:
 env:
   MOONBIT_VERSION: latest
   MOONBIT_EXPECTED_VERSION: "0.1.20260512"
+  # SHA-256 is pinned per host: keep the ubuntu (linux-x86_64) sums here and
+  # let the macOS leg derive its own (currently unpinned — see #83).
   MOONBIT_ARCHIVE_SHA256: "2c3a5af2020c9ceb3fe11e6457e647a215846d97d71c8e784b3d0a7c8cfc606b"
   MOONBIT_CORE_SHA256: "c68ba56201bd8d99db442b6df599c2c217b0528edec7d6de6e871b6e589c502e"
   NODE_VERSION: "24"
@@ -28,8 +30,21 @@ concurrency:
 
 jobs:
   check-native:
-    runs-on: ubuntu-latest
+    name: check-native (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            archive-sha256: "2c3a5af2020c9ceb3fe11e6457e647a215846d97d71c8e784b3d0a7c8cfc606b"
+            core-sha256: "c68ba56201bd8d99db442b6df599c2c217b0528edec7d6de6e871b6e589c502e"
+          # macOS leg has no pinned checksums yet — see #83 for the
+          # SHA-256 pinning follow-up.
+          - os: macos-latest
+            archive-sha256: ""
+            core-sha256: ""
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -40,8 +55,8 @@ jobs:
         with:
           version: ${{ env.MOONBIT_VERSION }}
           expected-version: ${{ env.MOONBIT_EXPECTED_VERSION }}
-          archive-sha256: ${{ env.MOONBIT_ARCHIVE_SHA256 }}
-          core-sha256: ${{ env.MOONBIT_CORE_SHA256 }}
+          archive-sha256: ${{ matrix.archive-sha256 }}
+          core-sha256: ${{ matrix.core-sha256 }}
       - name: Moon check
         run: moon check --deny-warn --warn-list -deprecated_syntax-deprecated --target native 2> >(grep -v 'WARN Duplicate alias' >&2)
       - name: Moon native tests
@@ -104,7 +119,18 @@ jobs:
         working-directory: editors/vscode
       - name: Validate VS Code extension manifest
         run: |
-          node -e "const pkg = require('./package.json'); if (!pkg.contributes?.languages?.length || !pkg.contributes?.grammars?.length) process.exit(1)"
+          node -e "const pkg = require('./package.json'); if (!pkg.contributes?.languages?.length || !pkg.contributes?.grammars?.length) process.exit(1); for (const field of ['repository','bugs','homepage','keywords']) { if (!pkg[field]) { console.error('missing field: '+field); process.exit(1); } }"
+        working-directory: editors/vscode
+      - name: Verify VS Code extension version tracks moon.mod.json
+        run: |
+          mod_version="$(grep -m1 '"version"' moon.mod.json | sed -E 's/.*"version"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/')"
+          ext_version="$(node -p "require('./editors/vscode/package.json').version")"
+          if [ "$mod_version" != "$ext_version" ]; then
+            echo "moon.mod.json version $mod_version differs from VS Code extension version $ext_version" >&2
+            exit 1
+          fi
+      - name: Package VS Code extension
+        run: npx --yes @vscode/vsce@latest package --no-dependencies --out /tmp/vapor-moon.vsix
         working-directory: editors/vscode
       - name: Check Zed extension
         run: cargo check --locked --manifest-path editors/zed/Cargo.toml

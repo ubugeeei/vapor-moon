@@ -1,5 +1,6 @@
 import {
   "ubugeeei/vapor_moon/src/compiler" @compiler,
+  "ubugeeei/vapor_moon/src/compiler/common" @compiler_common,
   "ubugeeei/vapor_moon/src/compiler/incremental" @incremental,
   "ubugeeei/vapor_moon/src/tooling" @tooling,
   "moonbitlang/core/encoding/utf8" @utf8,

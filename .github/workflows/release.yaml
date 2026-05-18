@@ -14,6 +14,7 @@ env:
   MOONBIT_EXPECTED_VERSION: "0.1.20260512"
   MOONBIT_ARCHIVE_SHA256: "2c3a5af2020c9ceb3fe11e6457e647a215846d97d71c8e784b3d0a7c8cfc606b"
   MOONBIT_CORE_SHA256: "c68ba56201bd8d99db442b6df599c2c217b0528edec7d6de6e871b6e589c502e"
+  NODE_VERSION: "24"
 
 defaults:
   run:
@@ -51,3 +52,55 @@ jobs:
         run: moon package --list
       - name: Publish dry run
         run: bash scripts/verify_publish_dry_run.sh
+
+  vscode-extension:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: editors/vscode/package-lock.json
+      - name: Install VS Code extension dependencies
+        run: npm ci --ignore-scripts
+        working-directory: editors/vscode
+      - name: Verify version tracks moon.mod.json
+        run: |
+          mod_version="$(grep -m1 '"version"' moon.mod.json | sed -E 's/.*"version"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/')"
+          ext_version="$(node -p "require('./editors/vscode/package.json').version")"
+          if [ "$mod_version" != "$ext_version" ]; then
+            echo "moon.mod.json version $mod_version differs from VS Code extension version $ext_version" >&2
+            exit 1
+          fi
+      - name: Package extension
+        run: npx --yes @vscode/vsce@latest package --no-dependencies --out vapor-moon.vsix
+        working-directory: editors/vscode
+      - name: Upload .vsix artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: vapor-moon-vsix
+          path: editors/vscode/vapor-moon.vsix
+          if-no-files-found: error
+          retention-days: 30
+      - name: Attach .vsix to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" editors/vscode/vapor-moon.vsix --clobber
+          fi
+      - name: Publish to VS Code Marketplace
+        if: startsWith(github.ref, 'refs/tags/v') && env.VSCE_PAT != ''
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: npx --yes @vscode/vsce@latest publish --no-dependencies --packagePath vapor-moon.vsix
+        working-directory: editors/vscode
