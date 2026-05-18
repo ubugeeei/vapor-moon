@@ -445,7 +445,7 @@ So editor integrations expect:
 
 Requirements:
 
-- MoonBit toolchain on `PATH`
+- MoonBit toolchain on `PATH`; CI currently verifies MoonBit `0.1.20260512` from pinned `latest` archive checksums
 - `node` on `PATH` for JS-targeted LSP tests and the editor-facing LSP server
 
 Useful commands:
@@ -465,6 +465,20 @@ bash scripts/smoke_lsp.sh
 
 `bash scripts/patch_mooncakes.sh` reapplies a small local patch for a known `moonbitlang/yacc` dependency warning, and the repo-local pre-commit hook runs it automatically before the test suite.
 The smoke scripts cover CLI exit-code behavior and the shipped editor LSP launcher path used by VS Code, Zed, and Neovim.
+
+### MoonBit CI Toolchain
+
+CI and release verification install the MoonBit `latest` distribution archive, pin the downloaded archive and core package with SHA-256 checksums, and verify that `moon version` reports `0.1.20260512` before running checks. The shared setup action defaults to the same expected CLI version, while the workflows pass explicit checksums for the Ubuntu runner archives.
+
+Fresh runners still need `moon update` so `moon install` can resolve exact registry package versions. CI treats that as a registry-index refresh, then verifies that `moon.mod.json` and `moon.pkg` remain unchanged.
+
+To upgrade the CI toolchain:
+
+1. Install the intended MoonBit CLI locally and confirm `moon version`.
+2. Download the matching `moonbit-linux-x86_64.tar.gz` and `core-latest.tar.gz` archives, then record their SHA-256 values.
+3. Update `MOONBIT_EXPECTED_VERSION`, `MOONBIT_ARCHIVE_SHA256`, and `MOONBIT_CORE_SHA256` in both workflows, plus the default `expected-version` in `.github/actions/setup-moonbit/action.yml` when the expected CLI changes.
+4. Run `moon update` to refresh the local registry index, then confirm `git diff -- moon.mod.json moon.pkg` is clean unless the PR intentionally changes dependency pins.
+5. Run the relevant `moon check`, `moon test`, smoke, and package commands before opening the upgrade PR.
 
 ## Publishing
 
