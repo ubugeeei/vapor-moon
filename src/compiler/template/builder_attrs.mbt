@@ -5,10 +5,10 @@
 fn parse_model_attr(
   attr : ParsedTemplateAttr,
 ) -> TemplateModel? raise CompilerError {
-  if not(attr.name.has_prefix("v-model")) {
+  if !(attr.name.has_prefix("v-model")) {
     return None
   }
-  if not(attr.has_value) || attr.value.trim().is_empty() {
+  if !(attr.has_value) || attr.value.trim().is_empty() {
     raise CompilerError::InvalidDirective(
       "`\{attr.name}` requires an expression",
     )

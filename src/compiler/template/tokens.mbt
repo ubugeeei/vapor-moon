@@ -30,7 +30,7 @@ fn visit_template_tokens(
           text_has_content = false
           state = TemplateTokenizerState::TagOpen
         } else {
-          if not(is_space(chars[cursor])) {
+          if !(is_space(chars[cursor])) {
             text_has_content = true
           }
           cursor += 1
@@ -143,7 +143,7 @@ fn is_comment_open(chars : Array[Char], start : Int) -> Bool {
 
 ///|
 fn is_end_tag_open(chars : Array[Char], start : Int) -> Bool {
-  if not(
+  if !(
       start + 1 < chars.length() &&
       chars[start] == '<' &&
       chars[start + 1] == '/',

@@ -10,7 +10,7 @@ fn macro_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
   ]
   let items : Array[ToolingCompletionItem] = []
   for entry in entries {
-    if prefix.length() > 0 && not(entry.0.has_prefix(prefix)) {
+    if prefix.length() > 0 && !(entry.0.has_prefix(prefix)) {
       continue
     }
     items.push({
@@ -42,7 +42,7 @@ fn directive_completion_items(prefix : String) -> Array[ToolingCompletionItem] {
   ]
   let items : Array[ToolingCompletionItem] = []
   for entry in entries {
-    if not(entry.0.has_prefix(prefix)) {
+    if !(entry.0.has_prefix(prefix)) {
       continue
     }
     items.push({
@@ -115,7 +115,7 @@ fn prefixed_completion_items(
 ) -> Array[ToolingCompletionItem] {
   let items : Array[ToolingCompletionItem] = []
   for entry in entries {
-    if not(entry.has_prefix(prefix)) {
+    if !(entry.has_prefix(prefix)) {
       continue
     }
     items.push({ label: entry, kind, detail, insert_text: entry })

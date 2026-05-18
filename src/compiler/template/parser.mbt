@@ -170,7 +170,7 @@ fn try_parse_for_separator(
 ) -> Int? {
   let keyword_start = skip_for_separator_gap(source, chars, start)
   if keyword_start == start ||
-    not(starts_with_for_local(source, keyword_start, "in")) {
+    !(starts_with_for_local(source, keyword_start, "in")) {
     return None
   }
   let right_start = skip_for_separator_gap(source, chars, keyword_start + 2)
@@ -366,7 +366,7 @@ fn skip_for_quoted(chars : Array[Char], start : Int, marker : Char) -> Int {
 
 ///|
 fn starts_for_multiline_string_line(chars : Array[Char], start : Int) -> Bool {
-  if not(
+  if !(
       start + 1 < chars.length() &&
       chars[start] == '#' &&
       chars[start + 1] == '|',
@@ -450,7 +450,7 @@ fn ensure_valid_for_binding_name(
   name : String,
   source : String,
 ) -> Unit raise CompilerError {
-  if not(is_identifier_literal(name)) {
+  if !(is_identifier_literal(name)) {
     raise CompilerError::InvalidDirective("invalid v-for binding: \{source}")
   }
 }
@@ -461,7 +461,7 @@ fn is_identifier_literal(source : String) -> Bool {
     return false
   }
   let first = source[0].to_int()
-  if not(
+  if !(
       (first >= 'a'.to_int() && first <= 'z'.to_int()) ||
       (first >= 'A'.to_int() && first <= 'Z'.to_int()) ||
       first == '_'.to_int() ||
@@ -470,7 +470,7 @@ fn is_identifier_literal(source : String) -> Bool {
     return false
   }
   for i in 1..<source.length() {
-    if not(is_identifier_charcode(source[i].to_int())) {
+    if !(is_identifier_charcode(source[i].to_int())) {
       return false
     }
   }

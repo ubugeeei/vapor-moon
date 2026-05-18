@@ -124,13 +124,13 @@ fn collect_client_temp_names(source : String) -> Array[String] {
   let lines = source.split("\n").map(fn(line) { line.to_string() }).collect()
   for line in lines {
     let trimmed = line.trim().to_string()
-    if not(trimmed.has_prefix("let ")) {
+    if !(trimmed.has_prefix("let ")) {
       continue
     }
     match trimmed.find(" = @dom.el(") {
       Some(index) => {
         let name = String::unsafe_substring(trimmed, start=4, end=index)
-        if not(temp_name_list_contains(names, name)) {
+        if !(temp_name_list_contains(names, name)) {
           names.push(name)
         }
       }

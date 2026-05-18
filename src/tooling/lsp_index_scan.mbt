@@ -154,7 +154,7 @@ fn ToolingDocument::parse_resolved_template_ref_member_ref(
     None => return None
   }
   let binding_name = self.span_text(binding_span)
-  if not(ToolingDocument::identifier_literal(binding_name)) {
+  if !(ToolingDocument::identifier_literal(binding_name)) {
     return None
   }
   cursor = close_paren + 1
@@ -170,7 +170,7 @@ fn ToolingDocument::parse_resolved_template_ref_member_ref(
         (chars[cursor] == ' ' || chars[cursor] == '\t') {
     cursor += 1
   }
-  if cursor >= search_span.end || not(is_identifier_char(chars[cursor])) {
+  if cursor >= search_span.end || !(is_identifier_char(chars[cursor])) {
     return None
   }
   let member_start = cursor
@@ -259,7 +259,7 @@ fn ToolingDocument::identifier_literal(source : String) -> Bool {
     return false
   }
   for ch in source {
-    if not(is_identifier_char(ch)) {
+    if !(is_identifier_char(ch)) {
       return false
     }
   }
@@ -285,7 +285,7 @@ fn ToolingDocument::member_span_after_binding(
         (chars[cursor] == ' ' || chars[cursor] == '\t') {
     cursor += 1
   }
-  if cursor >= chars.length() || not(is_identifier_char(chars[cursor])) {
+  if cursor >= chars.length() || !(is_identifier_char(chars[cursor])) {
     return None
   }
   let start = cursor
@@ -476,10 +476,10 @@ fn ToolingDocument::find_token_in_span(
         break
       }
     }
-    let before_ok = cursor == 0 || not(is_identifier_char(chars[cursor - 1]))
+    let before_ok = cursor == 0 || !(is_identifier_char(chars[cursor - 1]))
     let end_ = cursor + token_chars.length()
     let after_ok = end_ >= chars.length() ||
-      not(is_identifier_char(chars[end_]))
+      !(is_identifier_char(chars[end_]))
     if matched && before_ok && after_ok {
       return Some({ start: cursor, end: end_ })
     }

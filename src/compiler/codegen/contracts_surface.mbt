@@ -129,17 +129,17 @@ fn render_component_forward_args(doc : SfcDocument) -> String {
 
 ///|
 fn has_props_contract(doc : SfcDocument) -> Bool {
-  doc.props_binding is Some(_) || not(doc.props.is_empty())
+  doc.props_binding is Some(_) || !(doc.props.is_empty())
 }
 
 ///|
 fn has_emits_contract(doc : SfcDocument) -> Bool {
-  doc.emits_binding is Some(_) || not(doc.emits.is_empty())
+  doc.emits_binding is Some(_) || !(doc.emits.is_empty())
 }
 
 ///|
 fn has_slots_contract(doc : SfcDocument) -> Bool {
-  doc.slots_binding is Some(_) || not(doc.slots.is_empty())
+  doc.slots_binding is Some(_) || !(doc.slots.is_empty())
 }
 
 ///|
@@ -197,7 +197,7 @@ fn default_slots_name(client : Bool) -> String {
 
 ///|
 fn has_prop_defaults(doc : SfcDocument) -> Bool {
-  not(doc.prop_defaults.is_empty())
+  !(doc.prop_defaults.is_empty())
 }
 
 ///|

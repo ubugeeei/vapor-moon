@@ -446,7 +446,7 @@ pub fn[T] bindRef(ref_ : @vm.TemplateRef[T], target : @js.Any) -> Unit {
 /// Resolve a template ref, preferring the typed binding table before the named table.
 pub fn[T] resolve_template_ref(ref_ : @vm.TemplateRef[T]) -> T? {
   let bound_target = lookup_bound_template_ref(@js.any(ref_))
-  if not(@js.is_nullish(bound_target)) {
+  if !(@js.is_nullish(bound_target)) {
     return Some(bound_target.cast())
   }
   let named_target = lookup_template_ref(ref_.name())

@@ -51,12 +51,12 @@ fn render_style_attr(
   client : Bool,
 ) -> String? {
   let style_attrs = find_style_attrs(element.attrs)
-  if not(style_attrs.is_empty()) {
+  if !(style_attrs.is_empty()) {
     let (base_expr, base_dynamic) = render_merged_attr_expr(
       style_attrs, static_mode, true,
     )
     let dynamic = base_dynamic ||
-      (element.show_expr is Some(_) && not(static_mode))
+      (element.show_expr is Some(_) && !(static_mode))
     let final_expr = match element.show_expr {
       Some(expr) => "@hlp.show_style(" + expr + ", " + base_expr + ")"
       None => base_expr
@@ -68,7 +68,7 @@ fn render_style_attr(
         Some(
           render_style_value(
             "@hlp.show_style(" + expr + ", \"\")",
-            not(static_mode),
+            !(static_mode),
             client,
           ),
         )
@@ -113,7 +113,7 @@ fn render_attr_expr(
 ) -> (String, Bool) {
   match attr.kind {
     Static => (quote(attr.value), false)
-    Dynamic => (attr.value + ".to_string()", not(static_mode))
+    Dynamic => (attr.value + ".to_string()", !(static_mode))
     Boolean => (if style_mode { "\"\"" } else { "\"\"" }, false)
     Event => ("\"\"", false)
   }

@@ -6,7 +6,7 @@ fn collect_client_attr_entries(
 ) -> Array[String] {
   let parts : Array[String] = []
   for attr in element.attrs {
-    if attr.name != "style" && not(is_class_attr_name(attr.name)) {
+    if attr.name != "style" && !(is_class_attr_name(attr.name)) {
       parts.push(render_client_attr(attr, static_mode))
     }
   }
@@ -33,7 +33,7 @@ fn render_server_attrs(
 ) -> String {
   let parts : Array[String] = []
   for attr in element.attrs {
-    if attr.name != "style" && not(is_class_attr_name(attr.name)) {
+    if attr.name != "style" && !(is_class_attr_name(attr.name)) {
       match attr.kind {
         Event => ()
         _ => parts.push(render_server_attr(attr, static_mode))

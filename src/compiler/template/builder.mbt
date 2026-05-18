@@ -12,7 +12,7 @@ fn visitor_on_text(
   end_ : Int,
   has_content : Bool,
 ) -> Unit raise CompilerError {
-  if not(has_content) {
+  if !(has_content) {
     return
   }
   append_node(
@@ -277,7 +277,7 @@ fn apply_case_directive(
     )
   }
   ensure_empty_expr_directive(state.case_pattern, attr, tag)
-  if not(attr.has_value) {
+  if !(attr.has_value) {
     raise CompilerError::InvalidDirective(
       "`v-case` requires a pattern value on <\{tag}>; use `v-default` for the fallback branch",
     )
@@ -330,7 +330,7 @@ fn with_island_mode(
   next_mode : IslandMode,
   keeps_value : Bool,
 ) -> TemplateElementBuildState raise CompilerError {
-  if not(keeps_value) {
+  if !(keeps_value) {
     reject_unexpected_attr_value(attr, state.tag)
   }
   {
@@ -545,7 +545,7 @@ fn append_node(
       if element.else_if_expr is Some(_) || element.is_else {
         append_conditional_branch(target, element)
       } else if (element.case_pattern is Some(_) || element.is_case_default) &&
-        not(parent_has_match) {
+        !(parent_has_match) {
         raise CompilerError::InvalidDirective(
           "`v-case` must be a direct child of a `v-match` element on <" +
           element.tag +
@@ -643,7 +643,7 @@ fn build_match_node(
           "interpolation is not allowed as direct child of `v-match` on <\{tag}>",
         )
       Element(element) => {
-        if element.case_pattern is None && not(element.is_case_default) {
+        if element.case_pattern is None && !(element.is_case_default) {
           raise CompilerError::InvalidDirective(
             "direct children of `v-match` must use `v-case` on <\{tag}>: found <\{element.tag}> without `v-case`",
           )

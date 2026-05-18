@@ -55,7 +55,7 @@ fn validate_block_attrs(
       )
     }
     seen.push(attr.name)
-    if not(is_supported_block_attr(block.kind, attr.name)) {
+    if !(is_supported_block_attr(block.kind, attr.name)) {
       match attr.name {
         "setup" =>
           if block.kind == ScriptExtern {
@@ -110,7 +110,7 @@ fn validate_block_attrs(
         }
       "scoped" =>
         match attr.value {
-          Some(value) if not(is_scoped_style_disabled_value(value)) =>
+          Some(value) if !(is_scoped_style_disabled_value(value)) =>
             raise CompilerError::InvalidSfc(
               "`scoped` only accepts `false` on <style> in \{filename}",
             )
@@ -178,7 +178,7 @@ fn find_attr_value(attrs : Array[BlockAttr], name : String) -> String? {
 ///|
 fn style_block_is_scoped(attrs : Array[BlockAttr]) -> Bool {
   match find_attr_value(attrs, "scoped") {
-    Some(value) => not(is_scoped_style_disabled_value(value))
+    Some(value) => !(is_scoped_style_disabled_value(value))
     None => true
   }
 }
@@ -305,7 +305,7 @@ fn parse_block_attrs(
     }
     let name_start = cursor
     if cursor >= chars.length() ||
-      not(is_block_attr_name_start_char(chars[cursor])) {
+      !(is_block_attr_name_start_char(chars[cursor])) {
       raise CompilerError::InvalidSfc(
         "expected attribute name in <\{tag}> start tag of \{filename}",
       )
@@ -365,8 +365,8 @@ fn read_attr_value(
   } else {
     let mut cursor = start
     while cursor < chars.length() &&
-          not(is_block_space(chars[cursor])) &&
-          not(is_attr_value_self_closing_boundary(chars, cursor)) {
+          !(is_block_space(chars[cursor])) &&
+          !(is_attr_value_self_closing_boundary(chars, cursor)) {
       cursor += 1
     }
     if cursor == start {
