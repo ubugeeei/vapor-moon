@@ -10,11 +10,25 @@ keep that bar.
 
 ## Prerequisites
 
+The recommended path is **Nix** — it installs every tool below at the
+exact version CI uses, with one command:
+
+```bash
+nix develop          # activates the flake's devShell
+moonbit-install      # pulls the pinned MoonBit toolchain on first run
+```
+
+Or with [direnv](https://direnv.net): `direnv allow` once, and entering
+the repo auto-activates the shell. The Nix devContainer at
+`.devcontainer/` is the same setup for [GitHub Codespaces](https://github.com/codespaces).
+
+If you prefer not to use Nix, install the tools manually:
+
 | Tool | Version | Used for |
 | --- | --- | --- |
 | [MoonBit CLI](https://www.moonbitlang.com/) | `0.1.20260512` (CI pin) | Compiler, tooling, and tests. The `.github/actions/setup-moonbit` action also pins SHA-256 of the toolchain archive. |
-| [Node.js](https://nodejs.org/) | `24.x` | LSP smoke test, VS Code extension, Playwright E2E suite. |
-| [pnpm](https://pnpm.io/) | `10.x` | `e2e/` workspace. |
+| [Node.js](https://nodejs.org/) | `24.x` | LSP smoke test, VS Code extension, Playwright E2E suite, Vite+ plugin. |
+| [pnpm](https://pnpm.io/) | `10.x` | Workspace root + every JS package. |
 | [Rust toolchain](https://rustup.rs/) | stable | Building the Zed extension (`editors/zed`). |
 
 The repo ships `.githooks/pre-commit` — enable it locally with:
@@ -52,7 +66,28 @@ bash scripts/smoke_lsp.sh
 pnpm --dir e2e install --frozen-lockfile
 pnpm --dir e2e exec playwright install chromium --with-deps
 pnpm --dir e2e test
+
+# Vite+ plugin (TS unit tests)
+pnpm --dir packages/vite-plugin-vapor-moon install
+pnpm --dir packages/vite-plugin-vapor-moon test
+pnpm --dir packages/vite-plugin-vapor-moon build
+
+# Vite+ example app (visual smoke)
+pnpm --dir examples/vite-app install
+pnpm --dir examples/vite-app dev   # opens http://localhost:5179
 ```
+
+### Inside `nix develop`
+
+The same commands work via the dev shell:
+
+```bash
+nix develop --command make ci
+nix develop --command moon test --target native
+nix develop --command pnpm --dir packages/vite-plugin-vapor-moon test
+```
+
+Or stay inside the shell once and run the commands directly.
 
 ## Conventional commits
 
