@@ -465,15 +465,15 @@ The smoke scripts cover CLI exit-code behavior and the shipped editor LSP launch
 
 CI and release verification install the MoonBit `latest` distribution archive, pin the downloaded archive and core package with SHA-256 checksums, and verify that `moon version` reports `0.1.20260512` before running checks. The shared setup action defaults to the same expected CLI version, while the workflows pass explicit checksums for the Ubuntu runner archives.
 
+Fresh runners still need `moon update` so `moon install` can resolve exact registry package versions. CI treats that as a registry-index refresh, then verifies that `moon.mod.json` and `moon.pkg` remain unchanged.
+
 To upgrade the CI toolchain:
 
 1. Install the intended MoonBit CLI locally and confirm `moon version`.
 2. Download the matching `moonbit-linux-x86_64.tar.gz` and `core-latest.tar.gz` archives, then record their SHA-256 values.
 3. Update `MOONBIT_EXPECTED_VERSION`, `MOONBIT_ARCHIVE_SHA256`, and `MOONBIT_CORE_SHA256` in both workflows, plus the default `expected-version` in `.github/actions/setup-moonbit/action.yml` when the expected CLI changes.
-4. Run `moon update` only when intentionally refreshing the MoonBit registry/dependencies, then review and commit any resulting dependency changes.
+4. Run `moon update` to refresh the local registry index, then confirm `git diff -- moon.mod.json moon.pkg` is clean unless the PR intentionally changes dependency pins.
 5. Run the relevant `moon check`, `moon test`, smoke, and package commands before opening the upgrade PR.
-
-CI and release jobs do not run `moon update` by default. Manual `workflow_dispatch` runs expose `update_moonbit_dependencies` for intentional dependency refresh checks without changing the normal verification path.
 
 ## Publishing
 

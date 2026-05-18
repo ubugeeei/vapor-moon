@@ -6,12 +6,6 @@ on:
       - main
   pull_request:
   workflow_dispatch:
-    inputs:
-      update_moonbit_dependencies:
-        description: Run moon update before installing dependencies for an intentional registry refresh.
-        required: false
-        default: false
-        type: boolean
 
 permissions:
   contents: read
@@ -23,7 +17,6 @@ env:
   MOONBIT_CORE_SHA256: "c68ba56201bd8d99db442b6df599c2c217b0528edec7d6de6e871b6e589c502e"
   NODE_VERSION: "24"
   PNPM_VERSION: "10"
-  UPDATE_MOONBIT_DEPENDENCIES: ${{ github.event_name == 'workflow_dispatch' && inputs.update_moonbit_dependencies == true }}
 
 defaults:
   run:
@@ -49,7 +42,6 @@ jobs:
           expected-version: ${{ env.MOONBIT_EXPECTED_VERSION }}
           archive-sha256: ${{ env.MOONBIT_ARCHIVE_SHA256 }}
           core-sha256: ${{ env.MOONBIT_CORE_SHA256 }}
-          update-dependencies: ${{ env.UPDATE_MOONBIT_DEPENDENCIES }}
       - name: Moon check
         run: moon check --deny-warn --warn-list -deprecated_syntax-deprecated --target native 2> >(grep -v 'WARN Duplicate alias' >&2)
       - name: Moon native tests
@@ -74,7 +66,6 @@ jobs:
           expected-version: ${{ env.MOONBIT_EXPECTED_VERSION }}
           archive-sha256: ${{ env.MOONBIT_ARCHIVE_SHA256 }}
           core-sha256: ${{ env.MOONBIT_CORE_SHA256 }}
-          update-dependencies: ${{ env.UPDATE_MOONBIT_DEPENDENCIES }}
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
@@ -133,7 +124,6 @@ jobs:
           expected-version: ${{ env.MOONBIT_EXPECTED_VERSION }}
           archive-sha256: ${{ env.MOONBIT_ARCHIVE_SHA256 }}
           core-sha256: ${{ env.MOONBIT_CORE_SHA256 }}
-          update-dependencies: ${{ env.UPDATE_MOONBIT_DEPENDENCIES }}
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:

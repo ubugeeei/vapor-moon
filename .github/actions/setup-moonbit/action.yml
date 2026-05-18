@@ -18,10 +18,6 @@ inputs:
     description: Expected SHA-256 for the MoonBit core archive. Leave empty to skip core checksum verification.
     required: false
     default: ""
-  update-dependencies:
-    description: Run moon update before installing dependencies. Keep false for reproducible verification.
-    required: false
-    default: "false"
   patch-mooncakes:
     description: Reapply the repository mooncakes patch after dependency install.
     required: false
@@ -109,14 +105,17 @@ runs:
           exit 1
         fi
 
-    - name: Update MoonBit dependencies
-      if: ${{ inputs.update-dependencies == 'true' }}
+    - name: Update MoonBit registry index
       shell: bash
       run: moon update
 
     - name: Install MoonBit dependencies
       shell: bash
       run: moon install
+
+    - name: Verify MoonBit manifest unchanged
+      shell: bash
+      run: git diff --exit-code -- moon.mod.json moon.pkg
 
     - name: Patch Mooncakes
       if: ${{ inputs.patch-mooncakes == 'true' }}
