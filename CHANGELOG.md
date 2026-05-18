@@ -17,8 +17,19 @@ backwards compatible.
   `textDocument/codeAction` handlers — Phase 1 stubs that declare the
   capability and return safe empty responses so editors stop reporting
   "method not found" (#86).
+- LSP directive completion details now spell out `v-model` partial-support
+  boundaries (supported targets, unsupported targets, modifier matrix) and
+  introduce a separate `v-model:prop` entry (#66).
+- `v-model` on `<select multiple>` — bound to an `Array[String]` and
+  round-tripped through a runtime helper that walks `<option>` children on
+  every render and collects `event.target.selectedOptions` on change
+  (#64).
 - VS Code extension marketplace metadata (`repository`, `bugs`, `homepage`,
   `keywords`, `author`) and `package` / `publish` scripts (#84).
+- VS Code extension ships a `LICENSE` and a `.vscodeignore`, silencing
+  the `vsce package` warnings.
+- Zed extension manifest, `Cargo.toml`, and `Cargo.lock` track the
+  `0.1.1` release.
 - CI cross-platform matrix: `check-native` now runs on both
   `ubuntu-latest` and `macos-latest` (#83).
 - Release workflow now packages the VS Code extension on every tag, uploads
@@ -27,10 +38,15 @@ backwards compatible.
 - Repository community-health files: `CONTRIBUTING.md`, `SECURITY.md`,
   GitHub issue / pull-request templates, and a README "Security model"
   section (#81, #82, #88).
+- Compiler / runtime docstrings document the `v-unsafe-html` escape-hatch
+  contract next to every lowering and validation site (#62).
 
 ### Changed
 - VS Code extension version bumped to `0.1.1` and is now CI-asserted to
   track `moon.mod.json` (#84).
+- `<input type="file">` v-model rejection is now a final compile-time
+  error with a message pointing at the recommended `@change` +
+  `event.target.files` pattern (#65).
 
 ### Fixed
 - LSP `initialize` response now reports the real package version instead of

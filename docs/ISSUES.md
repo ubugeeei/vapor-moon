@@ -13,9 +13,9 @@
 | Area | Current behavior | Tracking |
 | --- | --- | --- |
 | Component `v-model` modifiers | Explicitly rejected by the compiler. | Create a GitHub issue before implementation work. |
-| `v-model` on `<input type="file">` | Explicitly rejected; decide whether to keep it invalid or design `files` sync. | [#65](https://github.com/ubugeeei/vapor-moon/issues/65) |
-| `v-model` on `<select multiple>` | Explicitly rejected; array sync and initial multiple selection are not implemented. | [#64](https://github.com/ubugeeei/vapor-moon/issues/64) |
-| LSP directive completions | `v-model` is listed generically, without partial-support details. | [#66](https://github.com/ubugeeei/vapor-moon/issues/66) |
+| `v-model` on `<input type="file">` | Final compile-time rejection; the directive will not be supported (DOM `value` is read-only). README documents the recommended `@change` + `event.target.files` pattern. | [#65](https://github.com/ubugeeei/vapor-moon/issues/65) — shipped on `claude/laughing-hawking-1da397`. |
+| `v-model` on `<select multiple>` | Shipped: lowers to `bind_select_multiple_model` (Array[String] round-trip + render-effect sync of `selected` on options). SSR is a deliberate no-op. | [#64](https://github.com/ubugeeei/vapor-moon/issues/64) — shipped on `claude/laughing-hawking-1da397`. |
+| LSP directive completions | `v-model` and `v-model:prop` carry structured detail listing supported/unsupported targets and modifiers. | [#66](https://github.com/ubugeeei/vapor-moon/issues/66) — shipped on `claude/laughing-hawking-1da397`. |
 
 ## Production Readiness Issues
 
@@ -36,3 +36,13 @@ Open production-readiness work should live in GitHub Issues instead of growing t
 | [#86](https://github.com/ubugeeei/vapor-moon/issues/86) | LSP `textDocument/rename` and `textDocument/codeAction`. *(Phase 1 stubs shipped; Phase 2 implementation tracked in the same issue.)* |
 | [#87](https://github.com/ubugeeei/vapor-moon/issues/87) | Automated VS Code Marketplace publishing on tag. *(Shipped pending `VSCE_PAT` secret + first tag.)* |
 | [#88](https://github.com/ubugeeei/vapor-moon/issues/88) | README "Security model" section. *(Shipped; close on merge.)* |
+
+## Larger Feature Work
+
+Out of scope for production-readiness; tracked as full features.
+
+| Issue | Status |
+| --- | --- |
+| [#13](https://github.com/ubugeeei/vapor-moon/issues/13) | Component import / linking across `.mbtv` files. Phase breakdown posted as an issue comment; needs Phase 0 design decision before implementation. |
+| [#14](https://github.com/ubugeeei/vapor-moon/issues/14) | `provide` / `inject`. Phase breakdown posted as an issue comment; Phase 1 needs a runtime context scope API. |
+| [#53](https://github.com/ubugeeei/vapor-moon/issues/53) | MoonBit 0.9 deprecation cleanup. Issue itself asks for a dedicated PR so the mechanical replacements stay reviewable; left as a follow-up. |
