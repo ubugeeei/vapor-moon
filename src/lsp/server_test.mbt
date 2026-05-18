@@ -327,10 +327,7 @@ test "prepareRename, rename, and codeAction return graceful empty responses" {
                 ),
               ]),
             ),
-            (
-              "context",
-              json_object([("diagnostics", @js.any(no_diagnostics))]),
-            ),
+            ("context", json_object([("diagnostics", @js.any(no_diagnostics))])),
           ]),
         ),
       ]),
