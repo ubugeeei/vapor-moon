@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+title: "Vapor Moon"
+message: "If you use Vapor Moon in academic work, please cite it as below."
+type: software
+authors:
+  - given-names: ubugeeei
+    family-names: ""
+    alias: ubugeeei
+    affiliation: Independent
+  - given-names: mizchi
+    family-names: ""
+    alias: mizchi
+    affiliation: Independent
+repository-code: "https://github.com/ubugeeei/vapor-moon"
+url: "https://github.com/ubugeeei/vapor-moon"
+abstract: >-
+  A MoonBit-first Single File Component toolchain for building
+  luna.mbt-powered UIs with Vue-like authoring, direct DOM-oriented
+  client output, and SSR/island delivery. .mbtv components compile to
+  raw DOM operations rather than going through a virtual DOM.
+keywords:
+  - MoonBit
+  - SFC
+  - DOM
+  - SSR
+  - compiler
+license: MIT
