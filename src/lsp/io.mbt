@@ -77,7 +77,7 @@ pub fn filename_to_uri(filename : String) -> String {
 ///|
 /// Read a document by URI, ignoring unsupported non-file schemes.
 pub fn read_uri_text(uri : String) -> String? {
-  if uri.contains("://") && not(uri.has_prefix("file://")) {
+  if uri.contains("://") && !uri.has_prefix("file://") {
     None
   } else {
     read_file_text(uri_to_filename(uri))

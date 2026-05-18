@@ -146,7 +146,7 @@ fn ToolingDocument::current_token_prefix(
   let chars = self.chars
   let limit = if offset < chars.length() { offset } else { chars.length() }
   let mut start = limit
-  while start > 0 && not(token_boundary(chars[start - 1])) {
+  while start > 0 && !token_boundary(chars[start - 1]) {
     start -= 1
   }
   String::unsafe_substring(self.source, start~, end=limit)

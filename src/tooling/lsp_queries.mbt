@@ -156,7 +156,7 @@ fn ToolingQuery::resolved_template_ref_completion_items(
           continue
         }
         for field in binding.fields {
-          if not(field.name.has_prefix(prefix)) {
+          if !field.name.has_prefix(prefix) {
             continue
           }
           items.push({
@@ -209,7 +209,7 @@ fn ToolingQuery::resolved_template_ref_completion_context(
     None => return None
   }
   let binding_name = document.span_text(arg_span)
-  if not(ToolingDocument::identifier_literal(binding_name)) {
+  if !ToolingDocument::identifier_literal(binding_name) {
     return None
   }
   cursor = open_paren
@@ -231,7 +231,7 @@ fn ToolingQuery::resolved_template_ref_completion_context(
     start=name_start,
     end=name_end,
   )
-  if not(callee.has_suffix("resolve_template_ref")) {
+  if !callee.has_suffix("resolve_template_ref") {
     return None
   }
   Some((binding_name, prefix))
@@ -342,7 +342,7 @@ fn ToolingQuery::member_completion_items(
           continue
         }
         for field in binding.fields {
-          if not(field.name.has_prefix(prefix)) {
+          if !field.name.has_prefix(prefix) {
             continue
           }
           items.push({
