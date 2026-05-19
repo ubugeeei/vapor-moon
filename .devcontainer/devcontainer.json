@@ -1,0 +1,40 @@
+{
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
+  "name": "Vapor Moon (Nix)",
+  "image": "ghcr.io/nixos/nix:latest",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "username": "vscode",
+      "uid": "1000",
+      "gid": "1000"
+    }
+  },
+  "containerEnv": {
+    "NIX_CONFIG": "experimental-features = nix-command flakes",
+    "MOONBIT_EXPECTED_VERSION": "0.1.20260512"
+  },
+  "remoteUser": "vscode",
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "moonbit.moonbit-lang",
+        "esbenp.prettier-vscode",
+        "editorconfig.editorconfig",
+        "jnoortheen.nix-ide",
+        "mkhl.direnv"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "files.eol": "\n",
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "nix.enableLanguageServer": true,
+        "nix.serverPath": "nil"
+      }
+    }
+  },
+  "forwardPorts": [5179],
+  "mounts": [
+    "source=vapor-moon-nix-store,target=/nix,type=volume"
+  ]
+}

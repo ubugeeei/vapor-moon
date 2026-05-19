@@ -1,0 +1,42 @@
+<script>
+import {
+  "mizchi/luna/js/resource" @reactivity,
+  let signal = @reactivity.signal,
+}
+
+let count = signal(0)
+</script>
+
+<template>
+  <section class='counter'>
+    <h1>Vapor Moon × Vite+</h1>
+    <p>The button below is rendered by `render_dom` from a `.mbtv` source compiled at Vite+ module-resolution time.</p>
+    <button type='button' @click='count.update(fn(n) { n + 1 })'>
+      Clicked {{ count.get().to_string() }} times
+    </button>
+  </section>
+</template>
+
+<style>
+.counter {
+  font-family: system-ui, -apple-system, sans-serif;
+  max-width: 480px;
+  margin: 48px auto;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid #aaa;
+  background: #fafafa;
+}
+
+.counter h1 {
+  margin: 0 0 12px;
+  font-size: 22px;
+}
+
+.counter button {
+  margin-top: 12px;
+  padding: 8px 16px;
+  font-size: 16px;
+  cursor: pointer;
+}
+</style>

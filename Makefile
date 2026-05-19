@@ -6,7 +6,9 @@
 # discoverable.
 
 .PHONY: help fmt check test test-native test-js smoke smoke-cli smoke-lsp \
-        vsce-package vsce-publish clean ci
+        vsce-package vsce-publish clean ci \
+        nix-shell nix-check nix-fmt nix-update \
+        vite-plugin-test vite-plugin-build vite-app-dev vite-app-build
 
 help: ## Show this help.
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-18s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -49,3 +51,31 @@ ci: fmt check check-js test-native smoke ## Run the same gates CI does, locally.
 
 clean: ## Remove moon build artifacts.
 	rm -rf _build target
+
+# ----- Nix targets -----
+
+nix-shell: ## Enter the Nix dev shell (`nix develop`).
+	nix develop
+
+nix-check: ## Run `nix flake check` (currently shellcheck over scripts/).
+	nix flake check --print-build-logs
+
+nix-fmt: ## Format the flake with nixpkgs-fmt.
+	nix fmt
+
+nix-update: ## Refresh flake.lock.
+	nix flake update
+
+# ----- Vite+ plugin targets -----
+
+vite-plugin-test: ## Run the @vapor-moon/vite-plugin vitest suite.
+	pnpm --dir packages/vite-plugin-vapor-moon test
+
+vite-plugin-build: ## Build @vapor-moon/vite-plugin (tsup).
+	pnpm --dir packages/vite-plugin-vapor-moon build
+
+vite-app-dev: ## Run the examples/vite-app dev server on :5179.
+	pnpm --dir examples/vite-app dev
+
+vite-app-build: ## Build the examples/vite-app for production.
+	pnpm --dir examples/vite-app build
