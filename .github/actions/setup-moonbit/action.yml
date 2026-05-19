@@ -26,10 +26,36 @@ inputs:
 runs:
   using: composite
   steps:
+    # Cache the MoonBit toolchain + core lib so CI doesn't re-download
+    # 100+ MB every run. Cache key is the resolved version + OS + arch —
+    # when the version env changes (or a new platform is added) the cache
+    # naturally invalidates.
+    - name: Cache MoonBit toolchain
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.moon/bin
+          ~/.moon/lib
+          ~/.moon/include
+        key: moonbit-${{ runner.os }}-${{ runner.arch }}-${{ inputs.expected-version }}-${{ inputs.version }}
+        restore-keys: |
+          moonbit-${{ runner.os }}-${{ runner.arch }}-${{ inputs.expected-version }}-
+
     - name: Install MoonBit CLI
       shell: bash
       run: |
         set -euo pipefail
+        # Skip the full install if the cache restored a working toolchain
+        # matching the expected version. Saves ~30s per matrix leg.
+        if [[ -x "$HOME/.moon/bin/moon" ]]; then
+          actual_version="$($HOME/.moon/bin/moon version 2>/dev/null | sed -n 's/^moon \([^ ]*\).*/\1/p' || true)"
+          if [[ -n "${{ inputs.expected-version }}" && "$actual_version" == "${{ inputs.expected-version }}" && -d "$HOME/.moon/lib/core" ]]; then
+            echo "Cached MoonBit $actual_version is up to date — skipping install."
+            echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+            exit 0
+          fi
+        fi
+
         target=""
         case "$(uname -ms)" in
           "Darwin arm64") target="darwin-aarch64" ;;

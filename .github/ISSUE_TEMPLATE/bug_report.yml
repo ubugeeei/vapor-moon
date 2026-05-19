@@ -1,0 +1,98 @@
+name: Bug report
+description: Report a defect in the compiler, runtime, CLI, or LSP.
+title: "bug(area): "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug! Please fill in every section — the
+        smaller the reproduction, the faster the fix.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One or two sentences describing the wrong behavior.
+      placeholder: "compile fails with InvalidDirective when ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Minimal `.mbtv` source (please trim — large repros are hard to bisect).
+      placeholder: |
+        <script setup>
+        ...
+        </script>
+
+        <template>
+        ...
+        </template>
+      render: html
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead? Copy the compiler / LSP / browser output verbatim.
+    validations:
+      required: true
+
+  - type: input
+    id: moon_version
+    attributes:
+      label: MoonBit version
+      description: Output of `moon version`.
+      placeholder: "moon 0.1.20260512 ..."
+    validations:
+      required: true
+
+  - type: input
+    id: vapor_moon_version
+    attributes:
+      label: Vapor Moon version / commit
+      description: Output of `vapor-moon --version`, or the commit you compiled from source.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - Windows (WSL)
+        - Windows (native)
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Anything else that helps — screenshots, related issues, suspicions, etc.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Self-check
+      options:
+        - label: I searched existing issues for duplicates.
+          required: true
+        - label: I confirmed the repro is minimal (one component, no external imports).
+          required: true

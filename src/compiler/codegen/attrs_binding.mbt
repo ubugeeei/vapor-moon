@@ -171,7 +171,8 @@ fn render_client_model_attrs(
         // with the live element. See `bind_select_multiple_model` in
         // src/runtime/dom/dom.mbt.
         let setter = render_model_write_expr(
-          model.expression, "__vm_select_values",
+          model.expression,
+          "__vm_select_values",
         )
         parts.push(
           "(\"__selectMultipleModel\", @dom.on(fn(__vm_select_elem) { @dom.bind_select_multiple_model(__vm_select_elem, fn() { " +

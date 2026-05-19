@@ -2,7 +2,7 @@
   "name": "vapor-moon",
   "displayName": "Vapor Moon",
   "description": "Language support and LSP client for Vapor Moon .mbtv components.",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "publisher": "ubugeeei",
   "license": "MIT",
   "author": {
