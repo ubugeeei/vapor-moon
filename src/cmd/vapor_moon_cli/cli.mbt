@@ -35,6 +35,12 @@ pub fn run(args : Array[String]) -> Unit {
     run_doctor()
     return
   }
+  // `new` takes a component name and optional `--force` flag; route it
+  // before the generic < 3 args check so the usage message is correct.
+  if args[1] == "new" {
+    run_new(args[2:])
+    return
+  }
   if args.length() < 3 {
     exit_usage()
     return
@@ -648,6 +654,9 @@ fn print_help() -> Unit {
   println(
     "  doctor                                             Print environment diagnostics (MOON_HOME, moon.mod.json detection, etc.).",
   )
+  println(
+    "  new         <Name> [--force]                       Scaffold ./<Name>.mbtv from a minimal starter template; refuses to overwrite unless --force is set.",
+  )
   println("")
   println("Positions are zero-based (LSP semantics).")
 }
@@ -664,6 +673,106 @@ fn print_help() -> Unit {
 /// - Presence of the `vapor_moon` package in that manifest.
 ///
 /// Intentionally does not shell out to `moon version` — keeping doctor
+/// Scaffold `./<Name>.mbtv` from a minimal starter template. Refuses to
+/// overwrite an existing file unless `--force` is passed so a stray
+/// `vapor-moon new Counter` doesn't clobber a real component.
+///
+/// `name` becomes the file stem; bare component names map to
+/// `./<Name>.mbtv`. A name with a `/` is treated as a path: the leading
+/// directories are taken as-is, the final segment becomes the stem.
+fn run_new(extra : ArrayView[String]) -> Unit {
+  if extra.length() < 1 {
+    println(
+      "Usage: vapor-moon new <Name> [--force]",
+    )
+    @sys.exit(2)
+    return
+  }
+  let name = extra[0]
+  let mut force = false
+  let mut index = 1
+  while index < extra.length() {
+    match extra[index] {
+      "--force" | "-f" => force = true
+      other => {
+        println("vapor-moon new: unknown flag `" + other + "`")
+        @sys.exit(2)
+        return
+      }
+    }
+    index += 1
+  }
+  if name.is_empty() {
+    println("vapor-moon new: <Name> cannot be empty")
+    @sys.exit(2)
+    return
+  }
+  // Strip a trailing `.mbtv` if the user typed one — the subcommand
+  // appends the extension itself so authors can write either spelling.
+  let stem = if name.has_suffix(".mbtv") {
+    name.substring(start=0, end=name.length() - 5).to_string()
+  } else {
+    name
+  }
+  let target = stem + ".mbtv"
+  if @fs.path_exists(target) && !force {
+    println(
+      "vapor-moon new: " + target + " already exists. Pass --force to overwrite.",
+    )
+    @sys.exit(1)
+    return
+  }
+  @fs.write_string_to_file(target, starter_template(stem), encoding="utf8") catch {
+    err => {
+      println("vapor-moon new: failed to write " + target + ": " + err.to_string())
+      @sys.exit(1)
+      return
+    }
+  }
+  println("created " + target)
+}
+
+///|
+/// Starter SFC body for `vapor-moon new`. Kept small enough to feel
+/// like a stub but complete enough to compile and round-trip through
+/// every stage of the pipeline (script + template + scoped style).
+fn starter_template(name : String) -> String {
+  // The unscoped class name uses the component stem so the rendered
+  // markup is easy to recognize in dev tools without a manual rename.
+  let css_class = "vapor-moon-" + name.to_lower()
+  "<script>\n" +
+  "import {\n" +
+  "  \"mizchi/luna/js/resource\" @reactivity,\n" +
+  "  let signal = @reactivity.signal,\n" +
+  "}\n" +
+  "\n" +
+  "let count = signal(0)\n" +
+  "</script>\n" +
+  "\n" +
+  "<template>\n" +
+  "  <button class=\"" +
+  css_class +
+  "\" @click='count.update(fn(n) { n + 1 })'>\n" +
+  "    {{ \"" +
+  name +
+  ": \" + count.get().to_string() }}\n" +
+  "  </button>\n" +
+  "</template>\n" +
+  "\n" +
+  "<style>\n" +
+  "." +
+  css_class +
+  " {\n" +
+  "  padding: 0.5rem 1rem;\n" +
+  "  border-radius: 4px;\n" +
+  "  border: 1px solid #ccc;\n" +
+  "  background: #f5f5f5;\n" +
+  "  cursor: pointer;\n" +
+  "}\n" +
+  "</style>\n"
+}
+
+///|
 /// dependency-free means it works in environments where moon is not on
 /// PATH (which is itself a useful diagnostic).
 fn run_doctor() -> Unit {

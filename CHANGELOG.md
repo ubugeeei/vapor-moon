@@ -14,6 +14,10 @@ backwards compatible.
   CI and pre-commit hooks. Silent on success, exits 1 with
   `path:line:col [severity] message` lines per diagnostic otherwise.
   Accepts multiple files. Covered by `scripts/smoke_cli.sh` (#135).
+- `vapor-moon new <Name> [--force]` subcommand — scaffolds
+  `./<Name>.mbtv` from a minimal starter (script + reactive signal +
+  scoped style). Refuses to overwrite an existing file unless
+  `--force` is passed. Covered by `scripts/smoke_cli.sh` (#127).
 
 ## [0.2.0] — 2026-05-19
 
