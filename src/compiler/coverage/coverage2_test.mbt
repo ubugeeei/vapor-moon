@@ -354,3 +354,47 @@ test "static ref attribute with special chars" {
   let output = compile_snapshot(source, "RefSpecial.mbtv")
   assert_true(output.contains("my-ref"))
 }
+
+///|
+/// Coverage for the provide / inject Phase 1 surface (#14). Asserts
+/// that compilation succeeds and that the @context import threads
+/// through to the lowered client output. Symmetry test for the SFC
+/// shipped as examples/provide_inject.mbtv.
+test "provide and inject calls compile and route through @context" {
+  let source =
+    #|<script>
+    #|import {
+    #|  "ubugeeei/vapor_moon/src/runtime/context" @context,
+    #|}
+    #|let theme = @context.provide("theme", "dark")
+    #|let resolved : String? = @context.inject("theme")
+    #|let fallback = @context.inject_or("locale", "en")
+    #|</script>
+    #|<template>
+    #|  <p>{{ theme }} / {{ fallback }}</p>
+    #|</template>
+  let output = compile_snapshot(source, "ProvideInject.mbtv")
+  assert_true(output.contains("@context.provide"))
+  assert_true(output.contains("@context.inject"))
+  assert_true(output.contains("@context.inject_or"))
+}
+
+///|
+/// Coverage for v-model on <select multiple> (#64). Asserts the
+/// generated client lowers through the runtime helper, not through the
+/// regular value+event path, and that SSR is a no-op.
+test "select multiple v-model compiles to bind_select_multiple_model" {
+  let source =
+    #|<script setup>
+    #|let selected : Array[String] = []
+    #|</script>
+    #|<template>
+    #|  <select multiple v-model='selected'>
+    #|    <option value='a'>A</option>
+    #|    <option value='b'>B</option>
+    #|  </select>
+    #|</template>
+  let output = compile_snapshot(source, "SelectMultipleVModel.mbtv")
+  assert_true(output.contains("__selectMultipleModel"))
+  assert_true(output.contains("@dom.bind_select_multiple_model"))
+}
