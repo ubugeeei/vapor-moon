@@ -44,17 +44,48 @@ _Nothing yet — the next change starts here._
   section (#81, #82, #88).
 - Compiler / runtime docstrings document the `v-unsafe-html` escape-hatch
   contract next to every lowering and validation site (#62).
+- `provide` / `inject` Phase 1 — a flat per-JS-realm registry exposed as
+  `src/runtime/context`, plus a Phase 2 design comment on #14. Same call-site
+  API as the upcoming scoped variant.
+- CI: cache the MoonBit toolchain across runs, skip reinstall on cache hit.
+- CI: `setup-moonbit` surfaces archive / core SHA-256 as workflow notices
+  so new platforms can be pinned without a local Mac.
+- CI: umbrella `check-native` job (kept for the legacy required-check name).
+- CI: stale issue / PR bot, path-based PR auto-labeler, dependabot grouping
+  tightened (PR limit, semver-major ignores, per-ecosystem labels).
+- Release: Release Drafter auto-drafts the next GitHub Release on every
+  push to main, with PRs bucketed by label and semantic version resolved
+  from labels.
+- Repo hygiene: `.editorconfig`, expanded `.gitattributes`, `.nvmrc`,
+  `.node-version`, `.prettierrc.json`, `.prettierignore`,
+  `.github/CODEOWNERS`, `.github/FUNDING.yml`.
+- `.devcontainer/` for one-click Codespaces / Remote-Containers hacking.
+- VS Code / Zed editor manifests bumped to `0.1.1` in lock-step with
+  `moon.mod.json` and the `VERSION` constant.
+- Issue templates converted to YAML forms with client-side validation.
+- Docs: `ARCHITECTURE.md`, `CITATION.cff`, `examples/README.md`,
+  `examples/todo_list.mbtv`, `examples/provide_inject.mbtv`, README
+  Quickstart, README status badges.
+- Tests: coverage for the provide / inject and select-multiple v-model
+  lowering paths.
 
 ### Changed
+- 116 `not(expr)` prelude calls replaced with the `!expr` operator across
+  `src/` (part 1 of the MoonBit 0.9 deprecation cleanup, #53).
 - VS Code extension version bumped to `0.1.1` and is now CI-asserted to
   track `moon.mod.json` (#84).
 - `<input type="file">` v-model rejection is now a final compile-time
   error with a message pointing at the recommended `@change` +
   `event.target.files` pattern (#65).
+- README "Status" section refreshed: every shipped feature listed,
+  intentional limitations enumerated with issue links.
 
 ### Fixed
 - LSP `initialize` response now reports the real package version instead of
   a stale hard-coded `0.1.0` (#85).
+- `vsce package` warnings (LICENSE, .vscodeignore) silenced.
+- `check-js` LSP test failed on JS target due to untypeable empty array;
+  annotation added.
 
 ## [0.1.1] — 2026-05-19
 
