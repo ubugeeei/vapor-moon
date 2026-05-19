@@ -1,6 +1,6 @@
 {
   "name": "ubugeeei/vapor_moon",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "deps": {
     "mizchi/js": "0.10.17",
     "mizchi/luna": "0.23.0",
