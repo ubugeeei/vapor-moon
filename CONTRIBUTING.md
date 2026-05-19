@@ -129,6 +129,23 @@ When opening a PR, make sure:
 - For non-trivial feature work, open an issue first to align on shape
   before sending the PR.
 
+## Pinning a new CI platform
+
+`.github/workflows/ci.yaml` pins the SHA-256 of the MoonBit toolchain
+archive per matrix leg. When adding a new platform (e.g. `windows-latest`,
+`macos-14`, or `linux-aarch64`):
+
+1. Add the new entry to the `check-native-matrix` `strategy.matrix.include`
+   list with empty `archive-sha256` / `core-sha256` values.
+2. Push the branch — the `setup-moonbit` composite action surfaces the
+   real SHA-256 of `moonbit.tar.gz` and `core.tar.gz` as workflow
+   notices (look for the `tar.gz=…` annotations on the new job).
+3. Copy those values back into the matrix entry. Keep the inline comment
+   pointing here.
+4. Bumping the toolchain version (`MOONBIT_EXPECTED_VERSION`) is the
+   same flow: temporarily blank the per-platform SHA values, push,
+   read the notices, refill.
+
 ## Releasing
 
 1. Bump `version` in all of these so they stay in sync:

@@ -13,8 +13,12 @@ permissions:
 env:
   MOONBIT_VERSION: latest
   MOONBIT_EXPECTED_VERSION: "0.1.20260512"
-  # SHA-256 is pinned per host: keep the ubuntu (linux-x86_64) sums here and
-  # let the macOS leg derive its own (currently unpinned — see #83).
+  # SHA-256 is pinned per host. These top-level values are the Linux
+  # (linux-x86_64) sums used by the non-matrix jobs (check-js, e2e,
+  # release). The matrix `check-native-matrix` job below overrides them
+  # per-OS so macOS gets its own pin too. To bump these on a future
+  # toolchain version, re-run CI once with empty values and read the
+  # SHA-256 the setup-moonbit action prints as a workflow notice.
   MOONBIT_ARCHIVE_SHA256: "2c3a5af2020c9ceb3fe11e6457e647a215846d97d71c8e784b3d0a7c8cfc606b"
   MOONBIT_CORE_SHA256: "c68ba56201bd8d99db442b6df599c2c217b0528edec7d6de6e871b6e589c502e"
   NODE_VERSION: "24"
@@ -40,11 +44,13 @@ jobs:
           - os: ubuntu-latest
             archive-sha256: "2c3a5af2020c9ceb3fe11e6457e647a215846d97d71c8e784b3d0a7c8cfc606b"
             core-sha256: "c68ba56201bd8d99db442b6df599c2c217b0528edec7d6de6e871b6e589c502e"
-          # macOS leg has no pinned checksums yet — see #83 for the
-          # SHA-256 pinning follow-up.
           - os: macos-latest
-            archive-sha256: ""
-            core-sha256: ""
+            # macOS uses a different platform archive but the same
+            # bundled core. Both are sourced from the workflow notices
+            # printed by the setup-moonbit action — see CONTRIBUTING.md
+            # "Pinning a new CI platform" for the rotation procedure.
+            archive-sha256: "e4eb64a5eb8270e8bc62825554438c325566e641c7089e2f3bf564e9184331b9"
+            core-sha256: "c68ba56201bd8d99db442b6df599c2c217b0528edec7d6de6e871b6e589c502e"
     steps:
       - name: Checkout
         uses: actions/checkout@v6
