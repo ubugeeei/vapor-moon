@@ -1,0 +1,24 @@
+name: Release Drafter
+
+# release-drafter requires its config file to live on the default
+# branch — running on pull_request before merge causes "Invalid config
+# file" failures. Trigger only on push to main and on demand.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: release-drafter/release-drafter@v6
+        with:
+          config-name: release-drafter.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

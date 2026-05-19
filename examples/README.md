@@ -24,6 +24,7 @@ moon run src/cmd/vapor_moon -- compile examples/basic.mbtv
 | `macros.mbtv` | `defineProps()`, `defineEmits()`, `defineSlots()` together. |
 | `media_and_defer.mbtv` | `client:media="(max-width: 800px)"` and `server-defer`. |
 | `props_defaults.mbtv` | `defineProps({ ... })` with record-literal defaults. |
+| `provide_inject.mbtv` | Phase 1 `provide` / `inject` registry from `runtime/context` ([#14](https://github.com/ubugeeei/vapor-moon/issues/14)). |
 | `todo_list.mbtv` | End-to-end demo: input + checkbox + filter buttons + remove, all backed by a single signal store. Good entry point for a tour of the full feature set. |
 
 ## Adding an example

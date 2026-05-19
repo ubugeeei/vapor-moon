@@ -1,0 +1,70 @@
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+
+categories:
+  - title: "🚀 Features"
+    labels:
+      - feature
+      - feat
+      - enhancement
+  - title: "🐛 Fixes"
+    labels:
+      - fix
+      - bugfix
+      - bug
+  - title: "🔒 Security"
+    labels:
+      - security
+  - title: "🧰 Maintenance"
+    labels:
+      - chore
+      - refactor
+      - style
+  - title: "📚 Documentation"
+    labels:
+      - documentation
+      - docs
+  - title: "⚙️ CI / Infrastructure"
+    labels:
+      - ci
+      - infrastructure
+  - title: "🧪 Tests"
+    labels:
+      - tests
+      - test
+  - title: "📦 Dependencies"
+    labels:
+      - dependencies
+
+change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
+change-title-escapes: '\<*_&'
+
+version-resolver:
+  major:
+    labels:
+      - breaking
+  minor:
+    labels:
+      - feature
+      - feat
+      - enhancement
+  patch:
+    labels:
+      - fix
+      - bugfix
+      - bug
+      - chore
+      - documentation
+      - docs
+      - ci
+      - tests
+  default: patch
+
+template: |
+  ## Highlights
+
+  $CHANGES
+
+  ## Full Changelog
+
+  https://github.com/ubugeeei/vapor-moon/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION

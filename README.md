@@ -33,22 +33,29 @@ This repository already includes:
 - parsing for `<template>`, `<script>`, `<script extern>`, and `<style>`
 - client code generation for raw DOM-oriented output
 - server code generation for `luna` SSR output
-- typed `defineProps()`, `defineEmits()`, and `defineSlots()` contracts
+- typed `defineProps()`, `defineEmits()`, `defineSlots()`, and `defineExpose()` contracts
 - scoped styles by default
 - dynamic components with `<component :is="...">`
 - built-in `<Teleport>`, `<Transition>`, and `<TransitionGroup>` shells
-- diagnostics, hover, definition, references, formatting, and completion queries for editor tooling
+- component event listeners (`@save` / `v-on:save` on component tags)
+- component-side `v-model` and `v-model:prop` (lowered to `:prop` + `@update:prop`)
+- `v-model` on text / radio / checkbox / textarea / `<select>` / `<select multiple>` form controls
+- `provide` / `inject` Phase 1 (flat per-JS-realm registry — see [#14](https://github.com/ubugeeei/vapor-moon/issues/14) for Phase 2 scoping)
+- diagnostics, hover, definition, references, formatting, completion, prepareRename, rename, and codeAction queries for editor tooling
 - a stdio JSON-RPC LSP server plus VS Code, Zed, and Neovim integrations
 - ripple-backed incremental compilation infrastructure
 - snapshot-heavy compiler and tooling tests
+- a published CHANGELOG, CONTRIBUTING guide, SECURITY policy, and PR/issue templates
 
 Current scope intentionally excludes or leaves unfinished:
 
 - `lang="mbt"` and other per-block language switches
 - CSS preprocessors
-- a finalized cross-component import and linking story
-- component event listeners such as `@save` on component tags
-- component-side `v-model`
+- a finalized cross-component import and linking story ([#13](https://github.com/ubugeeei/vapor-moon/issues/13))
+- per-component scoping for `provide` / `inject` ([#14](https://github.com/ubugeeei/vapor-moon/issues/14) Phase 2)
+- `v-model` on `<input type="file">` (intentionally rejected — use `@change` + `event.target.files`)
+- `v-model` modifiers (`.lazy`, `.number`, `.trim`) outside the text-input paths where they currently work
+- LSP rename / codeAction implementations beyond Phase 1 stubs ([#86](https://github.com/ubugeeei/vapor-moon/issues/86) Phase 2)
 
 ## Authoring Model
 

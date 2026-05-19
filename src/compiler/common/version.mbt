@@ -4,4 +4,4 @@
 ///
 /// Keep this constant in sync with the `version` field of `moon.mod.json` at
 /// the repository root. `scripts/smoke_cli.sh` enforces the invariant in CI.
-pub const VERSION : String = "0.1.1"
+pub const VERSION : String = "0.2.0"
