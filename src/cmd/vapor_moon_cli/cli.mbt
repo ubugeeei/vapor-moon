@@ -29,6 +29,12 @@ pub fn run(args : Array[String]) -> Unit {
     }
     _ => ()
   }
+  // `doctor` is the one subcommand that does not take a file argument.
+  // Handle it before the < 3 args guard so users can invoke it bare.
+  if args[1] == "doctor" {
+    run_doctor()
+    return
+  }
   if args.length() < 3 {
     exit_usage()
     return
@@ -601,6 +607,91 @@ fn print_help() -> Unit {
   println(
     "  format      <file.mbtv>                            Print the formatted source.",
   )
+  println(
+    "  doctor                                             Print environment diagnostics (MOON_HOME, moon.mod.json detection, etc.).",
+  )
   println("")
   println("Positions are zero-based (LSP semantics).")
+}
+
+///|
+/// Print environment diagnostics. Exit nonzero when any critical
+/// expectation fails (e.g. the workspace cannot be located).
+///
+/// What we check:
+/// - vapor-moon's own version (from the shared VERSION constant).
+/// - The expected MoonBit version this Vapor Moon was built against.
+/// - MOON_HOME if the env var is set.
+/// - Presence of a moon.mod.json walking up from the current directory.
+/// - Presence of the `vapor_moon` package in that manifest.
+///
+/// Intentionally does not shell out to `moon version` — keeping doctor
+/// dependency-free means it works in environments where moon is not on
+/// PATH (which is itself a useful diagnostic).
+fn run_doctor() -> Unit {
+  let mut failures = 0
+  println("vapor-moon doctor")
+  println("=================")
+  println("vapor-moon version : " + @compiler_common.VERSION)
+  println("expected MoonBit   : 0.1.20260512")
+  match @env.get_env_var("MOON_HOME") {
+    Some(home) => println("MOON_HOME          : " + home)
+    None => println("MOON_HOME          : <unset> (will fall back to $HOME/.moon)")
+  }
+  match find_moon_mod_json(".") {
+    Some(path) => {
+      println("moon.mod.json      : " + path)
+      let content = @fs.read_file_to_string(path, encoding="utf8") catch {
+        err => {
+          println(
+            "  ! failed to read moon.mod.json: " + err.to_string(),
+          )
+          failures = failures + 1
+          ""
+        }
+      }
+      if content.contains("vapor_moon") {
+        println("  ✓ contains a vapor_moon dependency reference")
+      } else {
+        println("  ! no vapor_moon dependency found in manifest")
+        failures = failures + 1
+      }
+    }
+    None => {
+      println("moon.mod.json      : <not found> (run `vapor-moon doctor` inside a moon workspace)")
+      failures = failures + 1
+    }
+  }
+  println("")
+  if failures == 0 {
+    println("All checks passed.")
+  } else {
+    println(
+      "" + failures.to_string() + " check(s) failed. See above for details.",
+    )
+    @sys.exit(1)
+  }
+}
+
+///|
+/// Walk up from `start` looking for a moon.mod.json. Returns the
+/// resolved absolute path or None.
+fn find_moon_mod_json(start : String) -> String? {
+  let start_path : @path.Path = start
+  let mut cursor : @path.Path = start_path.resolve()
+  // 32 hops is way more than any real filesystem nests; the guard is a
+  // belt-and-braces against cursor.dirname() returning the same path
+  // and looping.
+  for _ in 0..<32 {
+    let candidate = cursor.join("moon.mod.json")
+    if @fs.path_exists(candidate.to_string()) {
+      return Some(candidate.to_string())
+    }
+    let parent = cursor.dirname()
+    if parent.to_string() == cursor.to_string() {
+      return None
+    }
+    cursor = parent
+  }
+  None
 }
