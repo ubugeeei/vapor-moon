@@ -682,9 +682,7 @@ fn print_help() -> Unit {
 /// directories are taken as-is, the final segment becomes the stem.
 fn run_new(extra : ArrayView[String]) -> Unit {
   if extra.length() < 1 {
-    println(
-      "Usage: vapor-moon new <Name> [--force]",
-    )
+    println("Usage: vapor-moon new <Name> [--force]")
     @sys.exit(2)
     return
   }
@@ -717,14 +715,18 @@ fn run_new(extra : ArrayView[String]) -> Unit {
   let target = stem + ".mbtv"
   if @fs.path_exists(target) && !force {
     println(
-      "vapor-moon new: " + target + " already exists. Pass --force to overwrite.",
+      "vapor-moon new: " +
+      target +
+      " already exists. Pass --force to overwrite.",
     )
     @sys.exit(1)
     return
   }
   @fs.write_string_to_file(target, starter_template(stem), encoding="utf8") catch {
     err => {
-      println("vapor-moon new: failed to write " + target + ": " + err.to_string())
+      println(
+        "vapor-moon new: failed to write " + target + ": " + err.to_string(),
+      )
       @sys.exit(1)
       return
     }
