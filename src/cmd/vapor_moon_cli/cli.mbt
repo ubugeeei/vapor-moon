@@ -63,6 +63,41 @@ pub fn run(args : Array[String]) -> Unit {
       let source = read_text_or_exit(path)
       println(@tooling.diagnostics(source, filename=path).to_string())
     }
+    "check" => {
+      // Pass/fail gate for CI and pre-commit hooks: silent on success,
+      // exit 1 with one diagnostic line per file otherwise. Accepts one
+      // or more file paths (everything from args[2] onward).
+      let paths = args[2:]
+      let mut had_error = false
+      for p in paths {
+        let source = read_text_or_exit(p)
+        let diagnostics = @tooling.diagnostics(source, filename=p)
+        if diagnostics.length() > 0 {
+          had_error = true
+          for d in diagnostics {
+            // `file:line:col [severity] message` — line/character in
+            // ToolingDiagnostic are zero-based (LSP), shift to one-based
+            // for human / editor parity.
+            let line = d.location.range.start.line + 1
+            let col = d.location.range.start.character + 1
+            println(
+              p +
+              ":" +
+              line.to_string() +
+              ":" +
+              col.to_string() +
+              " [" +
+              d.severity +
+              "] " +
+              d.message,
+            )
+          }
+        }
+      }
+      if had_error {
+        @sys.exit(1)
+      }
+    }
     "hover" =>
       if args.length() < 5 {
         exit_usage()
@@ -591,6 +626,9 @@ fn print_help() -> Unit {
   )
   println(
     "  diagnostics <file.mbtv>                            Print diagnostics for one file.",
+  )
+  println(
+    "  check       <file.mbtv> [more.mbtv...]             Validate one or more files; exit 0 silently on success, exit 1 with `file:line:col [severity] message` lines otherwise.",
   )
   println(
     "  hover       <file.mbtv> <line> <character>         Print the hover result at a position.",

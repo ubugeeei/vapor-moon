@@ -9,7 +9,11 @@ backwards compatible.
 
 ## [Unreleased]
 
-_Nothing yet — the next change starts here._
+### Added
+- `vapor-moon check <file> [more...]` subcommand — pass/fail gate for
+  CI and pre-commit hooks. Silent on success, exits 1 with
+  `path:line:col [severity] message` lines per diagnostic otherwise.
+  Accepts multiple files. Covered by `scripts/smoke_cli.sh` (#135).
 
 ## [0.2.0] — 2026-05-19
 
