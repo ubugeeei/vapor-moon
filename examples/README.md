@@ -26,6 +26,7 @@ moon run src/cmd/vapor_moon -- compile examples/basic.mbtv
 | `props_defaults.mbtv` | `defineProps({ ... })` with record-literal defaults. |
 | `provide_inject.mbtv` | Phase 1 `provide` / `inject` registry from `runtime/context` ([#14](https://github.com/ubugeeei/vapor-moon/issues/14)). |
 | `todo_list.mbtv` | End-to-end demo: input + checkbox + filter buttons + remove, all backed by a single signal store. Good entry point for a tour of the full feature set. |
+| `unsafe_html.mbtv` | Sanitize-first pattern for `v-unsafe-html`. The escape hatch is bound only to the output of a sanitizer; raw user input is shown next to it through the default-escaped `{{ … }}` form. See the "Security Model" section of the top-level README for the contract. |
 
 ## Adding an example
 

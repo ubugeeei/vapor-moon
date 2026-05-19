@@ -474,7 +474,9 @@ user-controlled values:
 
   Recommended pattern: sanitize at the call site with an established HTML
   sanitizer before binding the result to `v-unsafe-html`. Never pass raw
-  user input to it.
+  user input to it. See
+  [`examples/unsafe_html.mbtv`](./examples/unsafe_html.mbtv) for a
+  working `sanitize() → v-unsafe-html` demo.
 
 ### Reporting issues
 
