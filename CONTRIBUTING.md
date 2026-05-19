@@ -104,7 +104,16 @@ When opening a PR, make sure:
      `zed_vapor_moon` entry in `editors/zed/Cargo.lock`.
 2. Update `CHANGELOG.md`: rename the `[Unreleased]` section to the new
    version + date and add a fresh `[Unreleased]` block.
-3. Tag `vX.Y.Z` on `main`. The `Release Verify` workflow runs the
-   compiler dry-run publish (`moon publish --dry-run`) and packages /
-   uploads / publishes the VS Code extension when `VSCE_PAT` is
-   configured.
+3. Tag `vX.Y.Z` on `main`. The `Release Verify` workflow first runs
+   `scripts/verify_changelog_section.sh` (which fails if `CHANGELOG.md`
+   has no `## [X.Y.Z]` section, if `[Unreleased]` is still populated,
+   or if the tag name does not match the in-repo version). After that
+   gate it runs the compiler dry-run publish (`moon publish --dry-run`)
+   and packages / uploads / publishes the VS Code extension when
+   `VSCE_PAT` is configured.
+
+   You can run the changelog gate locally before tagging:
+
+   ```bash
+   bash scripts/verify_changelog_section.sh
+   ```
