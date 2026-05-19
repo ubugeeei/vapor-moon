@@ -1,5 +1,10 @@
 # Vapor Moon
 
+[![CI](https://github.com/ubugeeei/vapor-moon/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/ubugeeei/vapor-moon/actions/workflows/ci.yaml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![MoonBit](https://img.shields.io/badge/MoonBit-0.1.20260512-orange.svg)](https://www.moonbitlang.com/)
+[![devcontainer](https://img.shields.io/badge/devcontainer-ready-blueviolet.svg)](.devcontainer/devcontainer.json)
+
 Vapor Moon is a MoonBit-first Single File Component toolchain for building `luna.mbt`-powered UIs with Vue-like authoring, direct DOM-oriented client output, and SSR/island delivery.
 
 It is currently an unpublished hobby project developed by [`ubugeeei`](https://github.com/ubugeeei) and [`mizchi`](https://github.com/mizchi).
