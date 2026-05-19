@@ -75,6 +75,31 @@ if [ -s "$OUT" ]; then
   exit 1
 fi
 
+# `new` scaffolds a starter SFC. Validates: success message, generated
+# file compiles, refuses to overwrite without --force, --force allows
+# overwrite.
+NEW_DIR="$(mktemp -d "${TMPDIR:-/tmp}/vapor-moon-new.XXXXXX")"
+(
+  cd "$NEW_DIR"
+  moon run "$ROOT/src/cmd/vapor_moon" -- new Counter >"$OUT"
+  grep -q "^created Counter.mbtv$" "$OUT"
+  if [ ! -f Counter.mbtv ]; then
+    echo "expected vapor-moon new to create Counter.mbtv"
+    exit 1
+  fi
+  moon run "$ROOT/src/cmd/vapor_moon" -- compile Counter.mbtv >"$OUT"
+  grep -q "component=Counter" "$OUT"
+  if moon run "$ROOT/src/cmd/vapor_moon" -- new Counter >"$OUT" 2>&1; then
+    echo "expected vapor-moon new to refuse overwriting"
+    cat "$OUT"
+    exit 1
+  fi
+  grep -q "already exists" "$OUT"
+  moon run "$ROOT/src/cmd/vapor_moon" -- new Counter --force >"$OUT"
+  grep -q "^created Counter.mbtv$" "$OUT"
+)
+rm -rf "$NEW_DIR"
+
 # Failure path: forge a broken SFC, ensure `check` exits 1 and emits a
 # `path:line:col [severity] message` line.
 broken="$(mktemp "${TMPDIR:-/tmp}/vapor-moon-broken.XXXXXX.mbtv")"
