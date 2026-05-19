@@ -1,0 +1,62 @@
+{
+  "name": "@vapor-moon/vite-plugin",
+  "version": "0.1.0",
+  "description": "Vite+ plugin for Vapor Moon .mbtv Single File Components. Compiles .mbtv → MoonBit → JS at module-resolution time and wires hot-module reload.",
+  "license": "MIT",
+  "author": "ubugeeei",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ubugeeei/vapor-moon.git",
+    "directory": "packages/vite-plugin-vapor-moon"
+  },
+  "bugs": {
+    "url": "https://github.com/ubugeeei/vapor-moon/issues"
+  },
+  "homepage": "https://github.com/ubugeeei/vapor-moon#readme",
+  "keywords": [
+    "vite",
+    "vite-plugin",
+    "vapor-moon",
+    "mbtv",
+    "moonbit",
+    "sfc"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "vite": "^6.0.0 || ^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0",
+    "vite": "^7.0.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
