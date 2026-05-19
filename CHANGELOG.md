@@ -9,6 +9,10 @@ backwards compatible.
 
 ## [Unreleased]
 
+_Nothing yet — the next change starts here._
+
+## [0.2.0] — 2026-05-19
+
 ### Added
 - `vapor-moon --help` / `-h` / `help` and `vapor-moon --version` / `-V` flags
   (#80). The version string is sourced from a single `VERSION` constant shared
@@ -95,6 +99,7 @@ backwards compatible.
   server (luna SSR) code generation, scoped style hashing, basic editor
   tooling.
 
-[Unreleased]: https://github.com/ubugeeei/vapor-moon/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/ubugeeei/vapor-moon/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/ubugeeei/vapor-moon/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/ubugeeei/vapor-moon/releases/tag/v0.1.1
 [0.1.0]: https://github.com/ubugeeei/vapor-moon/releases/tag/v0.1.0
