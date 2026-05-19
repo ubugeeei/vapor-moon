@@ -1,5 +1,10 @@
 # Vapor Moon
 
+[![CI](https://github.com/ubugeeei/vapor-moon/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/ubugeeei/vapor-moon/actions/workflows/ci.yaml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![MoonBit](https://img.shields.io/badge/MoonBit-0.1.20260512-orange.svg)](https://www.moonbitlang.com/)
+[![devcontainer](https://img.shields.io/badge/devcontainer-ready-blueviolet.svg)](.devcontainer/devcontainer.json)
+
 Vapor Moon is a MoonBit-first Single File Component toolchain for building `luna.mbt`-powered UIs with Vue-like authoring, direct DOM-oriented client output, and SSR/island delivery.
 
 It is currently an unpublished hobby project developed by [`ubugeeei`](https://github.com/ubugeeei) and [`mizchi`](https://github.com/mizchi).
@@ -51,6 +56,32 @@ Current scope intentionally excludes or leaves unfinished:
 - `v-model` on `<input type="file">` (intentionally rejected — use `@change` + `event.target.files`)
 - `v-model` modifiers (`.lazy`, `.number`, `.trim`) outside the text-input paths where they currently work
 - LSP rename / codeAction implementations beyond Phase 1 stubs ([#86](https://github.com/ubugeeei/vapor-moon/issues/86) Phase 2)
+
+## Quickstart
+
+```bash
+# 1. Install MoonBit (Linux / macOS).
+curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+export PATH="$HOME/.moon/bin:$PATH"
+
+# 2. Clone and resolve dependencies.
+git clone https://github.com/ubugeeei/vapor-moon
+cd vapor-moon
+moon update && moon install
+
+# 3. Compile an example to inspect generated client / server / CSS.
+moon run src/cmd/vapor_moon -- compile examples/basic.mbtv
+
+# 4. Run the test suite (or `make ci` for the same gates CI uses).
+make test
+```
+
+Open the repo in [GitHub Codespaces](https://github.com/codespaces) for a
+zero-install environment via the bundled [`.devcontainer/`](.devcontainer/devcontainer.json).
+
+Editor support: VS Code (`editors/vscode`), Zed (`editors/zed`), Neovim
+(`editors/nvim`). The stdio LSP server lives in `src/cmd/vapor_moon_lsp`
+and is the common backend for all three.
 
 ## Authoring Model
 

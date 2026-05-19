@@ -1,0 +1,25 @@
+name: Documentation
+description: Report a gap, ambiguity, or error in the docs.
+title: "docs(area): "
+labels: ["documentation"]
+body:
+  - type: textarea
+    id: location
+    attributes:
+      label: Where
+      description: README section, examples/ file, docstring, etc. Link if possible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's wrong / missing
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested change
+      description: Optional — a draft of the fix you'd like to see.

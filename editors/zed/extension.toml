@@ -1,7 +1,7 @@
 id = "vapor-moon"
 name = "Vapor Moon"
 description = "Vapor Moon support for .mbtv Single File Components."
-version = "0.1.1"
+version = "0.2.0"
 schema_version = 1
 authors = ["Ubugeeei <ubugeeei@gmail.com>"]
 repository = "https://github.com/ubugeeei/vapor-moon"
