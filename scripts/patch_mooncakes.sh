@@ -4,7 +4,7 @@ set -eu
 export LC_ALL=C
 export LANG=C
 
-ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+ROOT="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 PKG="$ROOT/.mooncakes/moonbitlang/yacc/src/lib/parser/test/moon.pkg"
 TEST_FILE="$ROOT/.mooncakes/moonbitlang/yacc/src/lib/parser/test/test.mbt"
 PARSER_REPORT="$ROOT/.mooncakes/moonbitlang/parser/basic/report.mbt"

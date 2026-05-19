@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+ROOT="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 OUT="$(mktemp "${TMPDIR:-/tmp}/vapor-moon-publish.XXXXXX")"
 trap 'rm -f "$OUT"' EXIT
 
