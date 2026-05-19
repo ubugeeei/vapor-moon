@@ -1,0 +1,87 @@
+<script>
+import {
+  "mizchi/luna/js/resource" @reactivity,
+  let signal = @reactivity.signal,
+}
+
+// `v-unsafe-html` bypasses the runtime escape pipeline. Vapor Moon will
+// not sanitize the value for you, so the contract here is: every binding
+// site MUST pass through a real sanitizer first. The directive is named
+// `v-unsafe-html` to make that contract obvious at the binding site.
+//
+// In production code, replace `sanitize` with an established sanitizer
+// (e.g. DOMPurify on the client, ammonia / sanitize-html on the server).
+// The stub below allows only `<b>`, `<i>`, `<em>`, `<strong>`, and
+// `<code>` tags so the example stays runnable without an extra dep.
+fn sanitize(input : String) -> String {
+  let allowed = [
+    "<b>", "</b>", "<i>", "</i>", "<em>", "</em>", "<strong>", "</strong>",
+    "<code>", "</code>",
+  ]
+  let mut output = input
+  let mut i = 0
+  while i < output.length() {
+    if output[i].to_int() != '<'.to_int() {
+      i = i + 1
+      continue
+    }
+    let mut end = i + 1
+    while end < output.length() && output[end].to_int() != '>'.to_int() {
+      end = end + 1
+    }
+    if end >= output.length() {
+      // Unclosed angle bracket: drop it and bail.
+      output = output.substring(start=0, end=i) + "&lt;" + output.substring(start=i + 1)
+      i = i + 4
+      continue
+    }
+    let tag = output.substring(start=i, end=end + 1).to_lower()
+    let mut keep = false
+    for candidate in allowed {
+      if tag == candidate {
+        keep = true
+        break
+      }
+    }
+    if keep {
+      i = end + 1
+    } else {
+      let escaped = "&lt;" + output.substring(start=i + 1, end=end + 1)
+      output = output.substring(start=0, end=i) + escaped + output.substring(start=end + 1)
+      i = i + escaped.length()
+    }
+  }
+  output
+}
+
+let raw = signal("Hello <b>world</b>! <script>alert('xss')</script>")
+let safe = signal(sanitize(raw.get()))
+</script>
+
+<template>
+  <article class="unsafe-html-demo">
+    <p>{{ "Raw input (escaped by default through {{ ... }}): " }}</p>
+    <pre>{{ raw.get() }}</pre>
+    <p>{{ "Sanitized + bound via v-unsafe-html:" }}</p>
+    <div class="rendered" v-unsafe-html='safe.get()'></div>
+  </article>
+</template>
+
+<style>
+.unsafe-html-demo {
+  font-family: system-ui, sans-serif;
+}
+
+.unsafe-html-demo pre {
+  background: #f5f5f5;
+  padding: 0.5rem;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.unsafe-html-demo .rendered {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+</style>

@@ -398,3 +398,25 @@ test "select multiple v-model compiles to bind_select_multiple_model" {
   assert_true(output.contains("__selectMultipleModel"))
   assert_true(output.contains("@dom.bind_select_multiple_model"))
 }
+
+///|
+/// Coverage for examples/unsafe_html.mbtv: a `sanitize()` helper feeds
+/// the only `v-unsafe-html` binding in the SFC. Asserts the lowered
+/// output still routes through `raw_html` so the sanitize-first example
+/// stays representative of the runtime contract.
+test "sanitize-first v-unsafe-html example compiles to raw_html" {
+  let source =
+    #|<script>
+    #|fn sanitize(input : String) -> String {
+    #|  input
+    #|}
+    #|let raw : String = "<b>hi</b>"
+    #|let safe : String = sanitize(raw)
+    #|</script>
+    #|<template>
+    #|  <div v-unsafe-html='safe'></div>
+    #|</template>
+  let output = compile_snapshot(source, "UnsafeHtmlSanitizeFirst.mbtv")
+  assert_true(output.contains("raw_html"))
+  assert_true(output.contains("safe"))
+}
