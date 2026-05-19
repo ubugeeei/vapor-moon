@@ -636,16 +636,15 @@ fn run_doctor() -> Unit {
   println("expected MoonBit   : 0.1.20260512")
   match @env.get_env_var("MOON_HOME") {
     Some(home) => println("MOON_HOME          : " + home)
-    None => println("MOON_HOME          : <unset> (will fall back to $HOME/.moon)")
+    None =>
+      println("MOON_HOME          : <unset> (will fall back to $HOME/.moon)")
   }
   match find_moon_mod_json(".") {
     Some(path) => {
       println("moon.mod.json      : " + path)
       let content = @fs.read_file_to_string(path, encoding="utf8") catch {
         err => {
-          println(
-            "  ! failed to read moon.mod.json: " + err.to_string(),
-          )
+          println("  ! failed to read moon.mod.json: " + err.to_string())
           failures = failures + 1
           ""
         }
@@ -658,7 +657,9 @@ fn run_doctor() -> Unit {
       }
     }
     None => {
-      println("moon.mod.json      : <not found> (run `vapor-moon doctor` inside a moon workspace)")
+      println(
+        "moon.mod.json      : <not found> (run `vapor-moon doctor` inside a moon workspace)",
+      )
       failures = failures + 1
     }
   }

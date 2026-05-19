@@ -59,6 +59,18 @@ jobs:
           core-sha256: ${{ matrix.core-sha256 }}
       - name: Moon check
         run: moon check --deny-warn --warn-list -deprecated_syntax-deprecated --target native 2> >(grep -v 'WARN Duplicate alias' >&2)
+      - name: Moon fmt drift guard
+        # Run once on the ubuntu leg only — moon fmt is deterministic
+        # across platforms, so the second OS would just duplicate the
+        # check. Fails if any tracked .mbt file would change.
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          moon fmt
+          if ! git diff --quiet; then
+            echo "::error::moon fmt produced changes. Run \`moon fmt\` locally and commit the result."
+            git --no-pager diff --stat
+            exit 1
+          fi
       - name: Moon native tests
         run: moon test --target native
       - name: CLI smoke test
