@@ -57,3 +57,39 @@ for flag in --version -V; do
   moon run src/cmd/vapor_moon -- "$flag" >"$OUT"
   grep -q "^vapor-moon ${expected_version}$" "$OUT"
 done
+
+# `check` is the pass/fail gate for CI / pre-commit. Silent + exit 0 on
+# success across one or many files; exit 1 with `file:line:col` lines
+# when any file has diagnostics.
+moon run src/cmd/vapor_moon -- check "$ROOT/examples/basic.mbtv" >"$OUT"
+if [ -s "$OUT" ]; then
+  echo "expected `check` to be silent on success"
+  cat "$OUT"
+  exit 1
+fi
+
+moon run src/cmd/vapor_moon -- check "$ROOT/examples/basic.mbtv" "$ROOT/examples/todo_list.mbtv" >"$OUT"
+if [ -s "$OUT" ]; then
+  echo "expected `check` to be silent on multi-file success"
+  cat "$OUT"
+  exit 1
+fi
+
+# Failure path: forge a broken SFC, ensure `check` exits 1 and emits a
+# `path:line:col [severity] message` line.
+broken="$(mktemp "${TMPDIR:-/tmp}/vapor-moon-broken.XXXXXX.mbtv")"
+trap 'rm -f "$OUT" "$broken"' EXIT
+cat > "$broken" <<'EOF'
+<script>
+let emit = defineEmits()
+</script>
+<template>
+  <input v-model:value='broken' />
+</template>
+EOF
+if moon run src/cmd/vapor_moon -- check "$broken" >"$OUT" 2>&1; then
+  echo "expected `check` to fail on a broken SFC"
+  cat "$OUT"
+  exit 1
+fi
+grep -qE ":[0-9]+:[0-9]+ \[error\] " "$OUT"
