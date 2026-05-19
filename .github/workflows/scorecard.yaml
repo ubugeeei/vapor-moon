@@ -1,0 +1,57 @@
+name: OpenSSF Scorecard
+
+# Scorecard scans the repository configuration (branch protection, signed
+# releases, dependency pinning, dangerous workflow patterns) and publishes
+# the results to the GitHub Security tab. It is read-only for code and
+# strictly write-only for the security-events stream — see
+# https://github.com/ossf/scorecard-action for the full permission model.
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    # Weekly, Monday 03:17 UTC. Off-peak so the cron doesn't fight CI.
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    permissions:
+      # Required: write the SARIF result into the Security tab.
+      security-events: write
+      # Required for OIDC-based publishing to the OpenSSF service.
+      id-token: write
+      # Standard checkout permission.
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@v2.4.2
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          # Publish to the public OpenSSF dashboard. Disable by setting
+          # this to "false" if the repository goes private.
+          publish_results: true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: scorecard-results
+          path: results.sarif
+          retention-days: 30
+
+      - name: Upload SARIF results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
